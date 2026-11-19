@@ -172,6 +172,13 @@ func TestPrepDeductCountsGrowingGardenCrop(t *testing.T) {
 	require.Equal(t, 110.0, plan.BalanceToDeduct)
 	require.Zero(t, plan.cropUprooted)
 
+	// 10.12 + 0.51 is just under 10.63 as floats; the refund is still fully funded.
+	repo.growing = 0.51
+	svc.userRepo = &mockUserRepo{getByIDUser: &User{Balance: 10.12}}
+	exact := &RefundPlan{RefundAmount: 10.63}
+	require.Nil(t, svc.prepDeduct(context.Background(), order, exact, false))
+	require.Equal(t, 10.63, exact.BalanceToDeduct)
+
 	repo.growingErr = errors.New("db down")
 	forced := &RefundPlan{RefundAmount: 110}
 	result := svc.prepDeduct(context.Background(), order, forced, true)

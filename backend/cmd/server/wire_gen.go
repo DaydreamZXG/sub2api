@@ -188,7 +188,7 @@ func initializeApplication(buildInfo handler.BuildInfo) (*Application, error) {
 	ticketService := service.NewTicketService(ticketRepository)
 	ticketHandler := handler.NewTicketHandler(ticketService)
 	growthHandler := handler.NewGrowthHandler(growthLevelsService, userService, apiKeyService)
-	gardenRepository := repository.NewGardenRepository(db)
+	gardenRepository := repository.NewGardenRepository(client, db)
 	gardenSocialRepository := repository.NewGardenSocialRepository(db)
 	gardenService := service.NewGardenService(gardenRepository, gardenSocialRepository, settingRepository, redeemService, growthLevelsService)
 	gardenHandler := handler.NewGardenHandler(gardenService)
