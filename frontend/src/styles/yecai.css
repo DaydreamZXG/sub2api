@@ -40,8 +40,8 @@
 .yc-eyebrow { font-size: 12.5px; font-weight: 650; letter-spacing: 0.14em; text-transform: uppercase; color: var(--yc-mut); }
 .yc-h2 { font-size: clamp(28px, 4vw, 44px); line-height: 1.12; letter-spacing: -0.03em; font-weight: 750; text-wrap: balance; }
 .yc-card { background: var(--yc-paper); border: 1px solid var(--yc-line); border-radius: 20px; }
-.yc :focus-visible { outline: 2px solid var(--yc-ink); outline-offset: 3px; border-radius: 6px; }
-.dark .yc :focus-visible { outline-color: var(--yc-lime); }
+.yc :focus-visible:not(.yc-legacy *) { outline: 2px solid var(--yc-ink); outline-offset: 3px; border-radius: 6px; }
+.dark .yc :focus-visible:not(.yc-legacy *) { outline-color: var(--yc-lime); }
 .yc-surface { position: relative; background: var(--yc-paper); border: 1px solid var(--yc-line); border-radius: 24px; box-shadow: 0 1px 0 rgb(255 255 255 / 0.9) inset, 0 1px 2px rgb(11 15 12 / 0.04), 0 18px 40px -24px rgb(11 15 12 / 0.22); }
 .dark .yc .yc-surface { box-shadow: 0 1px 0 rgb(255 255 255 / 0.05) inset, 0 24px 60px -30px rgb(0 0 0 / 0.9); }
 .yc-num { font-variant-numeric: tabular-nums; letter-spacing: -0.04em; font-weight: 800; }
@@ -75,9 +75,9 @@
 .yc-link:hover { text-decoration-color: currentColor; }
 @keyframes yc-enter { from { opacity: 0; transform: translateY(22px); } }
 @media (prefers-reduced-motion: no-preference) {
-  .yc-shell-main > * { animation: yc-enter 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) backwards; }
-  .yc-shell-main > :nth-child(2) { animation-delay: 0.06s; }
-  .yc-shell-main > :nth-child(3) { animation-delay: 0.12s; }
-  .yc-shell-main > :nth-child(4) { animation-delay: 0.18s; }
-  .yc-shell-main > :nth-child(n + 5) { animation-delay: 0.24s; }
+  .yc-shell-main:not(.yc-legacy) > * { animation: yc-enter 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) backwards; }
+  .yc-shell-main:not(.yc-legacy) > :nth-child(2) { animation-delay: 0.06s; }
+  .yc-shell-main:not(.yc-legacy) > :nth-child(3) { animation-delay: 0.12s; }
+  .yc-shell-main:not(.yc-legacy) > :nth-child(4) { animation-delay: 0.18s; }
+  .yc-shell-main:not(.yc-legacy) > :nth-child(n + 5) { animation-delay: 0.24s; }
 }
