@@ -122,11 +122,15 @@ type GardenService struct {
 	settingRepo   SettingRepository
 	redeemService *RedeemService
 	cache         atomic.Pointer[cachedGardenSettings]
+	// social and growthLevels serve what neighbours do in each other's gardens; rollDice replaces the dog's dice in tests.
+	social       GardenSocialRepository
+	growthLevels *GrowthLevelsService
+	rollDice     func() float64
 }
 
 // NewGardenService creates the garden.
-func NewGardenService(repo GardenRepository, settingRepo SettingRepository, redeemService *RedeemService) *GardenService {
-	return &GardenService{repo: repo, settingRepo: settingRepo, redeemService: redeemService}
+func NewGardenService(repo GardenRepository, social GardenSocialRepository, settingRepo SettingRepository, redeemService *RedeemService, growthLevels *GrowthLevelsService) *GardenService {
+	return &GardenService{repo: repo, social: social, settingRepo: settingRepo, redeemService: redeemService, growthLevels: growthLevels}
 }
 
 // Settings returns the saved rules, or the garden switched off when none are saved or they cannot be read.

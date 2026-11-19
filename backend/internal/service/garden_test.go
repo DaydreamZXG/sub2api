@@ -43,7 +43,7 @@ func (r *fakeGardenRepo) GetCrop(context.Context, int64, int64) (*GardenCrop, er
 
 func newTestGarden(settings string) (*GardenService, *fakeGardenRepo) {
 	repo := &fakeGardenRepo{planted: map[int64]float64{}}
-	return NewGardenService(repo, &growthLevelsSettingRepo{value: settings}, nil), repo
+	return NewGardenService(repo, nil, &growthLevelsSettingRepo{value: settings}, nil, nil), repo
 }
 
 // The bonus is planted only while the garden is on, once per order, with the configured ripening time.
