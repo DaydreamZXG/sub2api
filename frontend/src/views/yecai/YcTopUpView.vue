@@ -48,12 +48,10 @@ const payEnabled = computed(() => appStore.cachedPublicSettings?.payment_enabled
 const canPay = computed(() => payEnabled.value && checkout.value?.balance_disabled !== true)
 
 // Limits and bonus thresholds are counted in the payment method's currency. Amounts are only
-// quoted when every available method uses the same one.
+// quoted when every method on offer uses the same one.
 const payCurrency = computed(() => {
   const used = new Set(
-    Object.values(checkout.value?.methods ?? {})
-      .filter((method) => method.available)
-      .map((method) => normalizePaymentCurrency(method.currency))
+    Object.values(checkout.value?.methods ?? {}).map((method) => normalizePaymentCurrency(method.currency))
   )
   return used.size === 1 ? [...used][0] : null
 })
