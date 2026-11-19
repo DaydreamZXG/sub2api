@@ -1230,6 +1230,15 @@ export default {
           detector: 'Detector'
         }
       },
+      appLine: {
+        title: 'YESCHOY app only',
+        enabled: 'Only requests sent through the YESCHOY app are billed on this line',
+        disabled: 'Any tool can use this line',
+        hint: 'When on, app users pay this line\'s price. Requests that do not come from the app are handled by the line chosen below.',
+        fallbackGroup: 'Requests not from the app use',
+        noFallback: 'Nothing: reject them',
+        fallbackHint: 'Pick a normal-price line to keep serving these requests at its price, or leave empty to reject them.'
+      },
       claudeCode: {
         title: 'Claude Code Client Restriction',
         tooltip: 'When enabled, this group only allows official Claude Code clients. Non-Claude Code requests will be rejected or fallback to the specified group.',
