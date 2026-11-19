@@ -136,6 +136,8 @@ const clientLabel =
 const shell = ref<Shell>(clientPlatform === 'windows' ? 'powershell' : 'unix')
 
 const baseUrl = computed(() => appStore.cachedPublicSettings?.api_base_url || window.location.origin)
+// Claude Code and Gemini CLI append their own version path, so they need the address without /v1.
+const toolBaseUrl = computed(() => baseUrl.value.replace(/\/v1\/?$/, '').replace(/\/+$/, ''))
 const key = computed(() => keys.value.find((k) => k.id === keyId.value) ?? keys.value[0] ?? null)
 
 function mask(secret: string): string {
@@ -154,7 +156,7 @@ const snippet = computed(() => {
   if (!k || !vars) return null
   const lines = (secret: string) =>
     [
-      [vars.url, baseUrl.value],
+      [vars.url, toolBaseUrl.value],
       [vars.token, secret]
     ]
       .map(([name, value]) =>
