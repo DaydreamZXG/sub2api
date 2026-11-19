@@ -130,9 +130,10 @@ func RegisterUserRoutes(
 		tickets := authenticated.Group("/tickets")
 		{
 			tickets.GET("", h.Ticket.List)
-			tickets.POST("", h.Ticket.Create)
+			// 写入走严格档限流，避免单个账号刷工单
+			tickets.POST("", panelRateLimiter.Heavy(), h.Ticket.Create)
 			tickets.GET("/:id", h.Ticket.Get)
-			tickets.POST("/:id/messages", h.Ticket.Reply)
+			tickets.POST("/:id/messages", panelRateLimiter.Heavy(), h.Ticket.Reply)
 			tickets.POST("/:id/close", h.Ticket.Close)
 		}
 
