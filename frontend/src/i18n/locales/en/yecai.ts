@@ -149,6 +149,28 @@ export default {
     contactTitle: 'Get help from a person', noContact: 'The site owner has not added contact details yet.', docs: 'Read the docs',
     newsTitle: 'Announcements'
   },
+  tickets: {
+    title: 'Tickets',
+    lead: 'Tell us what went wrong and we will reply here.',
+    new: 'New ticket',
+    subject: 'The problem in one line',
+    subjectHint: 'e.g. Claude Code says 401',
+    category: 'Topic',
+    cat: { usage: 'Setup and usage', billing: 'Top-ups and charges', account: 'Account', other: 'Other' },
+    content: 'Details',
+    contentHint: 'Which tool, what you did, and the error you saw. Paste the error text if you can.',
+    submit: 'Submit',
+    empty: 'No tickets yet.',
+    loadFailed: 'Tickets cannot be loaded right now. Refresh in a moment.',
+    failed: 'That did not go through. Please try again later.',
+    status: { open: 'Waiting for reply', answered: 'Answered', closed: 'Closed' },
+    author: { user: 'Me', staff: 'Support', ai: 'AI assistant' },
+    replyHint: 'Add details or ask a follow-up',
+    reopenHint: 'This ticket is closed. Sending a message reopens it.',
+    send: 'Send',
+    close: 'Solved, close the ticket',
+    more: 'Show more'
+  },
   theme: { label: 'Appearance', light: 'Light', dark: 'Dark', system: 'Follow system' },
   prices: {
     title: 'Prices',

@@ -149,6 +149,28 @@ export default {
     contactTitle: '找人帮忙', noContact: '站长还没有填写联系方式。', docs: '查看使用文档',
     newsTitle: '公告'
   },
+  tickets: {
+    title: '工单',
+    lead: '说清楚遇到了什么，我们在这里回复你。',
+    new: '提交工单',
+    subject: '一句话说明问题',
+    subjectHint: '比如：Claude Code 提示 401',
+    category: '问题类型',
+    cat: { usage: '接入和使用', billing: '充值和扣费', account: '账号', other: '其他' },
+    content: '详细情况',
+    contentHint: '用的什么工具、做了什么、看到了什么报错。报错原文贴上来最好。',
+    submit: '提交',
+    empty: '还没有工单。',
+    loadFailed: '工单暂时读取不了，稍后刷新再试。',
+    failed: '操作没有成功，请稍后再试。',
+    status: { open: '等待回复', answered: '已回复', closed: '已关闭' },
+    author: { user: '我', staff: '客服', ai: 'AI 助手' },
+    replyHint: '继续补充或追问',
+    reopenHint: '这张工单已关闭。再发一条消息会重新打开它。',
+    send: '发送',
+    close: '问题已解决，关闭工单',
+    more: '查看更多'
+  },
   theme: { label: '外观', light: '浅色', dark: '深色', system: '跟随系统' },
   prices: {
     title: '价目表',

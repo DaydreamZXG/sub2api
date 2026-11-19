@@ -604,6 +604,18 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
+    path: '/admin/tickets',
+    name: 'AdminTickets',
+    component: () => import('@/views/admin/TicketsView.vue'),
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: true,
+      title: 'Tickets',
+      titleKey: 'admin.tickets.title',
+      descriptionKey: 'admin.tickets.description'
+    }
+  },
+  {
     path: '/admin/proxies',
     name: 'AdminProxies',
     component: () => import('@/views/admin/ProxiesView.vue'),

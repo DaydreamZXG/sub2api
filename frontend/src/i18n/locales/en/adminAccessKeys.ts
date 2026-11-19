@@ -282,6 +282,14 @@ export default {
       "label": "Delete announcements",
       "category": "Content"
     },
+    "tickets_dread": {
+      "label": "Read all user tickets and conversations",
+      "category": "Content"
+    },
+    "tickets_dwrite": {
+      "label": "Reply to tickets and change their status",
+      "category": "Content"
+    },
     "promo_dread": {
       "label": "Read promotion codes and usage records",
       "category": "Finance"

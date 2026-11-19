@@ -282,6 +282,14 @@ export default {
       "label": "删除公告",
       "category": "内容"
     },
+    "tickets_dread": {
+      "label": "读取所有用户的工单与对话",
+      "category": "内容"
+    },
+    "tickets_dwrite": {
+      "label": "回复工单并修改工单状态",
+      "category": "内容"
+    },
     "promo_dread": {
       "label": "读取优惠码及使用记录",
       "category": "财务"

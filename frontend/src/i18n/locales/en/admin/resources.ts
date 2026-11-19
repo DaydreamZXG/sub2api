@@ -373,6 +373,24 @@ export default {
       failedToUpdate: 'Failed to update redeem code'
     },
 
+    // Tickets
+    tickets: {
+      title: 'Tickets',
+      description: 'Read and answer support tickets from users',
+      allStatus: 'All statuses',
+      view: 'View',
+      reply: 'Reply',
+      close: 'Close ticket',
+      reopen: 'Reopen',
+      replyPlaceholder: 'Write a reply to the user',
+      failedToLoad: 'Failed to load tickets',
+      failedToSave: 'Action failed',
+      status: { open: 'Needs reply', answered: 'Answered', closed: 'Closed' },
+      category: { usage: 'Setup and usage', billing: 'Top-ups and charges', account: 'Account', other: 'Other' },
+      author: { user: 'User', staff: 'Support', ai: 'AI assistant' },
+      columns: { subject: 'Subject', user: 'User', category: 'Topic', status: 'Status', lastMessage: 'Last message' }
+    },
+
     // Announcements
     announcements: {
       title: 'Announcements',
