@@ -1,11 +1,7 @@
-import { ref } from 'vue'
 import { paymentAPI } from '@/api/payment'
 import { useAppStore, useAuthStore } from '@/stores'
+import { cnyPerUsd, unitsPerYuan } from './ycMoneyState'
 
-// Balance units credited per ¥1 paid. Users see what they paid, so amounts are shown in ¥.
-const unitsPerYuan = ref(1)
-// Reference rate used only to restate official USD prices in ¥ for comparison.
-const cnyPerUsd = ref(7.2)
 let requested = false
 
 export function useYcMoney() {

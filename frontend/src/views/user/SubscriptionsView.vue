@@ -107,7 +107,7 @@
                   {{ t('userSubscriptions.daily') }}
                 </span>
                 <span class="text-sm text-gray-500 dark:text-dark-400">
-                  ${{ (subscription.daily_usage_usd || 0).toFixed(2) }} / ${{
+                  {{ sign }}{{ (subscription.daily_usage_usd || 0).toFixed(2) }} / {{ sign }}{{
                     subscription.group.daily_limit_usd.toFixed(2)
                   }}
                 </span>
@@ -144,7 +144,7 @@
                   {{ t('userSubscriptions.weekly') }}
                 </span>
                 <span class="text-sm text-gray-500 dark:text-dark-400">
-                  ${{ (subscription.weekly_usage_usd || 0).toFixed(2) }} / ${{
+                  {{ sign }}{{ (subscription.weekly_usage_usd || 0).toFixed(2) }} / {{ sign }}{{
                     subscription.group.weekly_limit_usd.toFixed(2)
                   }}
                 </span>
@@ -185,7 +185,7 @@
                   {{ t('userSubscriptions.monthly') }}
                 </span>
                 <span class="text-sm text-gray-500 dark:text-dark-400">
-                  ${{ (subscription.monthly_usage_usd || 0).toFixed(2) }} / ${{
+                  {{ sign }}{{ (subscription.monthly_usage_usd || 0).toFixed(2) }} / {{ sign }}{{
                     subscription.group.monthly_limit_usd.toFixed(2)
                   }}
                 </span>
@@ -265,6 +265,8 @@ import {
   isOneTimeDailyQuota,
   type RemainingDurationParts
 } from '@/utils/subscriptionQuota'
+import { ycSign as sign } from '@/composables/ycMoneyState'
+
 
 function platformAccentDotClass(p: string): string {
   switch (p) {
