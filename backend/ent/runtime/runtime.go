@@ -10,6 +10,7 @@ import (
 	"github.com/Wei-Shaw/sub2api/ent/announcement"
 	"github.com/Wei-Shaw/sub2api/ent/announcementread"
 	"github.com/Wei-Shaw/sub2api/ent/apikey"
+	"github.com/Wei-Shaw/sub2api/ent/appdevicetoken"
 	"github.com/Wei-Shaw/sub2api/ent/authidentity"
 	"github.com/Wei-Shaw/sub2api/ent/authidentitychannel"
 	"github.com/Wei-Shaw/sub2api/ent/batchimageevent"
@@ -324,6 +325,60 @@ func init() {
 	announcementreadDescCreatedAt := announcementreadFields[3].Descriptor()
 	// announcementread.DefaultCreatedAt holds the default value on creation for the created_at field.
 	announcementread.DefaultCreatedAt = announcementreadDescCreatedAt.Default.(func() time.Time)
+	appdevicetokenFields := schema.AppDeviceToken{}.Fields()
+	_ = appdevicetokenFields
+	// appdevicetokenDescDeviceID is the schema descriptor for device_id field.
+	appdevicetokenDescDeviceID := appdevicetokenFields[1].Descriptor()
+	// appdevicetoken.DeviceIDValidator is a validator for the "device_id" field. It is called by the builders before save.
+	appdevicetoken.DeviceIDValidator = func() func(string) error {
+		validators := appdevicetokenDescDeviceID.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(device_id string) error {
+			for _, fn := range fns {
+				if err := fn(device_id); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// appdevicetokenDescPlatform is the schema descriptor for platform field.
+	appdevicetokenDescPlatform := appdevicetokenFields[2].Descriptor()
+	// appdevicetoken.DefaultPlatform holds the default value on creation for the platform field.
+	appdevicetoken.DefaultPlatform = appdevicetokenDescPlatform.Default.(string)
+	// appdevicetoken.PlatformValidator is a validator for the "platform" field. It is called by the builders before save.
+	appdevicetoken.PlatformValidator = appdevicetokenDescPlatform.Validators[0].(func(string) error)
+	// appdevicetokenDescClientVersion is the schema descriptor for client_version field.
+	appdevicetokenDescClientVersion := appdevicetokenFields[3].Descriptor()
+	// appdevicetoken.DefaultClientVersion holds the default value on creation for the client_version field.
+	appdevicetoken.DefaultClientVersion = appdevicetokenDescClientVersion.Default.(string)
+	// appdevicetoken.ClientVersionValidator is a validator for the "client_version" field. It is called by the builders before save.
+	appdevicetoken.ClientVersionValidator = appdevicetokenDescClientVersion.Validators[0].(func(string) error)
+	// appdevicetokenDescTokenHash is the schema descriptor for token_hash field.
+	appdevicetokenDescTokenHash := appdevicetokenFields[4].Descriptor()
+	// appdevicetoken.TokenHashValidator is a validator for the "token_hash" field. It is called by the builders before save.
+	appdevicetoken.TokenHashValidator = func() func(string) error {
+		validators := appdevicetokenDescTokenHash.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(token_hash string) error {
+			for _, fn := range fns {
+				if err := fn(token_hash); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// appdevicetokenDescCreatedAt is the schema descriptor for created_at field.
+	appdevicetokenDescCreatedAt := appdevicetokenFields[5].Descriptor()
+	// appdevicetoken.DefaultCreatedAt holds the default value on creation for the created_at field.
+	appdevicetoken.DefaultCreatedAt = appdevicetokenDescCreatedAt.Default.(func() time.Time)
 	authidentityMixin := schema.AuthIdentity{}.Mixin()
 	authidentityMixinFields0 := authidentityMixin[0].Fields()
 	_ = authidentityMixinFields0

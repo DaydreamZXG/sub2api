@@ -352,6 +352,30 @@ var (
 			},
 		},
 	}
+	// AppDeviceTokensColumns holds the columns for the "app_device_tokens" table.
+	AppDeviceTokensColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "user_id", Type: field.TypeInt64},
+		{Name: "device_id", Type: field.TypeString, Size: 128},
+		{Name: "platform", Type: field.TypeString, Size: 16, Default: "unknown"},
+		{Name: "client_version", Type: field.TypeString, Size: 32, Default: ""},
+		{Name: "token_hash", Type: field.TypeString, Unique: true, Size: 64},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "revoked_at", Type: field.TypeTime, Nullable: true},
+	}
+	// AppDeviceTokensTable holds the schema information for the "app_device_tokens" table.
+	AppDeviceTokensTable = &schema.Table{
+		Name:       "app_device_tokens",
+		Columns:    AppDeviceTokensColumns,
+		PrimaryKey: []*schema.Column{AppDeviceTokensColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "appdevicetoken_user_id_device_id",
+				Unique:  false,
+				Columns: []*schema.Column{AppDeviceTokensColumns[1], AppDeviceTokensColumns[2]},
+			},
+		},
+	}
 	// AuthIdentitiesColumns holds the columns for the "auth_identities" table.
 	AuthIdentitiesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
@@ -2150,6 +2174,7 @@ var (
 		AccountGroupsTable,
 		AnnouncementsTable,
 		AnnouncementReadsTable,
+		AppDeviceTokensTable,
 		AuthIdentitiesTable,
 		AuthIdentityChannelsTable,
 		BatchImageEventsTable,
@@ -2212,6 +2237,9 @@ func init() {
 	AnnouncementReadsTable.ForeignKeys[1].RefTable = UsersTable
 	AnnouncementReadsTable.Annotation = &entsql.Annotation{
 		Table: "announcement_reads",
+	}
+	AppDeviceTokensTable.Annotation = &entsql.Annotation{
+		Table: "app_device_tokens",
 	}
 	AuthIdentitiesTable.ForeignKeys[0].RefTable = UsersTable
 	AuthIdentitiesTable.Annotation = &entsql.Annotation{
