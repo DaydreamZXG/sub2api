@@ -10,7 +10,7 @@
       </div>
       <div class="yc-top-cta">
         <router-link v-if="canPay" to="/purchase" class="yc-btn yc-btn-lime">{{ t('yc.topUp.pay') }} →</router-link>
-        <router-link v-else-if="payEnabled" to="/purchase" class="yc-btn yc-btn-lime">{{ t('yc.topUp.buyPlan') }} →</router-link>
+        <router-link v-else-if="payEnabled && plansEnabled" to="/purchase" class="yc-btn yc-btn-lime">{{ t('yc.topUp.buyPlan') }} →</router-link>
         <router-link to="/redeem" class="yc-btn yc-btn-ghost">{{ t('yc.topUp.redeem') }}</router-link>
       </div>
     </section>
@@ -36,6 +36,7 @@ import { paymentAPI } from '@/api/payment'
 import type { CheckoutInfoResponse } from '@/types/payment'
 import YcShell from '@/components/yecai/YcShell.vue'
 import { useYcMoney } from '@/composables/useYcMoney'
+import { FeatureFlags, isFeatureFlagEnabled } from '@/utils/featureFlags'
 import { currencySymbol, normalizePaymentCurrency } from '@/components/payment/currency'
 
 const { t } = useI18n()
@@ -45,6 +46,7 @@ const { yuan } = useYcMoney()
 
 const checkout = ref<CheckoutInfoResponse | null>(null)
 const payEnabled = computed(() => appStore.cachedPublicSettings?.payment_enabled === true)
+const plansEnabled = computed(() => isFeatureFlagEnabled(FeatureFlags.subscription))
 const canPay = computed(() => payEnabled.value && checkout.value?.balance_disabled !== true)
 
 // Limits and bonus thresholds are counted in the payment method's currency. Amounts are only
