@@ -10,6 +10,7 @@
       </div>
       <div class="yc-top-cta">
         <router-link v-if="canPay" to="/purchase" class="yc-btn yc-btn-lime">{{ t('yc.topUp.pay') }} →</router-link>
+        <router-link v-else-if="payEnabled" to="/purchase" class="yc-btn yc-btn-lime">{{ t('yc.topUp.buyPlan') }} →</router-link>
         <router-link to="/redeem" class="yc-btn yc-btn-ghost">{{ t('yc.topUp.redeem') }}</router-link>
       </div>
     </section>
