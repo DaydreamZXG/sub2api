@@ -142,6 +142,9 @@ type Group struct {
 	// Claude Code 客户端限制
 	ClaudeCodeOnly  bool   `json:"claude_code_only"`
 	FallbackGroupID *int64 `json:"fallback_group_id"`
+	// 仅限野菜 app 的线路
+	AppOnly            bool   `json:"app_only"`
+	AppFallbackGroupID *int64 `json:"app_fallback_group_id"`
 	// 无效请求兜底分组
 	FallbackGroupIDOnInvalidRequest *int64 `json:"fallback_group_id_on_invalid_request"`
 

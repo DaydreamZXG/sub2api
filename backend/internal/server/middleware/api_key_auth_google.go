@@ -78,6 +78,20 @@ func APIKeyAuthWithSubscriptionGoogle(apiKeyService *service.APIKeyService, subs
 			return
 		}
 
+		// 同 api_key_auth.go：仅限 app 的线路，没带本人 app 凭证的请求改用普通价分组或被拒绝。
+		apiKey, err = apiKeyService.ResolveAppLine(c.Request.Context(), apiKey, c.GetHeader(service.AppTokenHeader))
+		if err != nil {
+			if errors.Is(err, service.ErrAppOnlyLine) {
+				abortWithGoogleError(c, 403, "This API key only works through the YESCHOY app")
+				return
+			}
+			if abortIfAPIKeyLookupClientGone(c, err) {
+				return
+			}
+			abortWithGoogleError(c, 500, "Failed to validate API key")
+			return
+		}
+
 		// 同 api_key_auth.go：早退中断前也写入 Ops 回退 key，便于错误日志展示
 		// user/group/platform。
 		SetOpsFallbackAPIKey(c, apiKey)

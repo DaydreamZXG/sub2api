@@ -211,6 +211,14 @@ func (Group) Fields() []ent.Field {
 			Optional().
 			Nillable().
 			Comment("非 Claude Code 请求降级使用的分组 ID"),
+		// 仅限野菜 app 的线路 (added by migration 255)
+		field.Bool("app_only").
+			Default(false).
+			Comment("是否仅允许已登录的野菜 app 转发的请求"),
+		field.Int64("app_fallback_group_id").
+			Optional().
+			Nillable().
+			Comment("非 app 请求改用的分组 ID；为空时拒绝"),
 		field.Int64("fallback_group_id_on_invalid_request").
 			Optional().
 			Nillable().

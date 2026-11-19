@@ -197,11 +197,7 @@ func (s *DesktopConnectService) IssueAppToken(ctx context.Context, userID int64,
 
 // IsAppRequest reports whether token is a live app token that belongs to userID.
 func (s *DesktopConnectService) IsAppRequest(ctx context.Context, token string, userID int64) bool {
-	if !strings.HasPrefix(token, appTokenPrefix) {
-		return false
-	}
-	owner, ok, err := s.appTokens.ActiveUserID(ctx, hashDesktopSecret(token))
-	return err == nil && ok && owner == userID
+	return NewAppRequestVerifier(s.appTokens).IsAppRequest(ctx, token, userID)
 }
 
 // RefreshTokenTTL is how long a refresh token issued now stays valid.

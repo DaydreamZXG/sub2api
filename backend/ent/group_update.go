@@ -881,6 +881,47 @@ func (_u *GroupUpdate) ClearFallbackGroupID() *GroupUpdate {
 	return _u
 }
 
+// SetAppOnly sets the "app_only" field.
+func (_u *GroupUpdate) SetAppOnly(v bool) *GroupUpdate {
+	_u.mutation.SetAppOnly(v)
+	return _u
+}
+
+// SetNillableAppOnly sets the "app_only" field if the given value is not nil.
+func (_u *GroupUpdate) SetNillableAppOnly(v *bool) *GroupUpdate {
+	if v != nil {
+		_u.SetAppOnly(*v)
+	}
+	return _u
+}
+
+// SetAppFallbackGroupID sets the "app_fallback_group_id" field.
+func (_u *GroupUpdate) SetAppFallbackGroupID(v int64) *GroupUpdate {
+	_u.mutation.ResetAppFallbackGroupID()
+	_u.mutation.SetAppFallbackGroupID(v)
+	return _u
+}
+
+// SetNillableAppFallbackGroupID sets the "app_fallback_group_id" field if the given value is not nil.
+func (_u *GroupUpdate) SetNillableAppFallbackGroupID(v *int64) *GroupUpdate {
+	if v != nil {
+		_u.SetAppFallbackGroupID(*v)
+	}
+	return _u
+}
+
+// AddAppFallbackGroupID adds value to the "app_fallback_group_id" field.
+func (_u *GroupUpdate) AddAppFallbackGroupID(v int64) *GroupUpdate {
+	_u.mutation.AddAppFallbackGroupID(v)
+	return _u
+}
+
+// ClearAppFallbackGroupID clears the value of the "app_fallback_group_id" field.
+func (_u *GroupUpdate) ClearAppFallbackGroupID() *GroupUpdate {
+	_u.mutation.ClearAppFallbackGroupID()
+	return _u
+}
+
 // SetFallbackGroupIDOnInvalidRequest sets the "fallback_group_id_on_invalid_request" field.
 func (_u *GroupUpdate) SetFallbackGroupIDOnInvalidRequest(v int64) *GroupUpdate {
 	_u.mutation.ResetFallbackGroupIDOnInvalidRequest()
@@ -1856,6 +1897,18 @@ func (_u *GroupUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.FallbackGroupIDCleared() {
 		_spec.ClearField(group.FieldFallbackGroupID, field.TypeInt64)
+	}
+	if value, ok := _u.mutation.AppOnly(); ok {
+		_spec.SetField(group.FieldAppOnly, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.AppFallbackGroupID(); ok {
+		_spec.SetField(group.FieldAppFallbackGroupID, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.AddedAppFallbackGroupID(); ok {
+		_spec.AddField(group.FieldAppFallbackGroupID, field.TypeInt64, value)
+	}
+	if _u.mutation.AppFallbackGroupIDCleared() {
+		_spec.ClearField(group.FieldAppFallbackGroupID, field.TypeInt64)
 	}
 	if value, ok := _u.mutation.FallbackGroupIDOnInvalidRequest(); ok {
 		_spec.SetField(group.FieldFallbackGroupIDOnInvalidRequest, field.TypeInt64, value)
@@ -3118,6 +3171,47 @@ func (_u *GroupUpdateOne) ClearFallbackGroupID() *GroupUpdateOne {
 	return _u
 }
 
+// SetAppOnly sets the "app_only" field.
+func (_u *GroupUpdateOne) SetAppOnly(v bool) *GroupUpdateOne {
+	_u.mutation.SetAppOnly(v)
+	return _u
+}
+
+// SetNillableAppOnly sets the "app_only" field if the given value is not nil.
+func (_u *GroupUpdateOne) SetNillableAppOnly(v *bool) *GroupUpdateOne {
+	if v != nil {
+		_u.SetAppOnly(*v)
+	}
+	return _u
+}
+
+// SetAppFallbackGroupID sets the "app_fallback_group_id" field.
+func (_u *GroupUpdateOne) SetAppFallbackGroupID(v int64) *GroupUpdateOne {
+	_u.mutation.ResetAppFallbackGroupID()
+	_u.mutation.SetAppFallbackGroupID(v)
+	return _u
+}
+
+// SetNillableAppFallbackGroupID sets the "app_fallback_group_id" field if the given value is not nil.
+func (_u *GroupUpdateOne) SetNillableAppFallbackGroupID(v *int64) *GroupUpdateOne {
+	if v != nil {
+		_u.SetAppFallbackGroupID(*v)
+	}
+	return _u
+}
+
+// AddAppFallbackGroupID adds value to the "app_fallback_group_id" field.
+func (_u *GroupUpdateOne) AddAppFallbackGroupID(v int64) *GroupUpdateOne {
+	_u.mutation.AddAppFallbackGroupID(v)
+	return _u
+}
+
+// ClearAppFallbackGroupID clears the value of the "app_fallback_group_id" field.
+func (_u *GroupUpdateOne) ClearAppFallbackGroupID() *GroupUpdateOne {
+	_u.mutation.ClearAppFallbackGroupID()
+	return _u
+}
+
 // SetFallbackGroupIDOnInvalidRequest sets the "fallback_group_id_on_invalid_request" field.
 func (_u *GroupUpdateOne) SetFallbackGroupIDOnInvalidRequest(v int64) *GroupUpdateOne {
 	_u.mutation.ResetFallbackGroupIDOnInvalidRequest()
@@ -4123,6 +4217,18 @@ func (_u *GroupUpdateOne) sqlSave(ctx context.Context) (_node *Group, err error)
 	}
 	if _u.mutation.FallbackGroupIDCleared() {
 		_spec.ClearField(group.FieldFallbackGroupID, field.TypeInt64)
+	}
+	if value, ok := _u.mutation.AppOnly(); ok {
+		_spec.SetField(group.FieldAppOnly, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.AppFallbackGroupID(); ok {
+		_spec.SetField(group.FieldAppFallbackGroupID, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.AddedAppFallbackGroupID(); ok {
+		_spec.AddField(group.FieldAppFallbackGroupID, field.TypeInt64, value)
+	}
+	if _u.mutation.AppFallbackGroupIDCleared() {
+		_spec.ClearField(group.FieldAppFallbackGroupID, field.TypeInt64)
 	}
 	if value, ok := _u.mutation.FallbackGroupIDOnInvalidRequest(); ok {
 		_spec.SetField(group.FieldFallbackGroupIDOnInvalidRequest, field.TypeInt64, value)
