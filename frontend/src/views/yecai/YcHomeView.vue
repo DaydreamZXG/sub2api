@@ -38,6 +38,11 @@
           </router-link>
           <a :href="clientUrl || '#pains'" class="yc-btn yc-btn-ghost">{{ t(clientLabel) }}</a>
         </div>
+        <div v-if="site" class="yc-live" aria-live="off">
+          <p class="yc-live-lab"><i aria-hidden="true"></i>{{ t('yc.live.label') }}</p>
+          <p class="yc-live-num yc-num">{{ Math.round(liveTotal).toLocaleString() }}</p>
+          <p class="yc-live-sub">{{ t('yc.live.today', { tokens: Math.round(liveToday).toLocaleString(), requests: site.total_requests.toLocaleString() }) }}</p>
+        </div>
         <YcFlowDiagram class="yc-hero-flow" />
       </section>
 
@@ -157,12 +162,14 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
+import { useIntervalFn, useTransition } from '@vueuse/core'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore, useAppStore } from '@/stores'
 import LocaleSwitcher from '@/components/common/LocaleSwitcher.vue'
 import UpstreamHome from '@/views/HomeView.vue'
 import YcFlowDiagram from '@/components/yecai/YcFlowDiagram.vue'
 import { useYcPrices } from '@/composables/useYcPrices'
+import { getSiteStats, type SiteStats } from '@/api/siteStats'
 import { sanitizeUrl } from '@/utils/url'
 import { YC_CLIENT_DOWNLOADS, detectYcClientPlatform } from '@/utils/ycClient'
 import { FeatureFlags, isFeatureFlagEnabled } from '@/utils/featureFlags'
@@ -212,6 +219,22 @@ const clientUrl = clientPlatform ? YC_CLIENT_DOWNLOADS[clientPlatform] : ''
 const clientLabel =
   clientPlatform === 'windows' ? 'yc.client.windows' : clientPlatform === 'macos' ? 'yc.client.macos' : 'yc.client.download'
 
+// Site-wide token count, refreshed while the tab is visible. Hidden until there is something to show.
+const site = ref<SiteStats | null>(null)
+const tick = { duration: 1600, transition: [0.2, 0.7, 0.2, 1] as [number, number, number, number] }
+const liveTotal = useTransition(() => site.value?.total_tokens ?? 0, tick)
+const liveToday = useTransition(() => site.value?.today_tokens ?? 0, tick)
+async function loadSiteStats() {
+  if (document.hidden) return
+  try {
+    const stats = await getSiteStats()
+    site.value = stats.total_tokens > 0 ? stats : null
+  } catch {
+    site.value = null
+  }
+}
+useIntervalFn(loadSiteStats, 15000)
+
 const picked = ref('')
 const choices = computed(() => prices.value.slice(0, 6))
 const top = computed(() => choices.value.find((m) => m.name === picked.value) ?? choices.value[0] ?? null)
@@ -248,6 +271,7 @@ onMounted(async () => {
   const dark = saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches
   document.documentElement.classList.toggle('dark', dark)
   authStore.checkAuth()
+  loadSiteStats()
   if (!appStore.publicSettingsLoaded) await appStore.fetchPublicSettings()
   if (showModelPlaza.value) loadPrices()
 })
@@ -270,6 +294,12 @@ onMounted(async () => {
 .yc-h1 { margin-top: 22px; font-size: clamp(40px, 8.4vw, 104px); line-height: 1.03; letter-spacing: -0.05em; font-weight: 800; }
 .yc-lead { max-width: 640px; margin: 30px auto 0; font-size: clamp(16px, 1.7vw, 20px); line-height: 1.7; color: var(--yc-mut); text-wrap: pretty; }
 .yc-hero-cta { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 38px; }
+.yc-live { margin-top: clamp(44px, 6vw, 72px); }
+.yc-live-lab { display: inline-flex; align-items: center; gap: 9px; font-size: 13.5px; font-weight: 650; color: var(--yc-mut); }
+.yc-live-lab i { width: 8px; height: 8px; border-radius: 50%; background: var(--yc-lime); box-shadow: 0 0 0 1px var(--yc-ink); animation: yc-blink 1.6s ease-in-out infinite; }
+.yc-live-num { margin-top: 8px; font-size: clamp(34px, 7.2vw, 88px); line-height: 1.05; overflow-wrap: anywhere; }
+.yc-live-sub { margin-top: 10px; font-size: 14px; color: var(--yc-mut); }
+@keyframes yc-blink { 50% { opacity: 0.35; } }
 .yc-hero-flow { margin-top: clamp(48px, 7vw, 88px); }
 
 .yc-pain { padding-top: clamp(96px, 14vw, 184px); }
@@ -369,6 +399,7 @@ onMounted(async () => {
   .yc-lead { animation-delay: 0.08s; }
   .yc-hero-cta { animation-delay: 0.16s; }
   .yc-hero-flow { animation-delay: 0.28s; }
+  .yc-live { animation: yc-rise 0.8s 0.22s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
   .yc-price-now { animation: yc-pop 0.45s cubic-bezier(0.2, 0.9, 0.2, 1.1) both; }
 }
 @keyframes yc-pop { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: none; } }

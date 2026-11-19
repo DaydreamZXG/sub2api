@@ -57,6 +57,7 @@ export default {
       a3: '接不上、缓存、网络问题都可以找我们'
     }
   },
+  live: { label: '全站已处理 Token，实时更新', today: '今天 {tokens} · 累计 {requests} 次请求' },
   client: {
     download: '下载客户端',
     windows: '下载 Windows 版',

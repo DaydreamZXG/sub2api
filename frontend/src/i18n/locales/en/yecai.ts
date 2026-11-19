@@ -57,6 +57,7 @@ export default {
       a3: 'Connection, cache and network issues are all covered'
     }
   },
+  live: { label: 'Tokens processed across the site, live', today: '{tokens} today · {requests} requests in total' },
   client: {
     download: 'Download the app',
     windows: 'Download for Windows',
