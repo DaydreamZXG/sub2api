@@ -57,6 +57,9 @@
 }
 .yc-theme.dark .btn-primary { box-shadow: none; }
 .yc-theme.dark .btn-primary:hover:not(:disabled) { box-shadow: 0 0 28px rgb(200 255 0 / 0.35); }
+/* The shadows above replace the ring the base button draws on focus, so keyboard focus gets an outline. */
+.yc-theme .btn-primary:focus-visible { outline: 2px solid #0b0f0c; outline-offset: 2px; }
+.yc-theme.dark .btn-primary:focus-visible { outline-color: #c8ff00; }
 
 /* The YESCHOY wordmark that sits with the default site name. */
 .yc-wordmark {
