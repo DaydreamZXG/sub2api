@@ -233,12 +233,28 @@ export default {
       rules: '邻居每天换一批，你邀请的人和邀请你的人一直都在。没熟的菜可以帮忙浇水，浇一次早熟 {minutes} 分钟；熟了 {protect} 小时主人还没收，就可以偷，每次 {percent}%。自己菜园里有菜才能偷。',
       none: '今天还没有邻居在种菜。',
       pinned: '固定邻居',
+      raided: '偷过你',
       crops: '{count} 棵菜',
       loading: '正在翻墙…',
       noCrops: '他的菜已经收完了。'
     },
+    ranks: {
+      title: '本周排行',
+      thieves: '偷菜榜',
+      dogs: '旺财抓人榜',
+      none: '这周还没人上榜',
+      me: '我',
+      caught: '抓住 {count} 次'
+    },
+    invite: {
+      title: '邀请好友来种菜',
+      lead: '好友用你的链接注册并第一次付款后，送你一棵 {amount} 的菜。TA 也会一直是你的邻居。',
+      copy: '复制邀请链接',
+      copied: '邀请链接已复制'
+    },
     feed: {
       title: '动态',
+      visit: '去 TA 家',
       mine: {
         water: '你给 {name} 的菜浇了水',
         steal: '你从 {name} 的菜园偷到 {amount}',

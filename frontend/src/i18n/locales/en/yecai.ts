@@ -233,12 +233,28 @@ export default {
       rules: 'Neighbours change every day; people you invited and the person who invited you always stay. Water a growing crop to ripen it {minutes} minutes sooner. A crop its owner has not harvested {protect} hours after ripening is open: each try takes {percent}%. You need a crop of your own to take from others.',
       none: 'No neighbour has a crop growing today.',
       pinned: 'Always here',
+      raided: 'Took from you',
       crops: '{count} crops',
       loading: 'Looking over the fence…',
       noCrops: 'Their crops are all harvested.'
     },
+    ranks: {
+      title: 'This week',
+      thieves: 'Took the most',
+      dogs: 'Dogs that caught the most',
+      none: 'Nobody yet this week',
+      me: 'Me',
+      caught: 'Caught {count}'
+    },
+    invite: {
+      title: 'Invite a friend to the garden',
+      lead: 'When a friend signs up with your link and pays for the first time, you get a {amount} crop. They also stay your neighbour.',
+      copy: 'Copy invite link',
+      copied: 'Invite link copied'
+    },
     feed: {
       title: 'Activity',
+      visit: 'Visit them',
       mine: {
         water: "You watered {name}'s crop",
         steal: "You took {amount} from {name}'s garden",
