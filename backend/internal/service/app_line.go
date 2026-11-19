@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"math"
 	"strings"
 )
 
@@ -39,6 +40,27 @@ func (s *APIKeyService) SetAppRequestVerifier(verifier AppRequestVerifier) {
 	s.appRequestVerifier = verifier
 }
 
+// SetGrowthLevels enables the growth-level discount on app-only lines.
+func (s *APIKeyService) SetGrowthLevels(levels *GrowthLevelsService) {
+	s.growthLevels = levels
+}
+
+// AppLineGroupForUser returns the app-only group as this user is billed for it through the app:
+// a copy with the growth-level discount taken off the price, or group itself when no discount applies.
+// A price an admin set for this user on the group still wins, because billing looks that up afterwards.
+func (s *APIKeyService) AppLineGroupForUser(ctx context.Context, group *Group, user *User) *Group {
+	if group == nil || !group.AppOnly || user == nil || s.growthLevels == nil {
+		return group
+	}
+	discount := s.growthLevels.Get(ctx).DiscountFor(user.TotalRecharged)
+	if discount <= 0 {
+		return group
+	}
+	discounted := *group
+	discounted.RateMultiplier = math.Round(group.RateMultiplier*(1-discount)*1e4) / 1e4
+	return &discounted
+}
+
 // AppFallbackGroupUsable reports whether group can serve requests that an app-only line turns away.
 func AppFallbackGroupUsable(group *Group) bool {
 	return group != nil && group.IsActive() && !group.IsSubscriptionType() && !group.AppOnly
@@ -52,7 +74,13 @@ func (s *APIKeyService) ResolveAppLine(ctx context.Context, apiKey *APIKey, appT
 		return apiKey, nil
 	}
 	if apiKey.User != nil && s.appRequestVerifier != nil && s.appRequestVerifier.IsAppRequest(ctx, appToken, apiKey.User.ID) {
-		return apiKey, nil
+		group := s.AppLineGroupForUser(ctx, apiKey.Group, apiKey.User)
+		if group == apiKey.Group {
+			return apiKey, nil
+		}
+		resolved := *apiKey
+		resolved.Group = group
+		return &resolved, nil
 	}
 	if apiKey.Group.AppFallbackGroupID == nil {
 		return nil, ErrAppOnlyLine

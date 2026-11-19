@@ -1,9 +1,13 @@
 package service
 
 import (
+	"context"
+	"encoding/json"
 	"errors"
 	"math"
 	"strings"
+	"sync/atomic"
+	"time"
 )
 
 // 种菜计划的成长等级：累计充值越多，仅限 app 的线路价格越低。等级只看累计充值，
@@ -81,4 +85,65 @@ func (g GrowthLevels) DiscountFor(totalRecharged float64) float64 {
 		return 0
 	}
 	return g.Levels[index].Discount
+}
+
+const growthLevelsCacheTTL = 60 * time.Second
+
+type cachedGrowthLevels struct {
+	levels    GrowthLevels
+	expiresAt time.Time
+}
+
+// GrowthLevelsService stores the ladder in the settings table and serves it to the request path from a short cache.
+type GrowthLevelsService struct {
+	settingRepo SettingRepository
+	cache       atomic.Pointer[cachedGrowthLevels]
+}
+
+// NewGrowthLevelsService creates the ladder store.
+func NewGrowthLevelsService(settingRepo SettingRepository) *GrowthLevelsService {
+	return &GrowthLevelsService{settingRepo: settingRepo}
+}
+
+// Get returns the saved ladder, or the disabled example ladder when none is saved or it cannot be read.
+// Other instances pick up a change within growthLevelsCacheTTL.
+func (s *GrowthLevelsService) Get(ctx context.Context) GrowthLevels {
+	if s == nil || s.settingRepo == nil {
+		return DefaultGrowthLevels()
+	}
+	if cached := s.cache.Load(); cached != nil && time.Now().Before(cached.expiresAt) {
+		return cached.levels.clone()
+	}
+	levels := DefaultGrowthLevels()
+	raw, err := s.settingRepo.GetValue(context.WithoutCancel(ctx), SettingKeyGrowthLevels)
+	if err == nil && strings.TrimSpace(raw) != "" {
+		var saved GrowthLevels
+		if json.Unmarshal([]byte(raw), &saved) == nil && saved.Validate() == nil {
+			levels = saved
+		}
+	}
+	// 读库失败时按“未开启”处理：宁可少给折扣，也不让请求失败。
+	s.cache.Store(&cachedGrowthLevels{levels: levels.clone(), expiresAt: time.Now().Add(growthLevelsCacheTTL)})
+	return levels
+}
+
+// Set validates and saves the ladder.
+func (s *GrowthLevelsService) Set(ctx context.Context, levels GrowthLevels) (GrowthLevels, error) {
+	if err := levels.Validate(); err != nil {
+		return GrowthLevels{}, err
+	}
+	blob, err := json.Marshal(levels)
+	if err != nil {
+		return GrowthLevels{}, err
+	}
+	if err := s.settingRepo.Set(ctx, SettingKeyGrowthLevels, string(blob)); err != nil {
+		return GrowthLevels{}, err
+	}
+	s.cache.Store(&cachedGrowthLevels{levels: levels.clone(), expiresAt: time.Now().Add(growthLevelsCacheTTL)})
+	return levels, nil
+}
+
+func (g GrowthLevels) clone() GrowthLevels {
+	g.Levels = append([]GrowthLevel(nil), g.Levels...)
+	return g
 }

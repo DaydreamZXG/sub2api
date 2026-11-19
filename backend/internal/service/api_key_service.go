@@ -297,6 +297,7 @@ type APIKeyService struct {
 	cache                     APIKeyCache
 	rateLimitCacheInvalid     RateLimitCacheInvalidator // optional: invalidate Redis rate limit cache
 	appRequestVerifier        AppRequestVerifier        // optional: recognises requests forwarded by the app
+	growthLevels              *GrowthLevelsService      // optional: growth-level discount on app-only lines
 	concurrencyService        *ConcurrencyService
 	cfg                       *config.Config
 	authCacheL1               *ristretto.Cache
