@@ -9,25 +9,25 @@
     </router-link>
 
     <section class="yc-tiles">
-      <div class="yc-card yc-tile yc-tile-main">
+      <div class="yc-tile yc-wallet">
         <p class="yc-tile-lab">{{ t('yc.dash.balance') }}</p>
-        <p class="yc-tile-num"><span class="yc-mark">{{ money(balance) }}</span></p>
+        <p class="yc-tile-num yc-num">{{ yuan(shown.balance) }}</p>
         <p class="yc-tile-sub">{{ t('yc.dash.balanceHint') }}</p>
-        <router-link :to="topUpPath" class="yc-btn yc-btn-lime yc-btn-sm">{{ t('yc.shell.topUp') }}</router-link>
+        <router-link :to="topUpPath" class="yc-btn yc-btn-sm yc-wallet-btn">{{ t('yc.shell.topUp') }} →</router-link>
       </div>
-      <div class="yc-card yc-tile">
+      <div class="yc-surface yc-tile">
         <p class="yc-tile-lab">{{ t('yc.dash.today') }}</p>
-        <p class="yc-tile-num">{{ money(stats?.today_actual_cost) }}</p>
+        <p class="yc-tile-num yc-num">{{ yuan(shown.today) }}</p>
         <p class="yc-tile-sub">{{ t('yc.dash.requests', { n: stats?.today_requests ?? 0 }) }}</p>
       </div>
-      <div class="yc-card yc-tile">
+      <div class="yc-surface yc-tile">
         <p class="yc-tile-lab">{{ t('yc.dash.total') }}</p>
-        <p class="yc-tile-num">{{ money(stats?.total_actual_cost) }}</p>
+        <p class="yc-tile-num yc-num">{{ yuan(shown.total) }}</p>
         <p class="yc-tile-sub">{{ t('yc.dash.requests', { n: stats?.total_requests ?? 0 }) }}</p>
       </div>
     </section>
 
-    <section class="yc-card yc-recent">
+    <section class="yc-surface yc-recent">
       <header>
         <h2>{{ t('yc.dash.recent') }}</h2>
         <router-link to="/usage">{{ t('yc.dash.allBills') }} →</router-link>
@@ -37,7 +37,7 @@
         <button type="button" class="yc-row" :aria-expanded="open === log.id" @click="open = open === log.id ? null : log.id">
           <span class="yc-row-time">{{ formatRelativeTime(log.created_at) }}</span>
           <span class="yc-row-model">{{ log.model }}</span>
-          <b>{{ money(log.actual_cost, 4) }}</b>
+          <b>{{ yuan(log.actual_cost, 4) }}</b>
           <i aria-hidden="true">›</i>
         </button>
         <dl v-if="open === log.id" class="yc-detail">
@@ -50,17 +50,20 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
+import { useTransition } from '@vueuse/core'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore, useAppStore } from '@/stores'
 import { usageAPI, type UserDashboardStats } from '@/api/usage'
 import type { UsageLog } from '@/types'
 import { formatDateLocalInput, formatRelativeTime } from '@/utils/format'
 import YcShell from '@/components/yecai/YcShell.vue'
+import { useYcMoney } from '@/composables/useYcMoney'
 
 const { t } = useI18n()
 const authStore = useAuthStore()
 const appStore = useAppStore()
+const { yuan } = useYcMoney()
 
 const stats = ref<UserDashboardStats | null>(null)
 const recent = ref<UsageLog[]>([])
@@ -69,6 +72,15 @@ const open = ref<number | null>(null)
 
 const balance = computed(() => authStore.user?.balance ?? 0)
 const name = computed(() => authStore.user?.username || '')
+
+// Headline amounts count up to their value when the data arrives.
+const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+const ease = { duration: still ? 0 : 900, transition: [0.2, 0.7, 0.2, 1] as [number, number, number, number] }
+const shown = reactive({
+  balance: useTransition(balance, ease),
+  today: useTransition(() => stats.value?.today_actual_cost ?? 0, ease),
+  total: useTransition(() => stats.value?.total_actual_cost ?? 0, ease)
+})
 const topUpPath = computed(() => (appStore.cachedPublicSettings?.payment_enabled ? '/purchase' : '/redeem'))
 
 const greetingKey = computed(() => {
@@ -90,9 +102,6 @@ const next = computed(() => {
   return null
 })
 
-function money(value: number | null | undefined, digits = 2): string {
-  return `$${(value ?? 0).toFixed(digits)}`
-}
 function count(value: number | null | undefined): string {
   return (value ?? 0).toLocaleString()
 }
@@ -107,7 +116,7 @@ function details(log: UsageLog) {
     { label: 'yc.dash.dCacheWrite', value: count(log.cache_creation_tokens) },
     { label: 'yc.dash.dCacheRead', value: count(log.cache_read_tokens) },
     { label: 'yc.dash.dTiming', value: `${seconds(log.first_token_ms)} / ${seconds(log.duration_ms)}` },
-    { label: 'yc.dash.dListCost', value: money(log.total_cost, 4) },
+    { label: 'yc.dash.dListCost', value: yuan(log.total_cost, 4) },
     { label: 'yc.dash.dMultiplier', value: `×${log.rate_multiplier}` }
   ]
 }
@@ -135,11 +144,17 @@ onMounted(async () => {
 .yc-next-text { flex: 1; font-weight: 600; }
 .yc-next-go { flex: none; font-weight: 750; }
 .yc-tiles { display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 16px; margin-top: 28px; }
-.yc-tile { padding: 24px 26px 26px; }
+.yc-tile { padding: 26px 28px 28px; }
 .yc-tile-lab { font-size: 13px; font-weight: 650; color: var(--yc-mut); }
-.yc-tile-num { margin-top: 6px; font-size: clamp(34px, 4vw, 46px); line-height: 1.15; letter-spacing: -0.035em; font-weight: 800; }
-.yc-tile-sub { margin-top: 8px; font-size: 13.5px; color: var(--yc-mut); }
-.yc-tile .yc-btn { margin-top: 18px; }
+.yc-tile-num { margin-top: 8px; font-size: clamp(36px, 4.2vw, 52px); line-height: 1.1; }
+.yc-tile-sub { margin-top: 10px; font-size: 13.5px; color: var(--yc-mut); }
+.yc-wallet { position: relative; overflow: hidden; border-radius: 24px; background: var(--yc-lime); color: var(--yc-on-lime); box-shadow: 0 1px 0 rgb(255 255 255 / 0.7) inset, 0 24px 48px -24px rgb(120 160 0 / 0.75); }
+.yc-wallet::before { content: ''; position: absolute; inset: 0; background: linear-gradient(120deg, rgb(255 255 255 / 0.6), transparent 42%), radial-gradient(circle at 100% 100%, rgb(11 15 12 / 0.1), transparent 55%); pointer-events: none; }
+.yc-wallet > * { position: relative; }
+.yc-wallet .yc-tile-lab, .yc-wallet .yc-tile-sub { color: rgb(11 15 12 / 0.7); }
+.yc-wallet .yc-tile-num { font-size: clamp(44px, 5.4vw, 68px); }
+.yc-wallet-btn { margin-top: 20px; background: var(--yc-on-lime); color: var(--yc-lime); }
+.yc-wallet-btn:hover { box-shadow: 0 10px 22px -8px rgb(11 15 12 / 0.65); transform: translateY(-2px); }
 .yc-recent { margin-top: 16px; padding: 24px 26px; }
 .yc-recent header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px; }
 .yc-recent h2 { font-size: 19px; letter-spacing: -0.015em; font-weight: 750; }

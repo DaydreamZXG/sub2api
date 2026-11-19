@@ -5,7 +5,7 @@
         <path v-for="l in links" :key="l.id" :d="l.d" class="yc-flow-line" />
       </g>
       <g class="yc-flow-dots" aria-hidden="true">
-        <circle v-for="l in links" :key="`d${l.id}`" r="4.5" class="yc-flow-dot">
+        <circle v-for="l in links" :key="`d${l.id}`" r="5" class="yc-flow-dot">
           <animateMotion :dur="`${l.dur}s`" :begin="`-${l.delay}s`" repeatCount="indefinite" :path="l.d" />
         </circle>
       </g>
@@ -13,6 +13,7 @@
         <rect :width="n.w" :height="nodeH" :rx="nodeH / 2" class="yc-flow-node" />
         <text :x="n.w / 2" :y="nodeH / 2" class="yc-flow-label" text-anchor="middle" dominant-baseline="central">{{ n.label }}</text>
       </g>
+      <ellipse :cx="hub.x" :cy="hub.y" :rx="hub.w * 0.62" :ry="hub.h * 0.95" class="yc-flow-halo" aria-hidden="true" />
       <g :transform="`translate(${hub.x - hub.w / 2} ${hub.y - hub.h / 2})`">
         <rect :width="hub.w" :height="hub.h" :rx="hub.h / 2" class="yc-flow-hub" />
         <text :x="hub.w / 2" :y="hub.h / 2 - 9" class="yc-flow-hub-title" text-anchor="middle" dominant-baseline="central">{{ t('yc.flow.key') }}</text>
@@ -101,15 +102,19 @@ const links = computed(() => {
 .yc-flow { margin: 0; }
 .yc-flow svg { display: block; width: 100%; height: auto; overflow: visible; }
 .yc-flow-line { stroke: var(--yc-line); stroke-width: 1.5; }
-.yc-flow-dot { fill: var(--yc-ink); }
-.yc-flow-node { fill: var(--yc-paper); stroke: var(--yc-line); stroke-width: 1; }
+.yc-flow-dot { fill: var(--yc-lime); stroke: var(--yc-ink); stroke-width: 1.5; }
+.yc-flow-halo { fill: var(--yc-lime); opacity: 0.35; filter: blur(22px); transform-box: fill-box; transform-origin: center; animation: yc-halo 3.6s ease-in-out infinite; }
+@keyframes yc-halo { 50% { opacity: 0.6; transform: scale(1.12); } }
+.yc-flow-node { fill: var(--yc-paper); stroke: var(--yc-line); stroke-width: 1; filter: drop-shadow(0 6px 10px rgb(11 15 12 / 0.07)); }
 .yc-flow-label { fill: var(--yc-ink); font-size: 15px; font-weight: 600; }
 .yc-flow-hub { fill: var(--yc-lime); stroke: var(--yc-on-lime); stroke-width: 1.5; }
 .yc-flow-hub-title { fill: var(--yc-on-lime); font-size: 16px; font-weight: 750; }
 .yc-flow-hub-key { fill: var(--yc-on-lime); font-size: 13px; opacity: 0.72; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
-:global(.dark .yc .yc-flow-dot) { fill: var(--yc-lime); filter: drop-shadow(0 0 6px rgb(200 255 0 / 0.9)); }
+:global(.dark .yc .yc-flow-dot) { stroke: none; filter: drop-shadow(0 0 6px rgb(200 255 0 / 0.9)); }
+:global(.dark .yc .yc-flow-halo) { opacity: 0.22; }
 :global(.dark .yc .yc-flow-hub) { stroke: none; filter: drop-shadow(0 0 28px rgb(200 255 0 / 0.35)); }
 @media (prefers-reduced-motion: reduce) {
   .yc-flow-dots { display: none; }
+  .yc-flow-halo { animation: none; }
 }
 </style>

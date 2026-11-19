@@ -1,37 +1,70 @@
 export default {
-  nav: { aria: 'Page navigation', how: 'How it works', prices: 'Models and prices', service: 'Service', faq: 'FAQ', docs: 'Docs' },
-  cta: { start: 'Get started', login: 'Sign in', console: 'Open console', how: 'See how it works' },
+  nav: { aria: 'Page navigation', pains: 'What we fix', prices: 'Prices', faq: 'FAQ', docs: 'Docs' },
+  cta: { start: 'Get started', login: 'Sign in', console: 'Open console', how: 'See what we fix' },
   flow: { aria: 'Your tools reach every model through one key', key: 'Your key' },
   hero: {
     eyebrow: 'AI model access',
-    titleA: 'One key',
-    titleB: 'for every model',
-    lead: 'Pick Claude Code, Codex or another tool and connect it without working out the settings yourself. Pay for what you use; unused balance is refundable.',
-    point1: 'Pay for actual usage',
-    point2: 'Refundable balance',
-    point3: 'Every request on record'
+    titleA: 'Connect to AI',
+    titleB: 'without the setup',
+    lead: 'Pick Claude Code, Codex or another tool and connect it. Prices are in yuan, every request is on record, and unused balance is refundable.'
   },
-  how: {
-    eyebrow: 'How it works',
-    title: 'Three steps, a few minutes',
-    s1Title: 'Sign up',
-    s1Body: 'An email address is enough. Nothing else to link.',
-    s2Title: 'Add a little balance',
-    s2Body: 'Start small. You are charged for what you use, and unused balance is refundable.',
-    s3Title: 'Connect your tool',
-    s3Body: 'Choose the tool you use, copy the settings shown and paste them in.'
+  pain: {
+    before: 'Before',
+    after: 'Now',
+    setup: {
+      tag: 'Setup',
+      titleA: 'Before, you edited config files.',
+      titleB: 'Now, you copy once.',
+      b1: 'Search the docs for the endpoint',
+      b2: 'Open a config file and fill it in line by line',
+      b3: 'Repeat for every tool',
+      a1: 'Choose the tool you use',
+      a2: 'Copy what the page gives you',
+      a3: 'Paste it in and start'
+    },
+    price: {
+      tag: 'Prices',
+      titleA: 'Before, you worked out multipliers.',
+      titleB: 'Now, prices are in yuan.',
+      formula: 'Top-up rate × group multiplier × model multiplier × official price = ?',
+      b1: 'The same multiplier can mean very different prices',
+      b2: 'Pick a group first to learn the price',
+      b3: 'Charges are in credits, not money',
+      a1: 'One yuan price per model',
+      a2: 'What you pay is what you get: ¥1 is ¥1',
+      a3: 'Multipliers and raw prices are one click away'
+    },
+    bill: {
+      tag: 'Bills',
+      titleA: 'Before, you saw one total.',
+      titleB: 'Now, you see every request.',
+      b1: 'Balance drops and you cannot tell why',
+      b2: 'No way to check which model was used',
+      b3: 'Money paid in never comes back',
+      a1: 'Each request shows its model and charge',
+      a2: 'Input, output and cache listed separately',
+      a3: 'Unused balance is refundable'
+    },
+    help: {
+      tag: 'Support',
+      titleA: 'Before, you debugged errors alone.',
+      titleB: 'Now, someone answers.',
+      b1: 'An error message you cannot read',
+      b2: 'No idea if the fault is yours or the service',
+      b3: 'Nobody to ask',
+      a1: 'Ask in the QQ group',
+      a2: 'Open a ticket and get a follow-up',
+      a3: 'Connection, cache and network issues are all covered'
+    }
   },
-  service: {
-    eyebrow: 'Service',
-    title: 'Clear charges, and someone to ask',
-    p1Title: 'Pay for what you use',
-    p1Body: 'No monthly fee and no minimum spend. Each request is charged by actual usage.',
-    p2Title: 'Unused balance is refundable',
-    p2Body: 'The balance is yours. If you stop using the service, ask for the unspent part back.',
-    p3Title: 'Every request on record',
-    p3Body: 'The bill lists each request with its model, usage and charge.',
-    p4Title: 'Someone answers when you are stuck',
-    p4Body: 'Connection trouble, an error, a bill you cannot read: contact us directly.'
+  price: {
+    eyebrow: 'Prices',
+    title: 'And now, the price.',
+    official: 'Official',
+    perMillionIn: 'per million input tokens',
+    off: '{pct}% below official',
+    note: 'Prices shown are per million input tokens. See the full list for output prices and other models. Official prices are converted at about ¥{rate} to $1, for comparison only.',
+    all: 'All models and prices'
   },
   faq: {
     eyebrow: 'FAQ',
@@ -40,10 +73,12 @@ export default {
     a1: 'No. If you can use a tool like Claude Code or Codex, you copy and paste once as the page shows.',
     q2: 'What is a key?',
     a2: 'A password that starts with sk-. Your tool uses it to spend your balance. It is yours alone, so do not share it.',
-    q3: 'How am I charged?',
-    a3: 'Each request deducts its actual usage from your balance. Prices differ by model, and the bill shows what you spent.',
-    q4: 'Which tools are supported?',
-    a4: 'Claude Code, Codex, Gemini CLI, OpenCode and other common tools.'
+    q3: 'What is a token?',
+    a3: 'The unit models use to measure usage, roughly word count: an English word is about 1 to 2 tokens. Prices are quoted per million tokens.',
+    q4: 'How am I charged?',
+    a4: 'Each request deducts its actual usage from your balance. Prices differ by model, and the bill shows what you spent.',
+    q5: 'Which tools are supported?',
+    a5: 'Claude Code, Codex, Gemini CLI, OpenCode and other common tools.'
   },
   shell: { start: 'Home', keys: 'Keys', bills: 'Bills', topUp: 'Top up', admin: 'Admin', account: 'My account' },
   dash: {
