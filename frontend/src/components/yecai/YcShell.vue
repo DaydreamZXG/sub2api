@@ -7,6 +7,8 @@
       </router-link>
       <nav class="yc-side-nav" :aria-label="t('yc.nav.aria')">
         <router-link v-for="l in links" :key="l.to" :to="l.to" active-class="is-on">{{ t(l.label) }}</router-link>
+        <p class="yc-side-more">{{ t('yc.shell.more') }}</p>
+        <router-link v-for="l in more" :key="l.to" :to="l.to" active-class="is-on" class="is-minor">{{ t(l.label) }}</router-link>
       </nav>
       <div class="yc-side-foot">
         <router-link v-if="authStore.isAdmin" to="/admin/dashboard">{{ t('yc.shell.admin') }}</router-link>
@@ -22,6 +24,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore, useAppStore } from '@/stores'
 import { sanitizeUrl } from '@/utils/url'
+import { FeatureFlags, isFeatureFlagEnabled } from '@/utils/featureFlags'
 import '@/styles/yecai.css'
 
 const { t } = useI18n()
@@ -34,11 +37,19 @@ const siteLogo = computed(() =>
   sanitizeUrl(settings.value?.site_logo || appStore.siteLogo || '', { allowRelative: true, allowDataUrl: true })
 )
 const initial = computed(() => (authStore.user?.username || authStore.user?.email || '?').charAt(0).toUpperCase())
+const on = <T,>(show: unknown, item: T): T[] => (show ? [item] : [])
 const links = computed(() => [
   { to: '/dashboard', label: 'yc.shell.start' },
-  { to: '/keys', label: 'yc.shell.keys' },
+  { to: '/connect', label: 'yc.shell.connect' },
+  ...on(isFeatureFlagEnabled(FeatureFlags.modelPlaza), { to: '/prices', label: 'yc.shell.prices' }),
   { to: '/usage', label: 'yc.shell.bills' },
   { to: settings.value?.payment_enabled ? '/purchase' : '/redeem', label: 'yc.shell.topUp' }
+])
+// Things most people need rarely; kept one click away.
+const more = computed(() => [
+  ...on(isFeatureFlagEnabled(FeatureFlags.subscription), { to: '/subscriptions', label: 'yc.shell.plans' }),
+  ...on(isFeatureFlagEnabled(FeatureFlags.affiliate), { to: '/affiliate', label: 'yc.shell.invite' }),
+  { to: '/keys', label: 'yc.shell.keys' }
 ])
 </script>
 
@@ -50,6 +61,8 @@ const links = computed(() => [
 .yc-side-nav { display: flex; flex-direction: column; gap: 2px; }
 .yc-side-nav a { position: relative; padding: 10px 14px; border-radius: 12px; font-size: 15px; color: var(--yc-mut); white-space: nowrap; transition: background-color 0.15s ease, color 0.15s ease; }
 .yc-side-nav a:hover { background: var(--yc-fill); color: var(--yc-ink); }
+.yc-side-more { margin: 18px 14px 6px; font-size: 12px; font-weight: 650; letter-spacing: 0.08em; color: var(--yc-dim); }
+.yc-side-nav a.is-minor { padding: 8px 14px; font-size: 14px; }
 .yc-side-nav a.is-on { background: var(--yc-lime); color: var(--yc-on-lime); font-weight: 650; box-shadow: 0 8px 20px -10px rgb(140 180 0 / 0.9); }
 .yc-side-foot { margin-top: auto; display: flex; flex-direction: column; gap: 4px; font-size: 14px; color: var(--yc-mut); }
 .yc-side-foot a { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 12px; }
@@ -57,11 +70,12 @@ const links = computed(() => [
 .yc-side-me i { flex: none; width: 30px; height: 30px; display: grid; place-items: center; border-radius: 50%; background: var(--yc-ink); color: var(--yc-bg); font-style: normal; font-weight: 700; font-size: 13px; }
 .yc-shell-main { width: 100%; max-width: 1080px; margin: 0 auto; padding: 44px 36px 80px; }
 @media (max-width: 860px) {
-  .yc-shell { grid-template-columns: 1fr; }
+  .yc-shell { grid-template-columns: minmax(0, 1fr); }
   .yc-side { position: sticky; z-index: 20; height: auto; flex-direction: row; align-items: center; gap: 8px; padding: 10px 14px; border-right: 0; border-bottom: 1px solid var(--yc-line); background: color-mix(in srgb, var(--yc-bg) 86%, transparent); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
   .yc-side-brand { padding: 0; }
-  .yc-side-brand span, .yc-side-me span { display: none; }
-  .yc-side-nav { flex: 1; flex-direction: row; overflow-x: auto; scrollbar-width: none; }
+  .yc-side-brand span, .yc-side-me span, .yc-side-more { display: none; }
+  .yc-side-nav { flex: 1; min-width: 0; flex-direction: row; overflow-x: auto; scrollbar-width: none; }
+  .yc-side-nav a.is-minor { padding: 7px 12px; font-size: 14.5px; }
   .yc-side-nav a { padding: 7px 12px; font-size: 14.5px; }
   .yc-side-foot { margin: 0; flex-direction: row; }
   .yc-side-foot a:not(.yc-side-me) { display: none; }

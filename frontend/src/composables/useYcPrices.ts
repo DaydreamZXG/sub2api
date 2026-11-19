@@ -15,6 +15,19 @@ export interface YcPrice {
   officialOutput: number | null
   /** Charged price as a share of the official one (0-1), null when unknown or not cheaper. */
   share: number | null
+  /** Every line selling this model, cheapest first. The headline price is the first one. */
+  lines: YcPriceLine[]
+  /** Official list price in USD per million tokens, for those who want the raw numbers. */
+  usdInput: number | null
+  usdOutput: number | null
+}
+
+export interface YcPriceLine {
+  name: string
+  input: number
+  output: number
+  cacheRead: number | null
+  multiplier: number
 }
 
 /** Final ¥ prices per model, with the multiplier and recharge ratio already applied. */
@@ -37,22 +50,37 @@ export function useYcPrices() {
       for (const m of g.models) {
         const p = m.pricing
         if (!p || p.input_price == null || p.output_price == null) continue
-        const input = toYuan(p.input_price * rate * PER_MILLION)
+        const line: YcPriceLine = {
+          name: g.name,
+          input: toYuan(p.input_price * rate * PER_MILLION),
+          output: toYuan(p.output_price * rate * PER_MILLION),
+          cacheRead: p.cache_read_price != null ? toYuan(p.cache_read_price * rate * PER_MILLION) : null,
+          multiplier: rate
+        }
         const known = best.get(m.name)
-        if (known && known.input <= input) continue
+        if (known) {
+          known.lines.push(line)
+          continue
+        }
         const o = m.official_pricing
-        const officialInput = o?.input_price != null ? o.input_price * PER_MILLION * cnyPerUsd.value : null
-        const officialOutput = o?.output_price != null ? o.output_price * PER_MILLION * cnyPerUsd.value : null
-        const share = officialInput && input < officialInput ? input / officialInput : null
         best.set(m.name, {
           name: m.name,
-          input,
-          output: toYuan(p.output_price * rate * PER_MILLION),
-          officialInput,
-          officialOutput,
-          share
+          input: line.input,
+          output: line.output,
+          officialInput: o?.input_price != null ? o.input_price * PER_MILLION * cnyPerUsd.value : null,
+          officialOutput: o?.output_price != null ? o.output_price * PER_MILLION * cnyPerUsd.value : null,
+          share: null,
+          lines: [line],
+          usdInput: o?.input_price != null ? o.input_price * PER_MILLION : null,
+          usdOutput: o?.output_price != null ? o.output_price * PER_MILLION : null
         })
       }
+    }
+    for (const price of best.values()) {
+      price.lines.sort((a, b) => a.input - b.input)
+      price.input = price.lines[0].input
+      price.output = price.lines[0].output
+      price.share = price.officialInput && price.input < price.officialInput ? price.input / price.officialInput : null
     }
     const rank = (name: string) => {
       const i = FEATURED.findIndex((k) => name.toLowerCase().includes(k))
