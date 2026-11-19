@@ -15,7 +15,7 @@ export interface YcPrice {
   officialOutput: number | null
   /** Charged price as a share of the official one (0-1), null when unknown or not cheaper. */
   share: number | null
-  /** Every line selling this model, cheapest first. The headline price is the first one. */
+  /** Every line selling this model: pay-as-you-go before plan-only, cheapest first. The headline price is the first one. */
   lines: YcPriceLine[]
   /** Official list price in USD per million tokens, for those who want the raw numbers. */
   usdInput: number | null
@@ -28,6 +28,8 @@ export interface YcPriceLine {
   output: number
   cacheRead: number | null
   multiplier: number
+  /** Sold through a monthly plan, so only subscribers can use it. */
+  plan: boolean
 }
 
 /** Final ¥ prices per model, with the multiplier and recharge ratio already applied. */
@@ -55,7 +57,8 @@ export function useYcPrices() {
           input: toYuan(p.input_price * rate * PER_MILLION),
           output: toYuan(p.output_price * rate * PER_MILLION),
           cacheRead: p.cache_read_price != null ? toYuan(p.cache_read_price * rate * PER_MILLION) : null,
-          multiplier: rate
+          multiplier: rate,
+          plan: g.subscription_type === 'subscription'
         }
         const known = best.get(m.name)
         if (known) {
@@ -77,7 +80,8 @@ export function useYcPrices() {
       }
     }
     for (const price of best.values()) {
-      price.lines.sort((a, b) => a.input - b.input)
+      // Pay-as-you-go lines first: the headline must be a price anyone can get.
+      price.lines.sort((a, b) => Number(a.plan) - Number(b.plan) || a.input - b.input)
       price.input = price.lines[0].input
       price.output = price.lines[0].output
       price.share = price.officialInput && price.input < price.officialInput ? price.input / price.officialInput : null

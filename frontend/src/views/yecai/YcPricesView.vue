@@ -32,7 +32,7 @@
             </thead>
             <tbody>
               <tr v-for="l in m.lines" :key="l.name">
-                <td>{{ l.name }}</td><td>¥{{ price(l.input) }}</td><td>¥{{ price(l.output) }}</td>
+                <td>{{ l.name }} <span v-if="l.plan" class="yc-badge">{{ t('yc.shell.plans') }}</span></td><td>¥{{ price(l.input) }}</td><td>¥{{ price(l.output) }}</td>
                 <td>{{ l.cacheRead == null ? '-' : `¥${price(l.cacheRead)}` }}</td><td>×{{ l.multiplier }}</td>
               </tr>
             </tbody>
