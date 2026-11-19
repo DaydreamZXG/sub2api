@@ -1,6 +1,6 @@
 <template>
   <section v-if="growth && level" class="yc-surface yc-growth">
-    <svg class="yc-growth-plant" viewBox="0 0 96 96" role="img" :aria-label="level.name">
+    <svg class="yc-growth-plant" viewBox="10 14 76 76" role="img" :aria-label="level.name">
       <ellipse cx="48" cy="80" rx="30" ry="7" class="soil" />
       <template v-if="stage === 0">
         <ellipse cx="48" cy="74" rx="6" ry="4.5" class="leaf" />
