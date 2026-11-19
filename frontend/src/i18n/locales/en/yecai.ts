@@ -104,6 +104,10 @@ export default {
     appConnect: 'Connect to the app',
     appConnectHint: 'Opening the desktop assistant. If nothing happens, install it first.',
     appConnectNeedsHttps: 'This needs the site to be opened over https.',
+    appCheaper: 'Some models cost less when you connect with the app.',
+    appCheaperLink: 'See prices',
+    appLinesOnly: 'Your lines only work through the app. Connect with the desktop assistant above.',
+    appKeyNote: 'This key is on an app-only line: it gets the app price through the desktop assistant. Pasted into another tool it pays the normal price, or does not work.',
     appConnectFailed: 'Could not connect. Please try again later.',
     copyTitle: 'Or copy one command',
     pickKey: 'Pick a key',
@@ -187,6 +191,9 @@ export default {
     from: '+', varies: 'This is the standard price. Requests with very long context, at certain hours or with higher reasoning effort are charged at a higher tier; your bill shows each one.',
     line: 'Line', cacheRead: 'Cache read', multiplier: 'Multiplier',
     official: 'Official price: ${input} input, ${output} output (per million tokens). Struck-out yuan prices use 1 USD ≈ {rate} CNY, for comparison only.',
+    appPrice: '¥{price} with the app',
+    appOnly: 'App only',
+    appNote: 'The "with the app" price applies when you connect through the YESCHOY desktop assistant. A key pasted into another tool pays the normal price.',
     foot: 'Click any row to see each line\'s price, cache price and multiplier.'
   },
   dash: {

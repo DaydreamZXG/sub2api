@@ -8,6 +8,10 @@
         <span class="yc-badge yc-badge-lime">{{ t('yc.connect.best') }}</span>
         <h2 class="yc-sec-h2">{{ t('yc.connect.clientTitle') }}</h2>
         <p class="yc-note">{{ t('yc.connect.clientText') }}</p>
+        <p v-if="hasAppLine" class="yc-note yc-way-app">
+          {{ t('yc.connect.appCheaper') }}
+          <router-link to="/prices" class="yc-link">{{ t('yc.connect.appCheaperLink') }}</router-link>
+        </p>
         <div class="yc-way-cta">
           <a v-if="clientUrl" :href="clientUrl" class="yc-btn yc-btn-lime">{{ t(clientLabel) }} ↓</a>
           <button type="button" class="yc-btn yc-btn-ghost" :disabled="handingOver" @click="connectApp">
@@ -33,20 +37,23 @@
         <p v-if="loading" class="yc-note">{{ t('yc.connect.loading') }}</p>
         <div v-else class="yc-opts">
           <button v-for="k in keys" :key="k.id" type="button" class="yc-opt" :class="{ 'is-on': k.id === key?.id }" @click="keyId = k.id">
-            {{ k.name }}<small v-if="k.group">{{ k.group.name }}</small>
+            {{ k.name }}<small v-if="k.group">{{ k.group.name }}<template v-if="k.group.app_only"> · {{ t('yc.prices.appOnly') }}</template></small>
           </button>
           <button
-            v-for="g in groups"
+            v-for="g in manualGroups"
             :key="`new-${g.id}`"
             type="button"
             class="yc-opt yc-opt-new"
             :disabled="creating"
             @click="createKey(g)"
           >
-            + {{ groups.length > 1 ? t('yc.connect.newKeyFor', { line: g.name }) : t('yc.connect.newKey') }}
+            + {{ manualGroups.length > 1 ? t('yc.connect.newKeyFor', { line: g.name }) : t('yc.connect.newKey') }}
           </button>
         </div>
-        <p v-if="!loading && keys.length === 0 && groups.length === 0" class="yc-note">{{ t('yc.connect.noLine') }}</p>
+        <p v-if="!loading && keys.length === 0 && manualGroups.length === 0" class="yc-note">
+          {{ t(hasAppLine ? 'yc.connect.appLinesOnly' : 'yc.connect.noLine') }}
+        </p>
+        <p v-if="key?.group?.app_only" class="yc-note">{{ t('yc.connect.appKeyNote') }}</p>
       </div>
 
       <template v-if="key">
@@ -128,6 +135,9 @@ const { copyToClipboard } = useClipboard()
 
 const keys = ref<ApiKey[]>([])
 const groups = ref<Group[]>([])
+// App-only lines bill their price only through the desktop app, so pasted keys are offered on the other lines.
+const hasAppLine = computed(() => groups.value.some((g) => g.app_only))
+const manualGroups = computed(() => groups.value.filter((g) => !g.app_only))
 const loading = ref(true)
 const creating = ref(false)
 const keyId = ref<number | null>(null)

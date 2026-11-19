@@ -104,6 +104,10 @@ export default {
     appConnect: '连接到 app',
     appConnectHint: '正在打开野菜桌面助手。没有反应的话，请先下载安装。',
     appConnectNeedsHttps: '这个功能需要网站使用 https 访问。',
+    appCheaper: '用 app 接入，部分模型价格更低。',
+    appCheaperLink: '看价目表',
+    appLinesOnly: '你账号里的线路只能通过 app 使用，请用上面的桌面助手接入。',
+    appKeyNote: '这把密钥在“仅 app”的线路上：通过桌面助手使用才是 app 价，复制到别的工具里会按普通价扣费，或者不能用。',
     appConnectFailed: '连接失败，请稍后再试。',
     copyTitle: '或者，复制一段命令',
     pickKey: '选一把密钥',
@@ -187,6 +191,9 @@ export default {
     from: ' 起', varies: '这是标准价。超长上下文、特定时段或更高推理强度的请求会按更高的档位计费，每一笔以账单为准。',
     line: '线路', cacheRead: '缓存读取', multiplier: '倍率',
     official: '官方价：输入 ${input}、输出 ${output}（每百万 Token）。划掉的人民币价按 1 美元 ≈ {rate} 元折算，仅供对比。',
+    appPrice: '用 app ¥{price}',
+    appOnly: '仅 app',
+    appNote: '“用 app”的价格：通过野菜桌面助手接入时按这个价扣费；把密钥复制到别的工具里用，按普通价。',
     foot: '点任意一行可以展开，看每条线路的价格、缓存价和倍率。'
   },
   dash: {

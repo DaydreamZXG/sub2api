@@ -15,8 +15,12 @@ export interface YcPrice {
   officialOutput: number | null
   /** Charged price as a share of the official one (0-1), null when unknown or not cheaper. */
   share: number | null
-  /** Every line selling this model: pay-as-you-go before plan-only, cheapest first. The headline price is the first one. */
+  /** Every line selling this model: open lines, then app-only, then plan-only, cheapest first. The headline price is the first one. */
   lines: YcPriceLine[]
+  /** Cheapest app-only price, when it beats the headline; null when there is none. */
+  app: { input: number; output: number } | null
+  /** True when the headline itself is an app-only line, i.e. the model is not sold outside the app. */
+  appOnly: boolean
   /** Official list price in USD per million tokens, for those who want the raw numbers. */
   usdInput: number | null
   usdOutput: number | null
@@ -32,6 +36,8 @@ export interface YcPriceLine {
   multiplier: number
   /** Sold through a monthly plan, so only subscribers can use it. */
   plan: boolean
+  /** Charged only to requests sent through the desktop app. */
+  app: boolean
   /** The price is the standard tier; long context, time of day or reasoning effort can raise it. */
   varies: boolean
 }
@@ -63,6 +69,7 @@ export function useYcPrices() {
           cacheRead: p.cache_read_price != null ? toYuan(p.cache_read_price * rate * PER_MILLION) : null,
           multiplier: rate,
           plan: g.subscription_type === 'subscription',
+          app: g.app_only === true,
           varies:
             (g.long_context_pricing_enabled && (p.intervals?.length ?? 0) > 1) ||
             (m.time_pricing?.periods ?? []).some((period) => period.multiplier > 1) ||
@@ -84,17 +91,23 @@ export function useYcPrices() {
           share: null,
           varies: false,
           lines: [line],
+          app: null,
+          appOnly: false,
           usdInput: o?.input_price != null ? o.input_price * PER_MILLION : null,
           usdOutput: o?.output_price != null ? o.output_price * PER_MILLION : null
         })
       }
     }
     for (const price of best.values()) {
-      // Pay-as-you-go lines first: the headline must be a price anyone can get.
-      price.lines.sort((a, b) => Number(a.plan) - Number(b.plan) || a.input - b.input)
-      price.input = price.lines[0].input
-      price.output = price.lines[0].output
-      price.varies = price.lines[0].varies
+      // Open pay-as-you-go lines first: the headline must be a price anyone can get, with any tool.
+      price.lines.sort((a, b) => Number(a.plan) - Number(b.plan) || Number(a.app) - Number(b.app) || a.input - b.input)
+      const headline = price.lines[0]
+      price.input = headline.input
+      price.output = headline.output
+      price.varies = headline.varies
+      price.appOnly = headline.app
+      const appLine = price.lines.find((l) => l.app && !l.plan)
+      price.app = appLine && !headline.app && appLine.input < headline.input ? { input: appLine.input, output: appLine.output } : null
       price.share = price.officialInput && price.input < price.officialInput ? price.input / price.officialInput : null
     }
     const rank = (name: string) => {
