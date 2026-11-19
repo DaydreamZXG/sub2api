@@ -523,7 +523,14 @@ func (s *adminServiceImpl) UpdateUserBalance(ctx context.Context, userID int64, 
 	case "set":
 		change, err = s.userRepo.SetBalance(ctx, userID, balance)
 	case "add":
-		change, err = s.userRepo.AdjustBalance(ctx, userID, balance)
+		// 手动加的余额也算累计充值（成长等级按它升级）。
+		if recharger, ok := s.userRepo.(interface {
+			AdjustBalanceAsRecharge(ctx context.Context, id int64, amount float64) (BalanceChange, error)
+		}); ok && balance > 0 {
+			change, err = recharger.AdjustBalanceAsRecharge(ctx, userID, balance)
+		} else {
+			change, err = s.userRepo.AdjustBalance(ctx, userID, balance)
+		}
 	case "subtract":
 		change, err = s.userRepo.AdjustBalance(ctx, userID, -balance)
 	default:
