@@ -36,9 +36,19 @@ describe('useYcPrices with app-only lines', () => {
     const [model] = await pricesFor([line('app', 0.75, { app_only: true }), line('normal', 1)])
 
     expect([model.input, model.output]).toEqual([1, 2])
-    expect(model.app).toEqual({ input: 0.75, output: 1.5 })
+    expect(model.app).toEqual({ input: 0.75, output: 1.5, varies: false })
     expect(model.appOnly).toBe(false)
     expect(model.lines.map((l) => [l.name, l.app])).toEqual([['normal', false], ['app', true]])
+  })
+
+  it('flags an app price that can be higher for some requests', async () => {
+    const [model] = await pricesFor([
+      line('app', 0.75, { app_only: true, peak_rate_enabled: true, peak_rate_multiplier: 2 }),
+      line('normal', 1)
+    ])
+
+    expect(model.varies).toBe(false)
+    expect(model.app?.varies).toBe(true)
   })
 
   it('quotes no app price when the app line is not cheaper', async () => {

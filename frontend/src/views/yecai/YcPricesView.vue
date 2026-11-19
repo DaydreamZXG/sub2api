@@ -16,11 +16,11 @@
           <span class="yc-mono yc-prices-name">{{ m.name }} <span v-if="m.appOnly" class="yc-badge">{{ t('yc.prices.appOnly') }}</span></span>
           <span class="yc-prices-cell" :data-label="t('yc.prices.input')">
             <b class="yc-num">¥{{ price(m.input) }}<small v-if="m.varies">{{ t('yc.prices.from') }}</small></b><s v-if="m.share && m.officialInput">¥{{ price(m.officialInput) }}</s>
-            <em v-if="m.app" class="yc-prices-app">{{ t('yc.prices.appPrice', { price: price(m.app.input) }) }}</em>
+            <em v-if="m.app" class="yc-prices-app">{{ t('yc.prices.appPrice', { price: price(m.app.input) }) }}<template v-if="m.app.varies">{{ t('yc.prices.from') }}</template></em>
           </span>
           <span class="yc-prices-cell" :data-label="t('yc.prices.output')">
             <b class="yc-num">¥{{ price(m.output) }}<small v-if="m.varies">{{ t('yc.prices.from') }}</small></b><s v-if="m.share && m.officialOutput">¥{{ price(m.officialOutput) }}</s>
-            <em v-if="m.app" class="yc-prices-app">{{ t('yc.prices.appPrice', { price: price(m.app.output) }) }}</em>
+            <em v-if="m.app" class="yc-prices-app">{{ t('yc.prices.appPrice', { price: price(m.app.output) }) }}<template v-if="m.app.varies">{{ t('yc.prices.from') }}</template></em>
           </span>
           <span class="yc-prices-off"><span v-if="m.share" class="yc-badge">{{ t('yc.price.off', { zhe: (m.share * 10).toFixed(1), pct: Math.round((1 - m.share) * 100) }) }}</span></span>
         </button>
