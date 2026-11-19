@@ -19,8 +19,10 @@ export interface YcPrice {
   lines: YcPriceLine[]
   /** Cheapest app-only price, when it beats the headline; null when there is none. */
   app: { input: number; output: number; varies: boolean } | null
-  /** True when the headline itself is an app-only line, i.e. the model is not sold outside the app. */
+  /** True when every line selling the model is app-only, i.e. it is not sold outside the app. */
   appOnly: boolean
+  /** True when the headline is an app-only price although a monthly plan also sells the model. */
+  appHeadline: boolean
   /** Official list price in USD per million tokens, for those who want the raw numbers. */
   usdInput: number | null
   usdOutput: number | null
@@ -93,6 +95,7 @@ export function useYcPrices() {
           lines: [line],
           app: null,
           appOnly: false,
+          appHeadline: false,
           usdInput: o?.input_price != null ? o.input_price * PER_MILLION : null,
           usdOutput: o?.output_price != null ? o.output_price * PER_MILLION : null
         })
@@ -105,7 +108,8 @@ export function useYcPrices() {
       price.input = headline.input
       price.output = headline.output
       price.varies = headline.varies
-      price.appOnly = headline.app
+      price.appOnly = price.lines.every((l) => l.app)
+      price.appHeadline = headline.app && !price.appOnly
       const appLine = price.lines.find((l) => l.app && !l.plan)
       price.app =
         appLine && !headline.app && appLine.input < headline.input

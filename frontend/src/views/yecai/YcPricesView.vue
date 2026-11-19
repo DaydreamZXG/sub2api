@@ -13,7 +13,7 @@
       <p v-else-if="shown.length === 0" class="yc-prices-empty">{{ t(prices.length ? 'yc.prices.noMatch' : 'yc.prices.none') }}</p>
       <template v-for="m in shown" :key="m.name">
         <button type="button" class="yc-prices-row" :aria-expanded="open === m.name" @click="open = open === m.name ? '' : m.name">
-          <span class="yc-mono yc-prices-name">{{ m.name }} <span v-if="m.appOnly" class="yc-badge">{{ t('yc.prices.appOnly') }}</span></span>
+          <span class="yc-mono yc-prices-name">{{ m.name }} <span v-if="m.appOnly || m.appHeadline" class="yc-badge">{{ t(m.appOnly ? 'yc.prices.appOnly' : 'yc.prices.appHeadline') }}</span></span>
           <span class="yc-prices-cell" :data-label="t('yc.prices.input')">
             <b class="yc-num">¥{{ price(m.input) }}<small v-if="m.varies">{{ t('yc.prices.from') }}</small></b><s v-if="m.share && m.officialInput">¥{{ price(m.officialInput) }}</s>
             <em v-if="m.app" class="yc-prices-app">{{ t('yc.prices.appPrice', { price: price(m.app.input) }) }}<template v-if="m.app.varies">{{ t('yc.prices.from') }}</template></em>
@@ -46,7 +46,7 @@
         </div>
       </template>
     </section>
-    <p v-if="prices.some((m) => m.app || m.appOnly)" class="yc-note yc-prices-foot">{{ t('yc.prices.appNote') }}</p>
+    <p v-if="prices.some((m) => m.app || m.appOnly || m.appHeadline)" class="yc-note yc-prices-foot">{{ t('yc.prices.appNote') }}</p>
     <p class="yc-note yc-prices-foot">{{ t('yc.prices.foot') }}</p>
   </YcShell>
 </template>

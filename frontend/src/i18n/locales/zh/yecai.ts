@@ -192,6 +192,7 @@ export default {
     line: '线路', cacheRead: '缓存读取', multiplier: '倍率',
     official: '官方价：输入 ${input}、输出 ${output}（每百万 Token）。划掉的人民币价按 1 美元 ≈ {rate} 元折算，仅供对比。',
     appPrice: '用 app ¥{price}',
+    appHeadline: 'app 价',
     appOnly: '仅 app',
     appNote: '“用 app”的价格：通过野菜桌面助手接入时按这个价扣费；把密钥复制到别的工具里用，按普通价。',
     foot: '点任意一行可以展开，看每条线路的价格、缓存价和倍率。'
