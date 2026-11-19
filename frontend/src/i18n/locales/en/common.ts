@@ -166,6 +166,7 @@ export default {
     dashboard: 'Dashboard',
     announcements: 'Announcements',
     tickets: 'Tickets',
+    growthLevels: 'Growth levels',
     apiKeys: 'API Keys',
     batchImage: 'Batch Images',
     usage: 'Usage',

@@ -374,6 +374,23 @@ export default {
     },
 
     // Tickets
+    growth: {
+      title: 'Growth levels',
+      description: 'The more a user has topped up in total, the lower their price through the app',
+      enable: 'Turn on growth levels',
+      enableHint: 'When on, users who reach an app-only line through the YESCHOY app get their level\'s discount on top of that line\'s price. Other lines and requests outside the app are unaffected.',
+      name: 'Level name',
+      threshold: 'Total top-ups reached (balance)',
+      discount: 'Extra off the app price (%)',
+      add: 'Add a level',
+      rules: 'The first level starts at 0. Levels follow total top-ups, so they never drop. A price you set for one user on a line still wins. Changes take effect within about a minute.',
+      errorName: 'Every level needs a name',
+      errorThreshold: 'Each level needs a higher total than the one before',
+      errorDiscount: 'The discount must be between 0 and 90',
+      saved: 'Growth levels saved',
+      failedToLoad: 'Could not load growth levels',
+      failedToSave: 'Could not save growth levels'
+    },
     tickets: {
       title: 'Tickets',
       description: 'Read and answer support tickets from users',

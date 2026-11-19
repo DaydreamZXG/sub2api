@@ -616,6 +616,18 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
+    path: '/admin/growth-levels',
+    name: 'AdminGrowthLevels',
+    component: () => import('@/views/admin/GrowthLevelsView.vue'),
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: true,
+      title: 'Growth levels',
+      titleKey: 'admin.growth.title',
+      descriptionKey: 'admin.growth.description'
+    }
+  },
+  {
     path: '/admin/proxies',
     name: 'AdminProxies',
     component: () => import('@/views/admin/ProxiesView.vue'),
