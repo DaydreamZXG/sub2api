@@ -165,14 +165,19 @@ func (r *gardenRepository) PlantGift(ctx context.Context, email string, amount f
 }
 
 func (r *gardenRepository) PlantInviteReward(ctx context.Context, inviteeID, orderID int64, amount float64, ripenAfter time.Duration) (int64, error) {
-	// 只认被邀请人的第一笔付款；唯一索引保证同一个被邀请人只给邀请人一棵。
+	// 只认被邀请人最早付款的那一笔（付款时间相同按订单号），这样两笔几乎同时付款时也总有一笔算数；
+	// 唯一索引保证同一个被邀请人只给邀请人一棵。
 	const query = `
 		INSERT INTO garden_crops (user_id, source, amount, ripe_at, ref_user_id, ref_order_id)
 		SELECT a.inviter_id, 'invite', $3, NOW() + make_interval(secs => $4), $1, $2
 		FROM user_affiliates a
 		JOIN users inviter ON inviter.id = a.inviter_id AND inviter.deleted_at IS NULL AND inviter.status = 'active'
+		JOIN payment_orders o ON o.id = $2 AND o.user_id = $1 AND o.paid_at IS NOT NULL
 		WHERE a.user_id = $1 AND a.inviter_id IS NOT NULL
-			AND NOT EXISTS (SELECT 1 FROM payment_orders p WHERE p.user_id = $1 AND p.id <> $2 AND p.paid_at IS NOT NULL)
+			AND NOT EXISTS (
+				SELECT 1 FROM payment_orders p
+				WHERE p.user_id = $1 AND p.id <> o.id AND p.paid_at IS NOT NULL AND (p.paid_at, p.id) < (o.paid_at, o.id)
+			)
 		ON CONFLICT (ref_user_id) WHERE source = 'invite' DO NOTHING
 		RETURNING user_id
 	`
