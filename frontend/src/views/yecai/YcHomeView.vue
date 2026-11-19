@@ -273,6 +273,8 @@ function turnPages() {
     const t = Math.min(1, Math.max(0, (p - 0.1) / 0.55))
     el.style.setProperty('--p', p.toFixed(4))
     el.style.setProperty('--a', (t * t * (3 - 2 * t)).toFixed(4))
+    // --b overshoots past 1 and settles, so the new card lands with a bounce.
+    el.style.setProperty('--b', (1 + 2.6 * Math.pow(t - 1, 3) + 1.6 * Math.pow(t - 1, 2)).toFixed(4))
   }
 }
 function queueTurn() {
@@ -490,29 +492,33 @@ onMounted(async () => {
   .yc-lead, .yc-hero-cta, .yc-hero-flow { animation: yc-rise 1s cubic-bezier(0.16, 1, 0.3, 1) 0.35s both; }
 
   /* Opening: both headline lines surge up from below, then the highlighter sweeps. */
-  .yc-h1-line { overflow: hidden; padding: 0.06em 0.12em 0.1em; margin: -0.06em -0.12em -0.1em; }
-  .yc-h1-line > span { display: inline-block; transform-origin: 0 100%; animation: yc-surge 1.1s cubic-bezier(0.16, 1, 0.3, 1) both; }
+  .yc-h1-line { overflow: hidden; padding: 0.3em 0.3em 0.1em; margin: -0.3em -0.3em -0.1em; }
+  .yc-h1-line > span { display: inline-block; transform-origin: 0 100%; animation: yc-surge 1.25s cubic-bezier(0.2, 1.35, 0.35, 1) both; }
   .yc-h1-line + .yc-h1-line > span { animation-delay: 0.14s; }
-  .yc-home .yc-h1.is-in .yc-mark { animation-delay: 0.95s; animation-duration: 0.7s; }
+  .yc-home .yc-h1.is-in .yc-mark { animation-delay: 0.95s; animation-duration: 0.45s; }
 
   /* Narrow screens: the two cards swing in from either side. */
-  .yc-home:not(.is-pin) .yc-vs-col { transition: opacity 0.7s ease, transform 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
-  .yc-home:not(.is-pin) .yc-vs-before:not(.is-in) { opacity: 0; transform: translateX(-14%) rotate(-4deg); }
-  .yc-home:not(.is-pin) .yc-vs-after:not(.is-in) { opacity: 0; transform: translateX(18%) rotate(4deg) scale(0.92); }
+  .yc-home:not(.is-pin) .yc-vs-col { transition: opacity 0.6s ease, transform 0.95s cubic-bezier(0.2, 1.4, 0.35, 1); }
+  .yc-home:not(.is-pin) .yc-vs-before:not(.is-in) { opacity: 0; transform: translateX(-60%) rotate(-14deg) scale(0.8); }
+  .yc-home:not(.is-pin) .yc-vs-after:not(.is-in) { opacity: 0; transform: translateX(70%) rotate(14deg) scale(0.8); }
 
   /* Wide screens: each pain screen holds still while the old card is knocked back and the new one takes over. */
   .is-pin .yc-pain { height: 240vh; padding-top: 0; }
   .is-pin .yc-pain-stage { position: sticky; top: 64px; height: calc(100vh - 64px); display: flex; flex-direction: column; justify-content: center; }
   .is-pin .yc-pain .yc-h2 { font-size: clamp(30px, 4.4vw, 54px); }
-  .is-pin .yc-pain-n { top: -0.5em; font-size: clamp(200px, 32vw, 460px); transform: translateX(calc((0.35 - var(--p, 0)) * 95vw)); }
+  .is-pin .yc-pain-n { top: -0.42em; font-size: clamp(280px, 48vw, 720px); transform: translateX(calc((0.5 - var(--p, 0)) * 190vw)); }
   .is-pin .yc-pain-old { opacity: calc(1 - var(--a, 0) * 0.55); }
   .yc-home.is-pin .yc-pain .yc-mark { animation: none; background-size: calc(var(--a, 0) * 100%) 100%; }
-  :global(.dark .yc.yc-home.is-pin .yc-pain .yc-mark) { animation: none; background-position: calc((1 - var(--a, 0)) * 100%) 0; }
+  :global(.dark .yc.yc-home.is-pin .yc-pain .yc-mark) { animation: none; background-size: 200% 100%; background-position: calc((1 - var(--a, 0)) * 100%) 0; }
   .is-pin .yc-vs { grid-template-columns: minmax(0, 1fr); margin-top: clamp(20px, 4vh, 44px); }
-  .is-pin .yc-vs-col { grid-area: 1 / 1; align-self: center; width: 100%; max-width: 860px; margin: 0 auto; }
-  .is-pin .yc-vs-before { background: var(--yc-bg); transform-origin: 20% 100%; transform: translateX(calc(var(--a, 0) * -36%)) rotate(calc(var(--a, 0) * -11deg)) scale(calc(1 - var(--a, 0) * 0.28)); opacity: calc(1 - var(--a, 0) * 0.72); filter: blur(calc(var(--a, 0) * 2px)); }
-  .is-pin .yc-vs-after { z-index: 1; transform: translateX(calc((1 - var(--a, 0)) * 76vw)) rotate(calc((1 - var(--a, 0)) * 10deg)) perspective(1100px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transition: transform 0.18s ease-out; }
+  .is-pin .yc-vs-col { grid-area: 1 / 1; align-self: center; width: 100%; max-width: 920px; margin: 0 auto; }
+  .is-pin .yc-vs-before { background: var(--yc-bg); transform-origin: 0 100%; transform: perspective(1400px) translate(calc(var(--a, 0) * -95vw), calc(var(--a, 0) * 16vh)) rotate(calc(var(--a, 0) * -38deg)) rotateY(calc(var(--a, 0) * 70deg)) scale(calc(1 - var(--a, 0) * 0.35)); opacity: calc(1 - var(--a, 0) * 0.9); }
+  .is-pin .yc-vs-after { z-index: 1; transform-origin: 50% 0; transform: translate(calc((1 - var(--b, 0)) * 92vw), calc((1 - var(--a, 0)) * 30vh)) rotate(calc((1 - var(--b, 0)) * 32deg)) scale(calc(0.45 + var(--b, 0) * 0.55)) perspective(1100px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transition: transform 0.18s ease-out; box-shadow: 0 1px 0 rgb(255 255 255 / 0.9) inset, 0 40px 90px -30px rgb(11 15 12 / 0.4); }
   .is-pin .yc-shot img { max-height: min(22vh, 240px); object-fit: cover; object-position: top; }
+  @media (max-height: 800px) {
+    .is-pin .yc-shot img { max-height: 13vh; }
+    .is-pin .yc-pain .yc-h2 { font-size: clamp(28px, 3.6vw, 44px); }
+  }
   .is-pin .yc-vs-after li { transition-delay: calc(0.1s + var(--i) * 0.12s); }
   .is-pin .yc-vs-after li::before { transition-delay: calc(0.25s + var(--i) * 0.12s); }
 
@@ -526,6 +532,8 @@ onMounted(async () => {
   .yc-price .yc-price-now { opacity: 0; animation: none; }
   .yc-price.is-in .yc-price-now { animation: yc-slam 0.75s cubic-bezier(0.2, 0.8, 0.2, 1) calc(var(--d) + 1s) both; }
   .yc-home .yc-price.is-in .yc-price-now .yc-mark { animation-delay: calc(var(--d) + 1.5s); animation-duration: 0.6s; }
+  .yc-price.is-in .yc-price-top { animation: yc-quake 0.55s linear calc(var(--d) + 1.38s) both; }
+  .yc-price.is-in .yc-price-top + .yc-price-list { animation: yc-jolt 0.7s cubic-bezier(0.3, 1.6, 0.5, 1) calc(var(--d) + 1.4s) both; }
   .yc-price .yc-price-unit, .yc-price .yc-price-out { opacity: 0; }
   .yc-price.is-in .yc-price-unit, .yc-price.is-in .yc-price-out { animation: yc-rise 0.6s ease calc(var(--d) + 1.55s) both; }
   .yc-lead { animation-delay: 0.45s; }
@@ -560,9 +568,11 @@ onMounted(async () => {
 @keyframes yc-draw { to { background-size: 100% 100%; } }
 @keyframes yc-draw-dark { to { background-position: 0 0; } }
 @keyframes yc-sheen { 0%, 62% { left: -60%; } 100% { left: 130%; } }
-@keyframes yc-surge { from { transform: translateY(115%) rotate(7deg); } to { transform: none; } }
+@keyframes yc-surge { from { transform: translateY(190%) rotate(14deg) scale(1.25); } to { transform: none; } }
 @keyframes yc-was { 0% { opacity: 0; transform: translateY(40px) scale(1.7); } 22%, 72% { opacity: 1; transform: scale(1.7); } 100% { opacity: 1; transform: none; } }
 @keyframes yc-cross { to { transform: scaleX(1); } }
-@keyframes yc-slam { 0% { opacity: 0; transform: scale(3.4); } 55% { opacity: 1; transform: scale(0.93); } 78% { transform: scale(1.03); } 100% { opacity: 1; transform: none; } }
+@keyframes yc-slam { 0% { opacity: 0; transform: scale(7) rotate(-8deg); } 50% { opacity: 1; transform: scale(0.86) rotate(1deg); } 72% { transform: scale(1.06); } 100% { opacity: 1; transform: none; } }
+@keyframes yc-quake { 0%, 100% { transform: none; } 15% { transform: translate(-14px, 10px) rotate(-0.8deg); } 30% { transform: translate(12px, -8px) rotate(0.7deg); } 45% { transform: translate(-9px, 6px) rotate(-0.4deg); } 60% { transform: translate(6px, -4px); } 80% { transform: translate(-3px, 2px); } }
+@keyframes yc-jolt { 0% { transform: none; } 25% { transform: translateY(26px) rotate(1.2deg); } 100% { transform: none; } }
 @keyframes yc-rise { from { opacity: 0; transform: translateY(48px); } to { opacity: 1; transform: none; } }
 </style>
