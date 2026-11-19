@@ -1,3 +1,4 @@
+import { watch } from 'vue'
 import { paymentAPI } from '@/api/payment'
 import { useAppStore, useAuthStore } from '@/stores'
 import { cnyPerUsd, unitsPerYuan } from './ycMoneyState'
@@ -8,7 +9,8 @@ export function useYcMoney() {
   const appStore = useAppStore()
   const authStore = useAuthStore()
 
-  if (!requested && authStore.isAuthenticated && appStore.cachedPublicSettings?.payment_enabled) {
+  function loadRate() {
+    if (requested || !authStore.isAuthenticated || !appStore.cachedPublicSettings?.payment_enabled) return
     requested = true
     paymentAPI
       .getCheckoutInfo()
@@ -20,6 +22,9 @@ export function useYcMoney() {
         requested = false
       })
   }
+  loadRate()
+  // Sign-in state and public settings can arrive after the first page has rendered.
+  watch(() => [authStore.isAuthenticated, appStore.cachedPublicSettings?.payment_enabled], loadRate)
 
   function toYuan(units: number | null | undefined): number {
     return (units ?? 0) / unitsPerYuan.value
