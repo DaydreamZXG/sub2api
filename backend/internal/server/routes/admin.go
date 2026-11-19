@@ -53,6 +53,7 @@ func RegisterAdminRoutes(
 
 		// 工单管理
 		registerTicketRoutes(admin, h)
+		registerGrowthRoutes(admin, h)
 
 		// OpenAI OAuth
 		registerOpenAIOAuthRoutes(admin, h)
@@ -444,6 +445,11 @@ func registerAccountRoutes(admin *gin.RouterGroup, h *handler.Handlers, stepUpAu
 		accounts.POST("/cookie-auth", h.Admin.OAuth.CookieAuth)
 		accounts.POST("/setup-token-cookie-auth", h.Admin.OAuth.SetupTokenCookieAuth)
 	}
+}
+
+func registerGrowthRoutes(admin *gin.RouterGroup, h *handler.Handlers) {
+	admin.GET("/growth-levels", h.Growth.AdminGet)
+	admin.PUT("/growth-levels", h.Growth.AdminUpdate)
 }
 
 func registerTicketRoutes(admin *gin.RouterGroup, h *handler.Handlers) {

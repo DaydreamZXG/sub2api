@@ -57,6 +57,7 @@ type Handlers struct {
 	Subscription     *SubscriptionHandler
 	Announcement     *AnnouncementHandler
 	Ticket           *TicketHandler
+	Growth           *GrowthHandler
 	Desktop          *DesktopHandler
 	ChannelMonitor   *ChannelMonitorUserHandler
 	ChannelMonitorV2 *ChannelMonitorV2Handler
