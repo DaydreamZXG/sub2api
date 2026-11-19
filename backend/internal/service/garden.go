@@ -49,6 +49,8 @@ type GardenSettings struct {
 	// A fed dog catches a thief with a chance between DogMinPercent (lowest growth level) and DogMaxPercent (highest).
 	DogMinPercent float64 `json:"dog_min_percent"`
 	DogMaxPercent float64 `json:"dog_max_percent"`
+	// InviteCropAmount is the crop an inviter is given when someone they invited pays for the first time; 0 gives none.
+	InviteCropAmount float64 `json:"invite_crop_amount"`
 }
 
 // DefaultGardenSettings is the garden switched off with a one-day ripening time.
@@ -74,7 +76,8 @@ func (g GardenSettings) Validate() error {
 		!within(g.DogMinPercent, 0, 100), !within(g.DogMaxPercent, 0, 100), g.DogMinPercent > g.DogMaxPercent,
 		g.DailyStealLimit < 0 || g.DailyStealLimit > 1000,
 		g.MaxWatersPerCrop < 0 || g.MaxWatersPerCrop > 100,
-		g.NeighboursPerDay < 0 || g.NeighboursPerDay > 50:
+		g.NeighboursPerDay < 0 || g.NeighboursPerDay > 50,
+		!within(g.InviteCropAmount, 0, GardenMaxGiftAmount):
 		return ErrGardenSettingsInvalid
 	}
 	return nil
@@ -92,7 +95,17 @@ type GardenCrop struct {
 	RipeAt          time.Time  `json:"ripe_at"`
 	HarvestedAt     *time.Time `json:"harvested_at,omitempty"`
 	HarvestedAmount float64    `json:"harvested_amount"`
+	// Source is "order" for a top-up's bonus, "invite" for an invite reward, "gift" for one an admin gave.
+	Source string `json:"source"`
 }
+
+const (
+	GardenSourceOrder  = "order"
+	GardenSourceInvite = "invite"
+	GardenSourceGift   = "gift"
+	// GardenMaxGiftAmount caps a crop the site gives away.
+	GardenMaxGiftAmount = 10000
+)
 
 // GardenRepository moves a crop's value between the crop and the user's balance, each in one statement.
 type GardenRepository interface {
@@ -102,6 +115,13 @@ type GardenRepository interface {
 	Uproot(ctx context.Context, orderID int64) (float64, error)
 	// GrowingForOrder reports what the order's growing crop still holds, 0 when it has none.
 	GrowingForOrder(ctx context.Context, orderID int64) (float64, error)
+	// PlantGift plants a crop for the user that is not taken out of their balance.
+	PlantGift(ctx context.Context, userID int64, amount float64, ripenAfter time.Duration) error
+	// PlantInviteReward plants a crop for the inviter of the user who paid the order, when that order is the user's
+	// first paid one and they have not earned their inviter a crop before. It reports the inviter, 0 when nothing was planted.
+	PlantInviteReward(ctx context.Context, inviteeID, orderID int64, amount float64, ripenAfter time.Duration) (int64, error)
+	// RemoveInviteReward takes back the still-growing invite crop the order earned.
+	RemoveInviteReward(ctx context.Context, orderID int64) error
 	// Replant undoes Uproot: the removed crop grows again and its value leaves the balance.
 	// It reports 0 and changes nothing when the balance no longer covers it.
 	Replant(ctx context.Context, orderID int64) (float64, error)
