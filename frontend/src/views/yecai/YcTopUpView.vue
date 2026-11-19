@@ -62,7 +62,9 @@ const facts = computed(() => {
   const info = checkout.value
   const currency = payCurrency.value
   const paid = (amount: number) => `${currencySymbol(currency)}${amount}`
-  const tiers = currency && info?.recharge_bonus_mode !== 'discount' ? (info?.recharge_bonus_tiers ?? []) : []
+  // Bonuses apply to balance top-ups only, so a plans-only site has none to offer.
+  const tiers =
+    currency && !info?.balance_disabled && info?.recharge_bonus_mode !== 'discount' ? (info?.recharge_bonus_tiers ?? []) : []
   return [
     {
       title: t('yc.topUp.minTitle'),
