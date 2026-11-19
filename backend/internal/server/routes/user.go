@@ -128,6 +128,8 @@ func RegisterUserRoutes(
 
 		// 工单（用户自己的）
 		authenticated.GET("/user/growth", h.Growth.Get)
+		authenticated.GET("/user/garden", h.Garden.Get)
+		authenticated.POST("/user/garden/crops/:id/harvest", h.Garden.Harvest)
 		tickets := authenticated.Group("/tickets")
 		{
 			tickets.GET("", h.Ticket.List)

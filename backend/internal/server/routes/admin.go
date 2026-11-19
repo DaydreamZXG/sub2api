@@ -450,6 +450,8 @@ func registerAccountRoutes(admin *gin.RouterGroup, h *handler.Handlers, stepUpAu
 func registerGrowthRoutes(admin *gin.RouterGroup, h *handler.Handlers) {
 	admin.GET("/growth-levels", h.Growth.AdminGet)
 	admin.PUT("/growth-levels", h.Growth.AdminUpdate)
+	admin.GET("/garden-settings", h.Garden.AdminGet)
+	admin.PUT("/garden-settings", h.Garden.AdminUpdate)
 }
 
 func registerTicketRoutes(admin *gin.RouterGroup, h *handler.Handlers) {

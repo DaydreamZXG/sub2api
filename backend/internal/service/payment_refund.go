@@ -269,6 +269,12 @@ func (s *PaymentService) prepDeduct(ctx context.Context, o *dbent.PaymentOrder, 
 		}
 		return nil
 	}
+	// 订单的赠送还种在菜园里时先收回余额，后面的扣减和没有菜园时一样算。
+	if s.garden != nil {
+		if _, err := s.garden.UprootForOrder(ctx, o.UserID, o.ID); err != nil {
+			slog.Warn("refund: uproot garden crop failed", "orderID", o.ID, "error", err)
+		}
+	}
 	u, err := s.userRepo.GetByID(ctx, o.UserID)
 	if err != nil {
 		if !force {
