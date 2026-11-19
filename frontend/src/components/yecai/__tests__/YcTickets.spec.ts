@@ -48,6 +48,7 @@ describe('YcTickets', () => {
     api.create.mockResolvedValue(ticket({ id: 7, status: 'open' }))
     api.getById.mockResolvedValue({ ...ticket({ id: 7, status: 'open' }), messages: [message(1, 'user', 'It says 401')] })
     const wrapper = await mountTickets()
+    api.list.mockResolvedValue({ items: [ticket({ id: 7, status: 'open' })], total: 1, page: 1, page_size: 20, pages: 1 })
 
     await wrapper.get('.yc-tk-head button').trigger('click')
     await wrapper.get('.yc-tk-form input').setValue('Cannot connect')
@@ -77,6 +78,30 @@ describe('YcTickets', () => {
     expect(api.reply).toHaveBeenCalledWith(1, 'still broken')
     expect(wrapper.get('.yc-tk-row i').text()).toBe('yc.tickets.status.open')
     expect(wrapper.findAll('.yc-tk-msg')).toHaveLength(3)
+  })
+
+  it('reloads the first page after a new ticket so later pages do not repeat or skip tickets', async () => {
+    api.list.mockResolvedValue({ items: [ticket({ id: 2 }), ticket({ id: 1 })], total: 3, page: 1, page_size: 2, pages: 2 })
+    const wrapper = await mountTickets()
+    expect(wrapper.find('.yc-tk-more').exists()).toBe(true)
+
+    api.create.mockResolvedValue(ticket({ id: 4, status: 'open' }))
+    api.list.mockResolvedValue({ items: [ticket({ id: 4, status: 'open' }), ticket({ id: 2 })], total: 4, page: 1, page_size: 2, pages: 2 })
+    api.getById.mockResolvedValue({ ...ticket({ id: 4, status: 'open' }), messages: [message(1, 'user', 'new')] })
+    await wrapper.get('.yc-tk-head button').trigger('click')
+    await wrapper.get('.yc-tk-form input').setValue('New one')
+    await wrapper.get('.yc-tk-form textarea').setValue('new')
+    await wrapper.get('.yc-tk-form').trigger('submit')
+    await flushPromises()
+    expect(wrapper.findAll('.yc-tk-item')).toHaveLength(2)
+
+    api.list.mockResolvedValue({ items: [ticket({ id: 1 }), ticket({ id: 0 })], total: 4, page: 2, page_size: 2, pages: 2 })
+    await wrapper.get('.yc-tk-more').trigger('click')
+    await flushPromises()
+
+    expect(api.list).toHaveBeenLastCalledWith(2)
+    expect(wrapper.findAll('.yc-tk-item')).toHaveLength(4)
+    expect(wrapper.find('.yc-tk-more').exists()).toBe(false)
   })
 
   it('keeps the draft and reports the error when submitting fails', async () => {

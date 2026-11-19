@@ -135,11 +135,15 @@ function toggle(ticket: Ticket) {
 function submit() {
   void run(async () => {
     const created = await ticketsAPI.create({ subject: draft.subject, category: draft.category, content: draft.content })
-    tickets.value.unshift(created)
-    total.value += 1
     Object.assign(draft, { subject: '', content: '' })
     composing.value = false
-    await openThread(tickets.value[0])
+    // The new ticket shifts every later page by one, so start again from the first page.
+    const result = await ticketsAPI.list(1)
+    tickets.value = result.items
+    total.value = result.total
+    page.value = 1
+    const listed = tickets.value.find((item) => item.id === created.id)
+    if (listed) await openThread(listed)
   })
 }
 
