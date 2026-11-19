@@ -1,5 +1,5 @@
 export default {
-  nav: { aria: 'Page navigation', docs: 'Docs' },
+  nav: { aria: 'Page navigation', pains: 'What we fix', prices: 'Prices', faq: 'FAQ', docs: 'Docs' },
   cta: { start: 'Get started', login: 'Sign in', console: 'Open console' },
   flow: { aria: 'Your tools reach every model through one key', key: 'Your key' },
   hero: {
@@ -57,7 +57,7 @@ export default {
       a3: 'Connection, cache and network issues are all covered'
     }
   },
-  live: { label: 'Tokens processed across the site · live', today: 'Today', requests: 'Requests in total' },
+  live: { label: 'Tokens processed across the site, live', today: '{tokens} today · {requests} requests in total' },
   client: {
     download: 'Download the app',
     windows: 'Download for Windows',
@@ -67,7 +67,7 @@ export default {
     shotAlt: 'My apps in the desktop app: Claude and Codex found on this computer, ready to connect in one click'
   },
   price: {
-    eyebrow: 'Price list',
+    eyebrow: 'Prices',
     title: 'And now, the price.',
     official: 'Official',
     perMillionIn: 'per million input tokens',
