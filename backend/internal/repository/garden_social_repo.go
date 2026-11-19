@@ -34,6 +34,7 @@ func (r *gardenSocialRepository) Neighbours(ctx context.Context, viewerID int64,
 		), drawn AS (
 			SELECT c.user_id AS id
 			FROM garden_crops c
+			JOIN users owner ON owner.id = c.user_id AND owner.status = 'active' AND owner.deleted_at IS NULL
 			WHERE c.status = 'growing' AND c.user_id <> $1 AND c.user_id NOT IN (SELECT id FROM pinned)
 			GROUP BY c.user_id
 			ORDER BY md5(c.user_id::text || ':' || $1::text || ':' || CURRENT_DATE::text)
@@ -110,7 +111,9 @@ func (r *gardenSocialRepository) CropOwner(ctx context.Context, cropID int64) (o
 
 // lockActor serialises one user's garden actions: their dog row is created if missing and locked for the transaction.
 func lockActor(ctx context.Context, tx *sql.Tx, actorID int64) error {
-	if _, err := tx.ExecContext(ctx, `INSERT INTO garden_dogs (user_id) VALUES ($1) ON CONFLICT (user_id) DO NOTHING`, actorID); err != nil {
+	// feed_seen_at 从很早的时间起算：只有读动态才往前推，建这一行不能把还没看的动态算成看过。
+	if _, err := tx.ExecContext(ctx, `
+		INSERT INTO garden_dogs (user_id, feed_seen_at) VALUES ($1, 'epoch') ON CONFLICT (user_id) DO NOTHING`, actorID); err != nil {
 		return err
 	}
 	var locked int64
@@ -269,7 +272,7 @@ func (r *gardenSocialRepository) Water(ctx context.Context, actorID, cropID int6
 
 func (r *gardenSocialRepository) FeedDog(ctx context.Context, userID int64) error {
 	_, err := r.db.ExecContext(ctx, `
-		INSERT INTO garden_dogs (user_id, fed_on) VALUES ($1, CURRENT_DATE)
+		INSERT INTO garden_dogs (user_id, fed_on, feed_seen_at) VALUES ($1, CURRENT_DATE, 'epoch')
 		ON CONFLICT (user_id) DO UPDATE SET fed_on = CURRENT_DATE`, userID)
 	return err
 }
@@ -316,9 +319,10 @@ func (r *gardenSocialRepository) Feed(ctx context.Context, userID int64, limit i
 	return items, rows.Err()
 }
 
-func (r *gardenSocialRepository) MarkFeedSeen(ctx context.Context, userID int64) error {
+func (r *gardenSocialRepository) MarkFeedSeen(ctx context.Context, userID int64, until time.Time) error {
 	_, err := r.db.ExecContext(ctx, `
-		INSERT INTO garden_dogs (user_id, feed_seen_at) VALUES ($1, NOW())
-		ON CONFLICT (user_id) DO UPDATE SET feed_seen_at = NOW()`, userID)
+		INSERT INTO garden_dogs (user_id, feed_seen_at) VALUES ($1, $2)
+		ON CONFLICT (user_id) DO UPDATE SET feed_seen_at = GREATEST(garden_dogs.feed_seen_at, EXCLUDED.feed_seen_at)`,
+		userID, until)
 	return err
 }

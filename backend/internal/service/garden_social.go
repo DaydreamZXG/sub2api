@@ -124,7 +124,8 @@ type GardenSocialRepository interface {
 	FeedDog(ctx context.Context, userID int64) error
 	Social(ctx context.Context, userID int64) (GardenSocial, error)
 	Feed(ctx context.Context, userID int64, limit int) ([]GardenFeedItem, error)
-	MarkFeedSeen(ctx context.Context, userID int64) error
+	// MarkFeedSeen counts what neighbours did in the user's garden up to and including until as read.
+	MarkFeedSeen(ctx context.Context, userID int64, until time.Time) error
 }
 
 // gardenName is how a user appears to other gardeners: the username, or the email with its local part masked.
@@ -317,11 +318,18 @@ func (s *GardenService) Feed(ctx context.Context, userID int64) ([]GardenFeedIte
 	if err != nil {
 		return nil, err
 	}
+	// Only what is in this list is read: something a neighbour does while it loads stays unread.
+	var seenUntil time.Time
 	for i := range items {
 		items[i].Name = gardenName(items[i].Username, items[i].Email)
+		if !items[i].Mine && items[i].CreatedAt.After(seenUntil) {
+			seenUntil = items[i].CreatedAt
+		}
 	}
-	if err := s.social.MarkFeedSeen(ctx, userID); err != nil {
-		return nil, err
+	if !seenUntil.IsZero() {
+		if err := s.social.MarkFeedSeen(ctx, userID, seenUntil); err != nil {
+			return nil, err
+		}
 	}
 	return items, nil
 }
