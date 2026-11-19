@@ -167,6 +167,7 @@ export default {
     announcements: '公告',
     tickets: '工单',
     growthLevels: '成长等级',
+    garden: '菜园',
     apiKeys: 'API 密钥',
     batchImage: '批量生图',
     usage: '使用记录',

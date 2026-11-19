@@ -374,6 +374,19 @@ export default {
     },
 
     // Tickets
+    garden: {
+      title: 'Garden',
+      description: 'A top-up bonus is planted as a crop and harvested into the balance once ripe',
+      enable: 'Turn on the garden',
+      enableHint: 'While on, the bonus part of a balance top-up is not credited at once. It is planted as a crop that the user harvests into their balance when it is ripe. What they paid for is credited at once, as usual.',
+      ripenHours: 'Ripening time (hours)',
+      ripenHoursHint: 'Applies to crops planted from now on; crops already planted keep their time.',
+      rules: 'Nothing is planted when no top-up bonus is configured. When an order is refunded, a crop not yet harvested goes back to the balance first, then the usual deduction applies. Crops already planted can still be harvested after the garden is turned off. Changes take effect within about a minute.',
+      errorHours: 'The ripening time must be above 0 and at most {max} hours',
+      saved: 'Saved',
+      failedToSave: 'Could not save',
+      failedToLoad: 'Could not load the garden settings'
+    },
     growth: {
       title: 'Growth levels',
       description: 'The more a user has topped up in total, the lower their price through the app',

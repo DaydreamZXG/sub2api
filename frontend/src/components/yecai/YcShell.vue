@@ -39,6 +39,7 @@ import { FeatureFlags, isFeatureFlagEnabled } from '@/utils/featureFlags'
 import { availableLocales, setLocale } from '@/i18n'
 import { useBatchImageAccess } from '@/composables/useBatchImageAccess'
 import { useYcMoney } from '@/composables/useYcMoney'
+import { getMyGarden } from '@/api/garden'
 import AnnouncementBell from '@/components/common/AnnouncementBell.vue'
 import '@/styles/yecai.css'
 
@@ -62,6 +63,8 @@ const { yuan } = useYcMoney()
 const { canUseBatchImage, refreshBatchImageAccess } = useBatchImageAccess()
 
 const settings = computed(() => appStore.cachedPublicSettings)
+// The garden is listed once it is open, or while the user still has crops in it.
+const hasGarden = ref(false)
 const initial = computed(() => (authStore.user?.username || authStore.user?.email || '?').charAt(0).toUpperCase())
 const on = (show: unknown, item: NavLink): NavLink[] => (show ? [item] : [])
 const flag = isFeatureFlagEnabled
@@ -73,6 +76,7 @@ const links = computed<NavLink[]>(() => {
     ...on(full && flag(FeatureFlags.modelPlaza), { to: '/prices', text: t('yc.shell.prices'), also: ['/model-plaza'] }),
     ...on(full, { to: '/bills', text: t('yc.shell.bills'), also: ['/usage'] }),
     ...on(full, { to: '/topup', text: t('yc.shell.topUp'), also: ['/purchase', '/orders', '/redeem', '/payment'] }),
+    ...on(full && hasGarden.value, { to: '/garden', text: t('yc.shell.garden') }),
     { to: '/help', text: t('yc.shell.help') }
   ]
 })
@@ -116,6 +120,11 @@ async function logout() {
 
 const nav = ref<HTMLElement | null>(null)
 onMounted(() => {
+  if (!authStore.isSimpleMode) {
+    getMyGarden()
+      .then((garden) => (hasGarden.value = garden.enabled || garden.crops.some((crop) => crop.status === 'growing')))
+      .catch(() => undefined)
+  }
   void refreshBatchImageAccess()
   // Admin-only custom pages are resolved from these settings; the old sidebar used to load them.
   if (authStore.isAdmin) void adminSettingsStore.fetch()

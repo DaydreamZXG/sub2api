@@ -92,7 +92,7 @@ export default {
     a5: 'Claude Code, Codex, Gemini CLI, OpenCode and other common tools.'
   },
   shell: {
-    start: 'Home', connect: 'Connect a tool', prices: 'Prices', keys: 'Manage keys', bills: 'Bills', topUp: 'Top up',
+    garden: 'Garden', start: 'Home', connect: 'Connect a tool', prices: 'Prices', keys: 'Manage keys', bills: 'Bills', topUp: 'Top up',
     help: 'Help', more: 'More', plans: 'Monthly plans', invite: 'Invite & earn', admin: 'Admin', account: 'My account'
   },
   connect: {
@@ -188,6 +188,23 @@ export default {
     manual: 'Your app price was set individually, so the level discount is not added on top.'
   },
   theme: { label: 'Appearance', light: 'Light', dark: 'Dark', system: 'Follow system' },
+  garden: {
+    title: 'Garden',
+    lead: 'The bonus on a top-up is planted as a crop first. It ripens in {hours} hours; come back and harvest it into your balance. What you paid for arrives at once, as usual.',
+    failed: 'The garden cannot be opened right now. Try again later.',
+    ripe: 'Ripe, ready to harvest',
+    growing: 'Growing',
+    ripeIn: 'Ripe in {time}',
+    hoursMinutes: '{hours} h {minutes} min',
+    minutes: '{minutes} min',
+    harvest: 'Harvest',
+    harvestDone: '{amount} harvested into your balance',
+    harvestFailed: 'Could not harvest. Refresh and try again.',
+    emptyTitle: 'Nothing planted yet',
+    empty: 'When a top-up comes with a bonus, the bonus is planted here.',
+    off: 'The garden is closed for now.',
+    harvested: 'Harvested'
+  },
   prices: {
     title: 'Prices',
     lead: 'One price per model, in yuan. Prices are per million tokens; you pay for what you use.',
