@@ -15,6 +15,17 @@ type fakeGardenSocialRepo struct {
 	ownerID    int64
 	ownerTotal float64
 	stealRules *GardenStealRules
+	feed       []GardenFeedItem
+	seenUntil  []time.Time
+}
+
+func (r *fakeGardenSocialRepo) Feed(context.Context, int64, int) ([]GardenFeedItem, error) {
+	return r.feed, nil
+}
+
+func (r *fakeGardenSocialRepo) MarkFeedSeen(_ context.Context, _ int64, until time.Time) error {
+	r.seenUntil = append(r.seenUntil, until)
+	return nil
 }
 
 func (r *fakeGardenSocialRepo) Neighbours(context.Context, int64, int) ([]GardenNeighbour, error) {
@@ -121,6 +132,28 @@ func TestGardenStealChecksBeforeTheTry(t *testing.T) {
 	result, err = garden.Steal(ctx, 1, 10)
 	require.NoError(t, err)
 	require.False(t, result.Caught)
+}
+
+// Reading the feed marks as read only what neighbours did that the list actually shows.
+func TestGardenFeedMarksOnlyWhatItShows(t *testing.T) {
+	ctx := context.Background()
+	garden, social := newTestSocialGarden(`{"enabled":true,"ripen_hours":24}`)
+	base := time.Date(2026, 11, 20, 10, 0, 0, 0, time.UTC)
+
+	social.feed = []GardenFeedItem{{Kind: GardenActionSteal, Mine: true, CreatedAt: base.Add(3 * time.Hour)}}
+	_, err := garden.Feed(ctx, 1)
+	require.NoError(t, err)
+	require.Empty(t, social.seenUntil, "the user's own actions are not something to read")
+
+	social.feed = []GardenFeedItem{
+		{Kind: GardenActionSteal, Mine: true, CreatedAt: base.Add(3 * time.Hour)},
+		{Kind: GardenActionWater, Email: "bob@example.com", CreatedAt: base.Add(2 * time.Hour)},
+		{Kind: GardenActionCaught, Email: "bob@example.com", CreatedAt: base.Add(time.Hour)},
+	}
+	items, err := garden.Feed(ctx, 1)
+	require.NoError(t, err)
+	require.Equal(t, "bo***@example.com", items[1].Name)
+	require.Equal(t, []time.Time{base.Add(2 * time.Hour)}, social.seenUntil)
 }
 
 // The dog of an owner on a higher growth level catches thieves more often.
