@@ -31,21 +31,27 @@ func (r *gardenSocialRepository) Neighbours(ctx context.Context, viewerID int64,
 			SELECT user_id FROM (
 				SELECT user_id FROM user_affiliates WHERE inviter_id = $1 ORDER BY created_at DESC LIMIT $3
 			) invited
+		), raiders AS (
+			SELECT actor_id AS id FROM garden_actions
+			WHERE owner_id = $1 AND kind IN ('steal', 'caught') AND created_at > NOW() - INTERVAL '24 hours'
+			GROUP BY actor_id ORDER BY MAX(created_at) DESC LIMIT $3
 		), drawn AS (
 			SELECT c.user_id AS id
 			FROM garden_crops c
 			JOIN users owner ON owner.id = c.user_id AND owner.status = 'active' AND owner.deleted_at IS NULL
-			WHERE c.status = 'growing' AND c.user_id <> $1 AND c.user_id NOT IN (SELECT id FROM pinned)
+			WHERE c.status = 'growing' AND c.user_id <> $1
+				AND c.user_id NOT IN (SELECT id FROM pinned) AND c.user_id NOT IN (SELECT id FROM raiders)
 			GROUP BY c.user_id
 			ORDER BY md5(c.user_id::text || ':' || $1::text || ':' || CURRENT_DATE::text)
 			LIMIT $2
 		)
 		SELECT u.id, u.username, u.email, u.id IN (SELECT id FROM pinned) AS is_pinned,
+			u.id IN (SELECT id FROM raiders) AS raided,
 			(SELECT COUNT(*) FROM garden_crops c WHERE c.user_id = u.id AND c.status = 'growing')
 		FROM users u
-		WHERE u.id IN (SELECT id FROM pinned UNION SELECT id FROM drawn)
+		WHERE u.id IN (SELECT id FROM pinned UNION SELECT id FROM raiders UNION SELECT id FROM drawn)
 			AND u.id <> $1 AND u.status = 'active' AND u.deleted_at IS NULL
-		ORDER BY is_pinned DESC, md5(u.id::text || ':' || $1::text || ':' || CURRENT_DATE::text)
+		ORDER BY raided DESC, is_pinned DESC, md5(u.id::text || ':' || $1::text || ':' || CURRENT_DATE::text)
 	`
 	rows, err := r.db.QueryContext(ctx, query, viewerID, perDay, gardenPinnedInvitees)
 	if err != nil {
@@ -59,7 +65,7 @@ func (r *gardenSocialRepository) Neighbours(ctx context.Context, viewerID int64,
 	neighbours = []service.GardenNeighbour{}
 	for rows.Next() {
 		var n service.GardenNeighbour
-		if err = rows.Scan(&n.ID, &n.Username, &n.Email, &n.Pinned, &n.Crops); err != nil {
+		if err = rows.Scan(&n.ID, &n.Username, &n.Email, &n.Pinned, &n.Raided, &n.Crops); err != nil {
 			return nil, err
 		}
 		neighbours = append(neighbours, n)
@@ -292,7 +298,7 @@ func (r *gardenSocialRepository) Social(ctx context.Context, userID int64) (soci
 
 func (r *gardenSocialRepository) Feed(ctx context.Context, userID int64, limit int) (items []service.GardenFeedItem, err error) {
 	const query = `
-		SELECT a.kind, a.amount, a.created_at, a.actor_id = $1, u.username, u.email
+		SELECT a.kind, a.amount, a.created_at, a.actor_id = $1, u.id, u.username, u.email
 		FROM garden_actions a
 		JOIN users u ON u.id = CASE WHEN a.actor_id = $1 THEN a.owner_id ELSE a.actor_id END
 		WHERE a.owner_id = $1 OR a.actor_id = $1
@@ -311,7 +317,7 @@ func (r *gardenSocialRepository) Feed(ctx context.Context, userID int64, limit i
 	items = []service.GardenFeedItem{}
 	for rows.Next() {
 		var item service.GardenFeedItem
-		if err = rows.Scan(&item.Kind, &item.Amount, &item.CreatedAt, &item.Mine, &item.Username, &item.Email); err != nil {
+		if err = rows.Scan(&item.Kind, &item.Amount, &item.CreatedAt, &item.Mine, &item.UserID, &item.Username, &item.Email); err != nil {
 			return nil, err
 		}
 		items = append(items, item)
@@ -325,4 +331,48 @@ func (r *gardenSocialRepository) MarkFeedSeen(ctx context.Context, userID int64,
 		ON CONFLICT (user_id) DO UPDATE SET feed_seen_at = GREATEST(garden_dogs.feed_seen_at, EXCLUDED.feed_seen_at)`,
 		userID, until)
 	return err
+}
+
+func (r *gardenSocialRepository) Ranks(ctx context.Context, limit int) (thieves, dogs []service.GardenRank, err error) {
+	// 本周（周一起）偷到最多的人，和旺财抓人最多的菜园。
+	const thievesQuery = `
+		SELECT u.id, u.username, u.email, SUM(a.amount), COUNT(*)
+		FROM garden_actions a JOIN users u ON u.id = a.actor_id
+		WHERE a.kind = 'steal' AND a.created_at >= date_trunc('week', NOW())
+		GROUP BY u.id, u.username, u.email
+		ORDER BY SUM(a.amount) DESC, u.id LIMIT $1
+	`
+	const dogsQuery = `
+		SELECT u.id, u.username, u.email, 0::numeric, COUNT(*)
+		FROM garden_actions a JOIN users u ON u.id = a.owner_id
+		WHERE a.kind = 'caught' AND a.created_at >= date_trunc('week', NOW())
+		GROUP BY u.id, u.username, u.email
+		ORDER BY COUNT(*) DESC, u.id LIMIT $1
+	`
+	if thieves, err = r.ranks(ctx, thievesQuery, limit); err != nil {
+		return nil, nil, err
+	}
+	dogs, err = r.ranks(ctx, dogsQuery, limit)
+	return thieves, dogs, err
+}
+
+func (r *gardenSocialRepository) ranks(ctx context.Context, query string, limit int) (ranks []service.GardenRank, err error) {
+	rows, err := r.db.QueryContext(ctx, query, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		if closeErr := rows.Close(); err == nil {
+			err = closeErr
+		}
+	}()
+	ranks = []service.GardenRank{}
+	for rows.Next() {
+		var rank service.GardenRank
+		if err = rows.Scan(&rank.UserID, &rank.Username, &rank.Email, &rank.Amount, &rank.Count); err != nil {
+			return nil, err
+		}
+		ranks = append(ranks, rank)
+	}
+	return ranks, rows.Err()
 }

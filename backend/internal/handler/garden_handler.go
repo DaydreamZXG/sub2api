@@ -173,6 +173,21 @@ func (h *GardenHandler) Feed(c *gin.Context) {
 	response.Success(c, items)
 }
 
+// Ranks handles GET /api/v1/user/garden/ranks
+func (h *GardenHandler) Ranks(c *gin.Context) {
+	subject, ok := middleware2.GetAuthSubjectFromContext(c)
+	if !ok {
+		response.Unauthorized(c, "User not authenticated")
+		return
+	}
+	ranks, err := h.garden.Ranks(c.Request.Context(), subject.UserID)
+	if err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+	response.Success(c, ranks)
+}
+
 // Harvest handles POST /api/v1/user/garden/crops/:id/harvest
 func (h *GardenHandler) Harvest(c *gin.Context) {
 	subject, ok := middleware2.GetAuthSubjectFromContext(c)

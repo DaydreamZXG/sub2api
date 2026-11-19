@@ -17,10 +17,16 @@ type fakeGardenSocialRepo struct {
 	stealRules *GardenStealRules
 	feed       []GardenFeedItem
 	seenUntil  []time.Time
+	thieves    []GardenRank
+	dogs       []GardenRank
 }
 
 func (r *fakeGardenSocialRepo) Feed(context.Context, int64, int) ([]GardenFeedItem, error) {
 	return r.feed, nil
+}
+
+func (r *fakeGardenSocialRepo) Ranks(context.Context, int) ([]GardenRank, []GardenRank, error) {
+	return r.thieves, r.dogs, nil
 }
 
 func (r *fakeGardenSocialRepo) MarkFeedSeen(_ context.Context, _ int64, until time.Time) error {
@@ -132,6 +138,28 @@ func TestGardenStealChecksBeforeTheTry(t *testing.T) {
 	result, err = garden.Steal(ctx, 1, 10)
 	require.NoError(t, err)
 	require.False(t, result.Caught)
+}
+
+// The boards show names the way strangers see them and mark the viewer's own line.
+func TestGardenRanksMaskNamesAndMarkViewer(t *testing.T) {
+	garden, social := newTestSocialGarden(`{"enabled":true,"ripen_hours":24}`)
+	social.thieves = []GardenRank{
+		{UserID: 2, Email: "bob@example.com", Amount: 7, Count: 3},
+		{UserID: 1, Username: "alice", Email: "alice@example.com", Amount: 2, Count: 1},
+	}
+	social.dogs = []GardenRank{{UserID: 1, Username: "alice", Email: "alice@example.com", Count: 4}}
+
+	ranks, err := garden.Ranks(context.Background(), 1)
+	require.NoError(t, err)
+	require.Equal(t, "bo***@example.com", ranks.Thieves[0].Name)
+	require.False(t, ranks.Thieves[0].Me)
+	require.Equal(t, "alice", ranks.Thieves[1].Name)
+	require.True(t, ranks.Thieves[1].Me)
+	require.True(t, ranks.Dogs[0].Me)
+
+	closed, _ := newTestSocialGarden(`{"enabled":false,"ripen_hours":24}`)
+	_, err = closed.Ranks(context.Background(), 1)
+	require.Error(t, err)
 }
 
 // Reading the feed marks as read only what neighbours did that the list actually shows.

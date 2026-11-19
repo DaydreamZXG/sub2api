@@ -41,6 +41,8 @@ type GardenNeighbour struct {
 	Name string `json:"name"`
 	// Pinned neighbours are the viewer's inviter and invitees; they stay every day.
 	Pinned bool `json:"pinned"`
+	// Raided neighbours took, or tried to take, from the viewer in the last 24 hours; they are listed so the viewer can go back.
+	Raided bool `json:"took_from_you"`
 	Crops  int  `json:"crops"`
 	// Username and Email are only used to build Name.
 	Username string `json:"-"`
@@ -105,12 +107,34 @@ type GardenFeedItem struct {
 	Kind   string  `json:"kind"`
 	Amount float64 `json:"amount"`
 	// Mine: the viewer did it to someone else's crop; otherwise someone did it to the viewer's crop.
-	Mine      bool      `json:"mine"`
+	Mine bool `json:"mine"`
+	// UserID is the other gardener, so the feed can lead to their garden.
+	UserID    int64     `json:"user_id"`
 	Name      string    `json:"name"`
 	CreatedAt time.Time `json:"created_at"`
 	Username  string    `json:"-"`
 	Email     string    `json:"-"`
 }
+
+// GardenRank is one line of this week's boards: what a gardener took, or how many thieves their dog caught.
+type GardenRank struct {
+	Name   string  `json:"name"`
+	Amount float64 `json:"amount"`
+	Count  int     `json:"count"`
+	// Me marks the viewer's own line.
+	Me       bool   `json:"me"`
+	UserID   int64  `json:"-"`
+	Username string `json:"-"`
+	Email    string `json:"-"`
+}
+
+// GardenRanks are this week's boards.
+type GardenRanks struct {
+	Thieves []GardenRank `json:"thieves"`
+	Dogs    []GardenRank `json:"dogs"`
+}
+
+const gardenRankSize = 10
 
 // GardenSocialRepository stores what neighbours do in each other's gardens.
 type GardenSocialRepository interface {
@@ -124,6 +148,8 @@ type GardenSocialRepository interface {
 	FeedDog(ctx context.Context, userID int64) error
 	Social(ctx context.Context, userID int64) (GardenSocial, error)
 	Feed(ctx context.Context, userID int64, limit int) ([]GardenFeedItem, error)
+	// Ranks lists this week's gardeners who took the most and whose dogs caught the most.
+	Ranks(ctx context.Context, limit int) (thieves, dogs []GardenRank, err error)
 	// MarkFeedSeen counts what neighbours did in the user's garden up to and including until as read.
 	MarkFeedSeen(ctx context.Context, userID int64, until time.Time) error
 }
@@ -339,4 +365,22 @@ func (s *GardenService) roll() float64 {
 		return s.rollDice()
 	}
 	return rand.Float64()
+}
+
+// Ranks returns this week's boards with names as strangers see them.
+func (s *GardenService) Ranks(ctx context.Context, userID int64) (GardenRanks, error) {
+	if _, err := s.open(ctx); err != nil {
+		return GardenRanks{}, err
+	}
+	thieves, dogs, err := s.social.Ranks(ctx, gardenRankSize)
+	if err != nil {
+		return GardenRanks{}, err
+	}
+	for _, board := range [][]GardenRank{thieves, dogs} {
+		for i := range board {
+			board[i].Name = gardenName(board[i].Username, board[i].Email)
+			board[i].Me = board[i].UserID == userID
+		}
+	}
+	return GardenRanks{Thieves: thieves, Dogs: dogs}, nil
 }
