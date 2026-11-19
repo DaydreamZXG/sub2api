@@ -22,6 +22,8 @@ export interface GardenSettings {
   /** Chance that a fed dog catches a thief, in percent: lowest and highest growth level. */
   dog_min_percent: number
   dog_max_percent: number
+  /** Crop given to an inviter when someone they invited pays for the first time; 0 gives none. */
+  invite_crop_amount: number
 }
 
 export interface GardenCrop {
@@ -34,6 +36,8 @@ export interface GardenCrop {
   ripe_at: string
   harvested_at?: string
   harvested_amount: number
+  /** A top-up's bonus, an invite reward, or a crop the site gave. */
+  source: 'order' | 'invite' | 'gift'
 }
 
 export interface MyGarden extends GardenSettings {
@@ -131,5 +135,11 @@ export async function getGardenSettings(): Promise<GardenSettings> {
 
 export async function updateGardenSettings(settings: GardenSettings): Promise<GardenSettings> {
   const { data } = await apiClient.put<GardenSettings>('/admin/garden-settings', settings)
+  return data
+}
+
+/** Give the user with this email a crop the site pays for. */
+export async function giftCrop(email: string, amount: number): Promise<{ user_id: number }> {
+  const { data } = await apiClient.post<{ user_id: number }>('/admin/garden/crops', { email, amount })
   return data
 }
