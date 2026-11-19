@@ -2,6 +2,7 @@
   <UpstreamHome v-if="useUpstreamHome" />
   <div v-else class="yc yc-home">
     <header class="yc-top">
+      <i class="yc-progress" aria-hidden="true" :style="{ transform: `scaleX(${progress})` }"></i>
       <div class="yc-wrap yc-top-in">
         <router-link to="/home" class="yc-brand">
           <img :src="siteLogo || '/logo.svg'" alt="" class="yc-brand-logo" />
@@ -24,9 +25,10 @@
     </header>
 
     <main>
-      <section class="yc-hero yc-wrap">
+      <section class="yc-hero yc-wrap" @pointermove="lightDots" @pointerleave="dotsLive = false">
+        <div ref="dotsEl" class="yc-hero-dots" :class="{ 'is-live': dotsLive }" aria-hidden="true"><i></i><i></i></div>
         <p class="yc-eyebrow">{{ t('yc.hero.eyebrow') }}</p>
-        <h1 class="yc-h1">
+        <h1 v-reveal class="yc-h1">
           {{ t('yc.hero.titleA') }}<br />
           <span class="yc-mark">{{ t('yc.hero.titleB') }}</span>
         </h1>
@@ -40,7 +42,7 @@
         </div>
         <div v-if="site" class="yc-live" aria-live="off">
           <p class="yc-live-lab"><i aria-hidden="true"></i>{{ t('yc.live.label') }}</p>
-          <p class="yc-live-num yc-num">{{ Math.round(liveTotal).toLocaleString() }}</p>
+          <p class="yc-live-num yc-num"><YcOdometer :value="site.total_tokens" /></p>
           <p class="yc-live-sub">{{ t('yc.live.today', { tokens: Math.round(liveToday).toLocaleString(), requests: site.total_requests.toLocaleString() }) }}</p>
         </div>
         <YcFlowDiagram class="yc-hero-flow" />
@@ -57,15 +59,15 @@
             </h2>
           </header>
           <div class="yc-vs">
-            <div class="yc-vs-col yc-vs-before">
+            <div v-reveal="0.3" class="yc-vs-col yc-vs-before">
               <p class="yc-vs-lab">{{ t('yc.pain.before') }}</p>
               <pre v-if="p.id === 'setup'" class="yc-vs-code" aria-hidden="true">{{ CONFIG_SAMPLE }}</pre>
               <p v-if="p.id === 'price'" class="yc-vs-formula">{{ t('yc.pain.price.formula') }}</p>
               <ul>
-                <li v-for="k in ITEMS" :key="k">{{ t(`yc.pain.${p.id}.b${k}`) }}</li>
+                <li v-for="k in ITEMS" :key="k" :style="`--i:${k}`"><span>{{ t(`yc.pain.${p.id}.b${k}`) }}</span></li>
               </ul>
             </div>
-            <div class="yc-vs-col yc-vs-after yc-surface">
+            <div v-reveal="0.3" v-tilt class="yc-vs-col yc-vs-after yc-surface">
               <p class="yc-vs-lab">{{ t('yc.pain.after') }}</p>
               <p v-if="p.id === 'price' && top" class="yc-vs-price">
                 <span>{{ top.name }}</span>
@@ -73,7 +75,7 @@
                 <small>{{ t('yc.price.perMillionIn') }}</small>
               </p>
               <ul>
-                <li v-for="k in ITEMS" :key="k">{{ t(`yc.pain.${p.id}.a${k}`) }}</li>
+                <li v-for="k in ITEMS" :key="k" :style="`--i:${k}`">{{ t(`yc.pain.${p.id}.a${k}`) }}</li>
               </ul>
               <template v-if="p.id === 'setup'">
                 <div class="yc-client-get">
@@ -162,12 +164,13 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import { useIntervalFn, useTransition } from '@vueuse/core'
+import { useIntervalFn, useTransition, useWindowScroll } from '@vueuse/core'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore, useAppStore } from '@/stores'
 import LocaleSwitcher from '@/components/common/LocaleSwitcher.vue'
 import UpstreamHome from '@/views/HomeView.vue'
 import YcFlowDiagram from '@/components/yecai/YcFlowDiagram.vue'
+import YcOdometer from '@/components/yecai/YcOdometer.vue'
 import { useYcPrices } from '@/composables/useYcPrices'
 import { getSiteStats, type SiteStats } from '@/api/siteStats'
 import { sanitizeUrl } from '@/utils/url'
@@ -222,7 +225,6 @@ const clientLabel =
 // Site-wide token count, refreshed while the tab is visible. Hidden until there is something to show.
 const site = ref<SiteStats | null>(null)
 const tick = { duration: 1600, transition: [0.2, 0.7, 0.2, 1] as [number, number, number, number] }
-const liveTotal = useTransition(() => site.value?.total_tokens ?? 0, tick)
 const liveToday = useTransition(() => site.value?.today_tokens ?? 0, tick)
 async function loadSiteStats() {
   if (document.hidden) return
@@ -234,6 +236,25 @@ async function loadSiteStats() {
   }
 }
 useIntervalFn(loadSiteStats, 15000)
+
+// Reading progress under the top bar.
+const { y: scrollY } = useWindowScroll()
+const progress = computed(() => {
+  const range = document.documentElement.scrollHeight - window.innerHeight
+  return range > 0 ? Math.min(1, scrollY.value / range) : 0
+})
+
+// The hero dot grid lights up around the mouse.
+const dotsEl = ref<HTMLElement | null>(null)
+const dotsLive = ref(false)
+function lightDots(event: PointerEvent) {
+  const el = dotsEl.value
+  if (!el || event.pointerType !== 'mouse') return
+  const box = el.getBoundingClientRect()
+  el.style.setProperty('--mx', `${event.clientX - box.left}px`)
+  el.style.setProperty('--my', `${event.clientY - box.top}px`)
+  dotsLive.value = true
+}
 
 const picked = ref('')
 const choices = computed(() => prices.value.slice(0, 6))
@@ -248,7 +269,7 @@ function off(share: number): string {
 }
 
 const vReveal = {
-  mounted(el: HTMLElement) {
+  mounted(el: HTMLElement, binding: { value?: number }) {
     if (!('IntersectionObserver' in window)) {
       el.classList.add('is-in')
       return
@@ -259,9 +280,29 @@ const vReveal = {
         el.classList.add('is-in')
         observer.disconnect()
       },
-      { threshold: 0.15 }
+      { threshold: binding.value ?? 0.15 }
     )
     observer.observe(el)
+  }
+}
+
+// Cards lean toward the mouse and carry a soft light where it points.
+const vTilt = {
+  mounted(el: HTMLElement) {
+    if (!window.matchMedia('(hover: hover) and (prefers-reduced-motion: no-preference)').matches) return
+    el.addEventListener('pointermove', (event) => {
+      const box = el.getBoundingClientRect()
+      const x = (event.clientX - box.left) / box.width
+      const y = (event.clientY - box.top) / box.height
+      el.style.setProperty('--ry', `${(x - 0.5) * 5}deg`)
+      el.style.setProperty('--rx', `${(0.5 - y) * 5}deg`)
+      el.style.setProperty('--sx', `${x * 100}%`)
+      el.style.setProperty('--sy', `${y * 100}%`)
+    })
+    el.addEventListener('pointerleave', () => {
+      el.style.setProperty('--ry', '0deg')
+      el.style.setProperty('--rx', '0deg')
+    })
   }
 }
 
@@ -280,6 +321,7 @@ onMounted(async () => {
 <style scoped>
 .yc-home { min-height: 100vh; overflow-x: clip; }
 .yc-top { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--yc-bg) 78%, transparent); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); border-bottom: 1px solid var(--yc-line); }
+.yc-progress { position: absolute; left: 0; right: 0; bottom: -2px; height: 2px; background: var(--yc-lime); transform-origin: left; }
 .yc-top-in { height: 64px; display: flex; align-items: center; gap: 28px; }
 .yc-brand { display: flex; align-items: center; gap: 10px; font-weight: 750; font-size: 17px; letter-spacing: -0.01em; white-space: nowrap; }
 .yc-brand-logo { width: 30px; height: 30px; border-radius: 8px; object-fit: contain; }
@@ -291,6 +333,13 @@ onMounted(async () => {
 .yc-hero::before { content: ''; position: absolute; z-index: 0; left: 50%; top: 4%; width: min(900px, 110%); aspect-ratio: 2 / 1; transform: translateX(-50%); background: radial-gradient(closest-side, rgb(200 255 0 / 0.42), transparent 72%); filter: blur(48px); pointer-events: none; }
 :global(.dark .yc .yc-hero::before) { background: radial-gradient(closest-side, rgb(200 255 0 / 0.16), transparent 72%); }
 .yc-hero > * { position: relative; z-index: 1; }
+.yc-hero > .yc-hero-dots { position: absolute; z-index: 0; top: 0; left: 50%; width: 100vw; height: min(100%, 880px); transform: translateX(-50%); pointer-events: none; }
+.yc-hero-dots i { position: absolute; inset: 0; background-size: 26px 26px; background-position: center top; }
+.yc-hero-dots i:first-child { background-image: radial-gradient(circle, rgb(11 15 12 / 0.17) 1.1px, transparent 1.6px); -webkit-mask-image: radial-gradient(ellipse 62% 72% at 50% 36%, #000 18%, transparent 78%); mask-image: radial-gradient(ellipse 62% 72% at 50% 36%, #000 18%, transparent 78%); }
+.yc-hero-dots i:last-child { background-image: radial-gradient(circle, var(--yc-ink) 1.7px, transparent 2.2px); -webkit-mask-image: radial-gradient(210px circle at var(--mx, 50%) var(--my, 30%), #000, transparent); mask-image: radial-gradient(210px circle at var(--mx, 50%) var(--my, 30%), #000, transparent); opacity: 0; transition: opacity 0.45s ease; }
+.yc-hero-dots.is-live i:last-child { opacity: 1; }
+:global(.dark .yc .yc-hero-dots i:first-child) { background-image: radial-gradient(circle, rgb(244 246 241 / 0.14) 1.1px, transparent 1.6px); }
+:global(.dark .yc .yc-hero-dots i:last-child) { background-image: radial-gradient(circle, #c8ff00 1.7px, transparent 2.2px); }
 .yc-h1 { margin-top: 22px; font-size: clamp(40px, 8.4vw, 104px); line-height: 1.03; letter-spacing: -0.05em; font-weight: 800; }
 .yc-lead { max-width: 640px; margin: 30px auto 0; font-size: clamp(16px, 1.7vw, 20px); line-height: 1.7; color: var(--yc-mut); text-wrap: pretty; }
 .yc-hero-cta { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 38px; }
@@ -338,6 +387,9 @@ onMounted(async () => {
 .yc-shot-dark { display: none !important; }
 :global(.dark .yc .yc-shot-light) { display: none; }
 :global(.dark .yc .yc-shot-dark) { display: block !important; }
+.yc-vs-after { transform: perspective(1100px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transition: transform 0.25s ease-out; }
+.yc-vs-after::after { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; background: radial-gradient(380px circle at var(--sx, 50%) var(--sy, 50%), rgb(200 255 0 / 0.22), transparent 65%); opacity: 0; transition: opacity 0.3s ease; }
+.yc-vs-after:hover::after { opacity: 1; }
 .yc-vs-contact { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--yc-line); font-size: 15px; color: var(--yc-mut); white-space: pre-line; }
 
 .yc-sec { padding-top: clamp(96px, 14vw, 184px); }
@@ -401,7 +453,34 @@ onMounted(async () => {
   .yc-hero-flow { animation-delay: 0.28s; }
   .yc-live { animation: yc-rise 0.8s 0.22s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
   .yc-price-now { animation: yc-pop 0.45s cubic-bezier(0.2, 0.9, 0.2, 1.1) both; }
+
+  /* The highlighter is drawn across each headline as it comes into view. */
+  .yc-home .yc-mark { background-repeat: no-repeat; background-size: 0% 100%; }
+  .yc-home .is-in .yc-mark { animation: yc-draw 0.9s cubic-bezier(0.3, 0.7, 0.2, 1) 0.3s both; }
+  :global(.dark .yc.yc-home .yc-mark) { background: linear-gradient(90deg, #c8ff00 50%, var(--yc-ink) 50%) 100% 0 / 200% 100% no-repeat; -webkit-background-clip: text; background-clip: text; color: transparent; }
+  :global(.dark .yc.yc-home .is-in .yc-mark) { animation: yc-draw-dark 0.9s cubic-bezier(0.3, 0.7, 0.2, 1) 0.3s both; }
+
+  /* Before: struck out one by one. Now: ticked one by one. */
+  .yc-vs-col li { opacity: 0; transform: translateY(10px); transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1); transition-delay: calc(var(--i) * 0.13s); }
+  .yc-vs-col.is-in li { opacity: 1; transform: none; }
+  .yc-vs-before li { text-decoration: none; }
+  .yc-vs-before li span { background: linear-gradient(var(--yc-dim), var(--yc-dim)) no-repeat 0 56% / 0% 1.5px; transition: background-size 0.5s ease; transition-delay: calc(0.4s + var(--i) * 0.13s); }
+  .yc-vs-before.is-in li span { background-size: 100% 1.5px; }
+  .yc-vs-after li { transition-delay: calc(0.8s + var(--i) * 0.16s); }
+  .yc-vs-after li::before { transform: rotate(-45deg) scale(0); transition: transform 0.4s cubic-bezier(0.3, 1.7, 0.5, 1); transition-delay: calc(1s + var(--i) * 0.16s); }
+  .yc-vs-after.is-in li::before { transform: rotate(-45deg) scale(1); }
+
+  @media (max-width: 860px) {
+    .yc-vs-after li { transition-delay: calc(0.1s + var(--i) * 0.16s); }
+    .yc-vs-after li::before { transition-delay: calc(0.3s + var(--i) * 0.16s); }
+  }
+
+  .yc-hero-cta .yc-btn-lime { position: relative; overflow: hidden; }
+  .yc-hero-cta .yc-btn-lime::after { content: ''; position: absolute; top: 0; bottom: 0; left: -60%; width: 40%; background: linear-gradient(100deg, transparent, rgb(255 255 255 / 0.8), transparent); transform: skewX(-18deg); animation: yc-sheen 3.6s ease-in-out 1.4s infinite; }
 }
+@keyframes yc-draw { to { background-size: 100% 100%; } }
+@keyframes yc-draw-dark { to { background-position: 0 0; } }
+@keyframes yc-sheen { 0%, 62% { left: -60%; } 100% { left: 130%; } }
 @keyframes yc-pop { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: none; } }
 @keyframes yc-rise { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
 </style>
