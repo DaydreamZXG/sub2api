@@ -160,6 +160,27 @@ func TestPrepDeductBalanceRequiresForceWhenBalanceIsInsufficient(t *testing.T) {
 	}
 }
 
+// A bonus still growing in the garden counts as balance the refund can deduct, and is not released while preparing.
+func TestPrepDeductCountsGrowingGardenCrop(t *testing.T) {
+	order := &dbent.PaymentOrder{ID: 9, UserID: 1, OrderType: payment.OrderTypeBalance}
+	garden, repo := newTestGarden("")
+	repo.growing = 10
+	svc := &PaymentService{userRepo: &mockUserRepo{getByIDUser: &User{Balance: 100}}, garden: garden}
+
+	plan := &RefundPlan{RefundAmount: 110}
+	require.Nil(t, svc.prepDeduct(context.Background(), order, plan, false))
+	require.Equal(t, 110.0, plan.BalanceToDeduct)
+	require.Zero(t, plan.cropUprooted)
+
+	repo.growingErr = errors.New("db down")
+	forced := &RefundPlan{RefundAmount: 110}
+	result := svc.prepDeduct(context.Background(), order, forced, true)
+	require.NotNil(t, result, "a forced refund stops too when the crop cannot be read")
+	require.False(t, result.Success)
+	require.False(t, result.RequireForce)
+	require.Zero(t, forced.BalanceToDeduct)
+}
+
 func TestExecuteRefundUsesActualAvailableBalanceDeduction(t *testing.T) {
 	ctx := context.Background()
 	client := newPaymentConfigServiceTestClient(t)

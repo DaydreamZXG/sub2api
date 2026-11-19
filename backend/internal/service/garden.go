@@ -100,6 +100,11 @@ type GardenRepository interface {
 	Plant(ctx context.Context, userID, orderID int64, amount float64, ripenAfter time.Duration) (bool, error)
 	// Uproot returns what is left of the order's growing crop to the balance and reports that amount.
 	Uproot(ctx context.Context, orderID int64) (float64, error)
+	// GrowingForOrder reports what the order's growing crop still holds, 0 when it has none.
+	GrowingForOrder(ctx context.Context, orderID int64) (float64, error)
+	// Replant undoes Uproot: the removed crop grows again and its value leaves the balance.
+	// It reports 0 and changes nothing when the balance no longer covers it.
+	Replant(ctx context.Context, orderID int64) (float64, error)
 	// Harvest moves a ripe crop into its owner's balance; ok is false when no ripe growing crop matched.
 	Harvest(ctx context.Context, userID, cropID int64) (amount float64, ok bool, err error)
 	GetCrop(ctx context.Context, userID, cropID int64) (*GardenCrop, error)
@@ -182,7 +187,7 @@ func (s *GardenService) PlantForOrder(ctx context.Context, userID, orderID int64
 }
 
 // UprootForOrder puts what is left of a refunded order's growing crop back into the balance,
-// so the refund then deducts from the same balance it would have without the garden.
+// so the refund deducts from the same balance it would have without the garden.
 func (s *GardenService) UprootForOrder(ctx context.Context, userID, orderID int64) (float64, error) {
 	if s == nil || s.repo == nil {
 		return 0, nil
@@ -195,6 +200,29 @@ func (s *GardenService) UprootForOrder(ctx context.Context, userID, orderID int6
 		s.invalidateBalance(ctx, userID)
 	}
 	return returned, nil
+}
+
+// GrowingForOrder reports what the order's growing crop still holds: balance a refund of the order can count on.
+func (s *GardenService) GrowingForOrder(ctx context.Context, orderID int64) (float64, error) {
+	if s == nil || s.repo == nil {
+		return 0, nil
+	}
+	return s.repo.GrowingForOrder(ctx, orderID)
+}
+
+// ReplantForOrder undoes UprootForOrder after the refund that uprooted the crop did not go through.
+func (s *GardenService) ReplantForOrder(ctx context.Context, userID, orderID int64) (float64, error) {
+	if s == nil || s.repo == nil {
+		return 0, nil
+	}
+	replanted, err := s.repo.Replant(ctx, orderID)
+	if err != nil {
+		return 0, err
+	}
+	if replanted > 0 {
+		s.invalidateBalance(ctx, userID)
+	}
+	return replanted, nil
 }
 
 // Crops lists the user's growing crops and their most recent harvests.

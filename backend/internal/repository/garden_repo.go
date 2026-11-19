@@ -89,6 +89,50 @@ func (r *gardenRepository) Uproot(ctx context.Context, orderID int64) (float64, 
 	return amount, err
 }
 
+func (r *gardenRepository) GrowingForOrder(ctx context.Context, orderID int64) (float64, error) {
+	amount, _, err := r.movedAmount(ctx, `
+		SELECT amount - stolen_amount FROM garden_crops WHERE order_id = $1 AND status = 'growing'`, orderID)
+	return amount, err
+}
+
+func (r *gardenRepository) Replant(ctx context.Context, orderID int64) (replanted float64, err error) {
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return 0, err
+	}
+	defer func() {
+		if err != nil {
+			_ = tx.Rollback()
+		}
+	}()
+	var cropID, userID int64
+	var left float64
+	err = tx.QueryRowContext(ctx, `
+		SELECT id, user_id, amount - stolen_amount FROM garden_crops
+		WHERE order_id = $1 AND status = 'removed' FOR UPDATE`, orderID).Scan(&cropID, &userID, &left)
+	if errors.Is(err, sql.ErrNoRows) {
+		return 0, tx.Rollback()
+	}
+	if err != nil {
+		return 0, err
+	}
+	// 余额已经不够盖住这棵菜（用户这段时间花掉了）就不再种回去，不让余额变负。
+	taken, err := tx.ExecContext(ctx, `
+		UPDATE users
+		SET balance = balance - $2, total_recharged = GREATEST(total_recharged - $2, 0), updated_at = NOW()
+		WHERE id = $1 AND balance >= $2`, userID, left)
+	if err != nil {
+		return 0, err
+	}
+	if rows, _ := taken.RowsAffected(); rows == 0 {
+		return 0, tx.Rollback()
+	}
+	if _, err = tx.ExecContext(ctx, `UPDATE garden_crops SET status = 'growing' WHERE id = $1`, cropID); err != nil {
+		return 0, err
+	}
+	return left, tx.Commit()
+}
+
 func (r *gardenRepository) Harvest(ctx context.Context, userID, cropID int64) (float64, bool, error) {
 	const query = `
 		WITH harvested AS (
