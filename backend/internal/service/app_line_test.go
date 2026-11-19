@@ -24,10 +24,11 @@ func TestResolveAppLine(t *testing.T) {
 	const ownerID, strangerID = int64(7), int64(8)
 	normalID, missingID := int64(2), int64(99)
 
-	normal := &Group{ID: normalID, Name: "normal", Status: StatusActive, SubscriptionType: SubscriptionTypeStandard, RateMultiplier: 1}
+	normal := &Group{ID: normalID, Name: "normal", Status: StatusActive, SubscriptionType: SubscriptionTypeStandard, Platform: PlatformAnthropic, RateMultiplier: 1}
 	disabled := &Group{ID: 3, Status: StatusDisabled, SubscriptionType: SubscriptionTypeStandard}
 	subscription := &Group{ID: 4, Status: StatusActive, SubscriptionType: SubscriptionTypeSubscription}
 	otherAppLine := &Group{ID: 5, Status: StatusActive, SubscriptionType: SubscriptionTypeStandard, AppOnly: true}
+	otherPlatform := &Group{ID: 6, Status: StatusActive, SubscriptionType: SubscriptionTypeStandard, Platform: PlatformOpenAI}
 
 	tokens := newFakeAppDeviceTokenRepo()
 	connect := NewDesktopConnectService(newFakeDesktopCodeStore(), tokens, nil, nil)
@@ -37,12 +38,12 @@ func TestResolveAppLine(t *testing.T) {
 	require.NoError(t, err)
 
 	svc := &APIKeyService{groupRepo: appLineGroupRepo{groups: map[int64]*Group{
-		normal.ID: normal, disabled.ID: disabled, subscription.ID: subscription, otherAppLine.ID: otherAppLine,
+		normal.ID: normal, disabled.ID: disabled, subscription.ID: subscription, otherAppLine.ID: otherAppLine, otherPlatform.ID: otherPlatform,
 	}}}
 	svc.SetAppRequestVerifier(NewAppRequestVerifier(tokens))
 
 	keyOn := func(fallback *int64) *APIKey {
-		appLine := &Group{ID: 1, Name: "app", Status: StatusActive, SubscriptionType: SubscriptionTypeStandard,
+		appLine := &Group{ID: 1, Name: "app", Status: StatusActive, SubscriptionType: SubscriptionTypeStandard, Platform: PlatformAnthropic,
 			RateMultiplier: 0.8, AppOnly: true, AppFallbackGroupID: fallback}
 		return &APIKey{ID: 11, User: &User{ID: ownerID}, GroupID: &appLine.ID, Group: appLine}
 	}
@@ -71,7 +72,7 @@ func TestResolveAppLine(t *testing.T) {
 		require.ErrorIs(t, err, ErrAppOnlyLine)
 	})
 
-	for name, id := range map[string]int64{"deleted": missingID, "disabled": disabled.ID, "subscription": subscription.ID, "app-only": otherAppLine.ID} {
+	for name, id := range map[string]int64{"deleted": missingID, "disabled": disabled.ID, "subscription": subscription.ID, "app-only": otherAppLine.ID, "other-platform": otherPlatform.ID} {
 		t.Run("a "+name+" fallback is refused rather than used", func(t *testing.T) {
 			fallbackID := id
 			_, err := svc.ResolveAppLine(ctx, keyOn(&fallbackID), "")
