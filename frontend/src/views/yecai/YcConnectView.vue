@@ -105,12 +105,12 @@
 </template>
 
 <script setup lang="ts">
-import { connectDeepLink, issueConnectCode } from '@/api/desktop'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores'
 import { keysAPI } from '@/api/keys'
 import { userGroupsAPI } from '@/api/groups'
+import { issueConnectCode, openDesktopApp } from '@/api/desktop'
 import type { ApiKey, Group } from '@/types'
 import { useClipboard } from '@/composables/useClipboard'
 import { YC_CLIENT_DOWNLOADS, detectYcClientPlatform } from '@/utils/ycClient'
@@ -214,8 +214,7 @@ async function connectApp() {
   }
   handingOver.value = true
   try {
-    const connect = await issueConnectCode(window.location.origin)
-    window.location.href = connectDeepLink(connect)
+    openDesktopApp(await issueConnectCode(window.location.origin))
     appStore.showInfo(t('yc.connect.appConnectHint'))
   } catch {
     appStore.showError(t('yc.connect.appConnectFailed'))

@@ -26,4 +26,9 @@ export function connectDeepLink(connect: Pick<ConnectCode, 'code' | 'origin'>): 
   return `yeschoy://connect?origin=${encodeURIComponent(connect.origin)}&code=${encodeURIComponent(connect.code)}`
 }
 
-export default { issueConnectCode, connectDeepLink }
+/** Asks the operating system to open the desktop assistant with this code. */
+export function openDesktopApp(connect: Pick<ConnectCode, 'code' | 'origin'>): void {
+  window.location.href = connectDeepLink(connect)
+}
+
+export default { issueConnectCode, connectDeepLink, openDesktopApp }
