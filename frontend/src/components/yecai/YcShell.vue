@@ -2,8 +2,7 @@
   <div class="yc yc-shell">
     <aside class="yc-side">
       <router-link to="/dashboard" class="yc-side-brand">
-        <img :src="siteLogo || '/logo.svg'" alt="" />
-        <span>{{ siteName }}</span>
+        <YcBrand />
       </router-link>
       <nav ref="nav" class="yc-side-nav" :aria-label="t('yc.nav.aria')">
         <router-link v-for="l in links" :key="l.to" :to="l.to" :class="{ 'is-on': isOn(l) }">{{ l.text }}</router-link>
@@ -32,7 +31,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore, useAppStore } from '@/stores'
-import { sanitizeUrl } from '@/utils/url'
+import YcBrand from '@/components/yecai/YcBrand.vue'
 import { FeatureFlags, isFeatureFlagEnabled } from '@/utils/featureFlags'
 import { availableLocales, setLocale } from '@/i18n'
 import { useBatchImageAccess } from '@/composables/useBatchImageAccess'
@@ -59,10 +58,6 @@ const { yuan } = useYcMoney()
 const { canUseBatchImage, refreshBatchImageAccess } = useBatchImageAccess()
 
 const settings = computed(() => appStore.cachedPublicSettings)
-const siteName = computed(() => settings.value?.site_name || appStore.siteName || 'Sub2API')
-const siteLogo = computed(() =>
-  sanitizeUrl(settings.value?.site_logo || appStore.siteLogo || '', { allowRelative: true, allowDataUrl: true })
-)
 const initial = computed(() => (authStore.user?.username || authStore.user?.email || '?').charAt(0).toUpperCase())
 const on = (show: unknown, item: NavLink): NavLink[] => (show ? [item] : [])
 const flag = isFeatureFlagEnabled
@@ -130,7 +125,6 @@ onMounted(() => {
 .yc-shell { min-height: 100vh; display: grid; grid-template-columns: 232px minmax(0, 1fr); }
 .yc-side { position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; padding: 22px 14px 18px; border-right: 1px solid var(--yc-line); background: color-mix(in srgb, var(--yc-paper) 70%, transparent); }
 .yc-side-brand { display: flex; align-items: center; gap: 10px; padding: 0 10px 22px; font-weight: 750; font-size: 17px; white-space: nowrap; }
-.yc-side-brand img { width: 30px; height: 30px; border-radius: 9px; object-fit: contain; }
 .yc-side-nav { display: flex; flex-direction: column; gap: 2px; }
 .yc-side-nav a, .yc-side-nav button { position: relative; text-align: left; padding: 10px 14px; border-radius: 12px; font-size: 15px; color: var(--yc-mut); white-space: nowrap; transition: background-color 0.15s ease, color 0.15s ease; }
 .yc-side-nav a:hover, .yc-side-nav button:hover { background: var(--yc-fill); color: var(--yc-ink); }
@@ -152,7 +146,7 @@ onMounted(() => {
   .yc-shell { grid-template-columns: minmax(0, 1fr); }
   .yc-side { position: sticky; z-index: 20; height: auto; flex-direction: row; align-items: center; gap: 8px; padding: 10px 14px; border-right: 0; border-bottom: 1px solid var(--yc-line); background: color-mix(in srgb, var(--yc-bg) 86%, transparent); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
   .yc-side-brand { padding: 0; }
-  .yc-side-brand span, .yc-side-me span, .yc-side-more, .yc-side-foot .yc-side-wide, .yc-side-foot .yc-side-bal { display: none; }
+  .yc-side-brand :deep(.yc-lockup-text), .yc-side-me span, .yc-side-more, .yc-side-foot .yc-side-wide, .yc-side-foot .yc-side-bal { display: none; }
   .yc-side-narrow { display: block; }
   .yc-side-nav { flex: 1; min-width: 0; flex-direction: row; overflow-x: auto; scrollbar-width: none; }
   .yc-side-nav a, .yc-side-nav button, .yc-side-nav .is-minor { flex: none; padding: 7px 12px; font-size: 14.5px; }

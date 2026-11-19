@@ -9,11 +9,8 @@
       <div class="mb-8 text-center">
         <!-- Custom Logo or Default Logo -->
         <template v-if="settingsLoaded">
-          <router-link to="/home" class="mb-4 inline-flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl">
-            <img :src="siteLogo || '/logo.svg'" alt="Logo" class="h-full w-full object-contain" />
-          </router-link>
-          <h1 class="yc-auth-title mb-2">
-            {{ siteName }}
+          <h1 class="mb-3">
+            <router-link to="/home"><YcBrand stacked /></router-link>
           </h1>
           <p class="text-sm text-gray-500 dark:text-dark-400">
             {{ siteSubtitle }}
@@ -41,15 +38,20 @@
 
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores'
-import { sanitizeUrl } from '@/utils/url'
+import YcBrand from '@/components/yecai/YcBrand.vue'
+import { isStockSiteSubtitle, ycSiteName } from '@/utils/ycBrand'
 import '@/styles/yecai.css'
 
+const { t } = useI18n()
 const appStore = useAppStore()
 
-const siteName = computed(() => appStore.siteName || 'Sub2API')
-const siteLogo = computed(() => sanitizeUrl(appStore.siteLogo || '', { allowRelative: true, allowDataUrl: true }))
-const siteSubtitle = computed(() => appStore.cachedPublicSettings?.site_subtitle || 'Subscription to API Conversion Platform')
+const siteName = computed(() => ycSiteName(appStore.siteName))
+const siteSubtitle = computed(() => {
+  const subtitle = appStore.cachedPublicSettings?.site_subtitle
+  return isStockSiteSubtitle(subtitle) ? t('yc.hero.eyebrow') : subtitle
+})
 const settingsLoaded = computed(() => appStore.publicSettingsLoaded)
 
 const currentYear = computed(() => new Date().getFullYear())
@@ -60,7 +62,6 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.yc-auth-title { font-size: 30px; line-height: 1.2; letter-spacing: -0.03em; font-weight: 800; color: var(--yc-ink); }
 .yc-auth-glow { top: -22rem; left: 50%; width: 52rem; height: 40rem; transform: translateX(-50%); border-radius: 50%; background: radial-gradient(closest-side, rgb(200 255 0 / 0.28), transparent); }
 :global(.dark) .yc-auth-glow { background: radial-gradient(closest-side, rgb(200 255 0 / 0.1), transparent); }
 </style>

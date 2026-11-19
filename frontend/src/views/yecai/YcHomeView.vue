@@ -5,8 +5,7 @@
       <i class="yc-progress" aria-hidden="true" :style="{ transform: `scaleX(${progress})` }"></i>
       <div class="yc-wrap yc-top-in">
         <router-link to="/home" class="yc-brand">
-          <img :src="siteLogo || '/logo.svg'" alt="" class="yc-brand-logo" />
-          <span>{{ siteName }}</span>
+          <YcBrand />
         </router-link>
         <nav class="yc-top-nav" :aria-label="t('yc.nav.aria')">
           <a href="#pains">{{ t('yc.nav.pains') }}</a>
@@ -171,11 +170,13 @@ import { useI18n } from 'vue-i18n'
 import { useAuthStore, useAppStore } from '@/stores'
 import LocaleSwitcher from '@/components/common/LocaleSwitcher.vue'
 import UpstreamHome from '@/views/HomeView.vue'
+import YcBrand from '@/components/yecai/YcBrand.vue'
 import YcFlowDiagram from '@/components/yecai/YcFlowDiagram.vue'
 import YcOdometer from '@/components/yecai/YcOdometer.vue'
 import { useYcPrices } from '@/composables/useYcPrices'
 import { getSiteStats, type SiteStats } from '@/api/siteStats'
 import { sanitizeUrl } from '@/utils/url'
+import { ycSiteName } from '@/utils/ycBrand'
 import { YC_CLIENT_DOWNLOADS, detectYcClientPlatform } from '@/utils/ycClient'
 import { FeatureFlags, isFeatureFlagEnabled } from '@/utils/featureFlags'
 import shotLight from '@/assets/yecai/yecai-client-apps-light-showcase.webp'
@@ -192,10 +193,7 @@ const settings = computed(() => appStore.cachedPublicSettings)
 const useUpstreamHome = computed(
   () => (settings.value?.home_content || '').trim().length > 0 || settings.value?.compact_home_enabled === true
 )
-const siteName = computed(() => settings.value?.site_name || appStore.siteName || 'Sub2API')
-const siteLogo = computed(() =>
-  sanitizeUrl(settings.value?.site_logo || appStore.siteLogo || '', { allowRelative: true, allowDataUrl: true })
-)
+const siteName = computed(() => ycSiteName(settings.value?.site_name || appStore.siteName))
 const docUrl = computed(() => sanitizeUrl(settings.value?.doc_url || appStore.docUrl || ''))
 const contactInfo = computed(() => settings.value?.contact_info || '')
 const isAuthenticated = computed(() => authStore.isAuthenticated)
@@ -364,7 +362,6 @@ onMounted(async () => {
 .yc-progress { position: absolute; left: 0; right: 0; bottom: -2px; height: 2px; background: var(--yc-lime); transform-origin: left; }
 .yc-top-in { height: 64px; display: flex; align-items: center; gap: 28px; }
 .yc-brand { display: flex; align-items: center; gap: 10px; font-weight: 750; font-size: 17px; letter-spacing: -0.01em; white-space: nowrap; }
-.yc-brand-logo { width: 30px; height: 30px; border-radius: 8px; object-fit: contain; }
 .yc-top-nav { display: flex; gap: 26px; margin-right: auto; font-size: 14.5px; color: var(--yc-mut); }
 .yc-top-nav a:hover { color: var(--yc-ink); }
 .yc-top-actions { display: flex; align-items: center; gap: 10px; margin-left: auto; }
