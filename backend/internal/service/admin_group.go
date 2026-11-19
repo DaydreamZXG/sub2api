@@ -795,6 +795,9 @@ func (s *adminServiceImpl) validateFallbackGroupOnInvalidRequest(ctx context.Con
 	if fallbackGroup.FallbackGroupIDOnInvalidRequest != nil {
 		return fmt.Errorf("fallback group cannot have invalid request fallback configured")
 	}
+	if fallbackGroup.AppOnly {
+		return fmt.Errorf("fallback group cannot be app-only")
+	}
 	return nil
 }
 
