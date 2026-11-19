@@ -2215,9 +2215,10 @@ type openAIWSTurnAPIKeyLookup interface {
 	GetByKey(ctx context.Context, key string) (*service.APIKey, error)
 }
 
-// openAIWSTurnAppLineResolver 是 APIKeyService.ResolveAppLine：给走了普通价分组的连接重取该分组。
+// openAIWSTurnAppLineResolver 是 APIKeyService 的种菜线路解析：给后续 turn 重取普通价分组或成长等级价。
 type openAIWSTurnAppLineResolver interface {
 	ResolveAppLine(ctx context.Context, apiKey *service.APIKey, appToken string) (*service.APIKey, error)
+	AppLineGroupForUser(ctx context.Context, group *service.Group, user *service.User) *service.Group
 }
 
 // openAIWSTurnBillingAPIKeys 按 turn 号保存每个 turn 计费用的 API Key 快照。
@@ -2302,6 +2303,12 @@ func refreshOpenAIWSTurnBillingAPIKey(ctx context.Context, lookup openAIWSTurnAP
 		group.Platform != conn.Group.Platform ||
 		group.SubscriptionType != conn.Group.SubscriptionType {
 		return conn
+	}
+	if group.AppOnly {
+		// 连接在“仅限 app”线路上，说明建连时已确认来自 app：按用户当前的成长等级取价。
+		if resolver, ok := lookup.(openAIWSTurnAppLineResolver); ok {
+			group = resolver.AppLineGroupForUser(ctx, group, latest.User)
+		}
 	}
 	turnKey := *conn
 	turnKey.Group = group
