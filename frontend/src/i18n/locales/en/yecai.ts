@@ -149,6 +149,7 @@ export default {
     contactTitle: 'Get help from a person', noContact: 'The site owner has not added contact details yet.', docs: 'Read the docs',
     newsTitle: 'Announcements'
   },
+  theme: { label: 'Appearance', light: 'Light', dark: 'Dark', system: 'Follow system' },
   prices: {
     title: 'Prices',
     lead: 'One price per model, in yuan. Prices are per million tokens; you pay for what you use.',

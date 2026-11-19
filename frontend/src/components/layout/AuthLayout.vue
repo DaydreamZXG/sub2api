@@ -2,6 +2,10 @@
   <div class="yc relative flex min-h-screen items-center justify-center overflow-hidden p-4">
     <!-- A single soft lime glow, the same accent the home page uses -->
     <div class="yc-auth-glow pointer-events-none absolute" aria-hidden="true"></div>
+    <div class="absolute right-4 top-4 z-20 flex items-center gap-2">
+      <YcThemeSwitch />
+      <LocaleSwitcher />
+    </div>
 
     <!-- Content Container -->
     <div class="relative z-10 w-full max-w-md">
@@ -41,6 +45,8 @@ import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores'
 import YcBrand from '@/components/yecai/YcBrand.vue'
+import YcThemeSwitch from '@/components/yecai/YcThemeSwitch.vue'
+import LocaleSwitcher from '@/components/common/LocaleSwitcher.vue'
 import { isStockSiteSubtitle, ycSiteName } from '@/utils/ycBrand'
 import '@/styles/yecai.css'
 

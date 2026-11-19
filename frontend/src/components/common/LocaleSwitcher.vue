@@ -1,105 +1,55 @@
 <template>
-  <div class="relative" ref="dropdownRef">
+  <div class="locale-toggle" role="group">
     <button
-      @click="toggleDropdown"
+      v-for="item in availableLocales"
+      :key="item.code"
+      type="button"
+      :lang="item.code"
+      :title="item.name"
       :disabled="switching"
-      class="flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-dark-700"
-      :title="currentLocale?.name"
+      :aria-pressed="item.code === locale"
+      :class="{ 'is-on': item.code === locale }"
+      @click="selectLocale(item.code)"
     >
-      <span class="text-base">{{ currentLocale?.flag }}</span>
-      <span class="hidden sm:inline">{{ currentLocale?.code.toUpperCase() }}</span>
-      <Icon
-        name="chevronDown"
-        size="xs"
-        class="text-gray-400 transition-transform duration-200"
-        :class="{ 'rotate-180': isOpen }"
-      />
+      {{ SHORT_NAMES[item.code] ?? item.code.toUpperCase() }}
     </button>
-
-    <transition name="dropdown">
-      <div
-        v-if="isOpen"
-        class="absolute right-0 z-50 mt-1 w-32 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg dark:border-dark-700 dark:bg-dark-800"
-      >
-        <button
-          v-for="locale in availableLocales"
-          :key="locale.code"
-          :disabled="switching"
-          @click="selectLocale(locale.code)"
-          class="flex w-full items-center gap-2 px-3 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-dark-700"
-          :class="{
-            'bg-primary-50 text-primary-600 dark:bg-primary-900/20 dark:text-primary-400':
-              locale.code === currentLocaleCode
-          }"
-        >
-          <span class="text-base">{{ locale.flag }}</span>
-          <span>{{ locale.name }}</span>
-          <Icon v-if="locale.code === currentLocaleCode" name="check" size="sm" class="ml-auto text-primary-500" />
-        </button>
-      </div>
-    </transition>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import Icon from '@/components/icons/Icon.vue'
 import { setLocale, availableLocales } from '@/i18n'
 
-const { locale } = useI18n()
+const SHORT_NAMES: Record<string, string> = { zh: '中', en: 'EN' }
 
-const isOpen = ref(false)
-const dropdownRef = ref<HTMLElement | null>(null)
+const { locale } = useI18n()
 const switching = ref(false)
 
-const currentLocaleCode = computed(() => locale.value)
-const currentLocale = computed(() => availableLocales.find((l) => l.code === locale.value))
-
-function toggleDropdown() {
-  isOpen.value = !isOpen.value
-}
-
 async function selectLocale(code: string) {
-  if (switching.value || code === currentLocaleCode.value) {
-    isOpen.value = false
-    return
-  }
+  if (switching.value || code === locale.value) return
   switching.value = true
   try {
     await setLocale(code)
-    isOpen.value = false
     // 分组名称等内容由后端按请求语言返回，整页刷新让已加载的数据换成新语言
     window.location.reload()
   } finally {
     switching.value = false
   }
 }
-
-function handleClickOutside(event: MouseEvent) {
-  if (dropdownRef.value && !dropdownRef.value.contains(event.target as Node)) {
-    isOpen.value = false
-  }
-}
-
-onMounted(() => {
-  document.addEventListener('click', handleClickOutside)
-})
-
-onBeforeUnmount(() => {
-  document.removeEventListener('click', handleClickOutside)
-})
 </script>
 
 <style scoped>
-.dropdown-enter-active,
-.dropdown-leave-active {
-  transition: all 0.15s ease;
+.locale-toggle {
+  @apply inline-flex items-center rounded-full bg-gray-100 p-0.5 dark:bg-dark-800;
 }
-
-.dropdown-enter-from,
-.dropdown-leave-to {
-  opacity: 0;
-  transform: scale(0.95) translateY(-4px);
+.locale-toggle button {
+  @apply h-7 min-w-[30px] rounded-full px-2 text-xs font-semibold text-gray-500 transition-colors dark:text-dark-400;
+}
+.locale-toggle button:hover {
+  @apply text-gray-900 dark:text-white;
+}
+.locale-toggle button.is-on {
+  @apply bg-white text-gray-900 shadow-sm dark:bg-dark-600 dark:text-white;
 }
 </style>

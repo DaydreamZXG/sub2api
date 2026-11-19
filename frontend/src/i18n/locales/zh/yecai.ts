@@ -149,6 +149,7 @@ export default {
     contactTitle: '找人帮忙', noContact: '站长还没有填写联系方式。', docs: '查看使用文档',
     newsTitle: '公告'
   },
+  theme: { label: '外观', light: '浅色', dark: '深色', system: '跟随系统' },
   prices: {
     title: '价目表',
     lead: '每个模型一个价，直接写人民币。单位是每百万 Token，用多少扣多少。',

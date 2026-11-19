@@ -17,13 +17,10 @@ vi.mock('vue-i18n', () => ({ useI18n: () => ({ locale: { value: 'zh' } }) }))
 
 const reload = vi.fn()
 
-const mountSwitcher = () =>
-  mount(LocaleSwitcher, { global: { stubs: { Icon: true, transition: false } } })
+const mountSwitcher = () => mount(LocaleSwitcher)
 
 const choose = async (wrapper: ReturnType<typeof mountSwitcher>, name: string) => {
-  await wrapper.get('button').trigger('click')
-  const option = wrapper.findAll('button').find((button) => button.text().includes(name))
-  await option!.trigger('click')
+  await wrapper.get(`button[title="${name}"]`).trigger('click')
   await flushPromises()
 }
 

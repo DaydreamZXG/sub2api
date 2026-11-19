@@ -104,7 +104,7 @@
                   v-if="isSelected(option)"
                   name="check"
                   size="sm"
-                  class="text-primary-500"
+                  class="text-primary-500 dark:text-primary-400"
                   :stroke-width="2"
                 />
               </slot>
@@ -594,8 +594,8 @@ onUnmounted(() => {
 }
 
 .select-dropdown-portal .select-option-selected {
-  @apply bg-primary-50 dark:bg-primary-900/20;
-  @apply text-primary-700 dark:text-primary-300;
+  @apply bg-primary-50 dark:bg-dark-700;
+  @apply text-primary-700 dark:text-white;
 }
 
 .select-dropdown-portal .select-option-focused {

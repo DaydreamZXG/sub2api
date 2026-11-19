@@ -13,6 +13,7 @@
           <a href="#faq">{{ t('yc.nav.faq') }}</a>
         </nav>
         <div class="yc-top-actions">
+          <YcThemeSwitch />
           <LocaleSwitcher />
           <router-link v-if="isAuthenticated" :to="consolePath" class="yc-btn yc-btn-lime yc-btn-sm">{{ t('yc.cta.console') }}</router-link>
           <template v-else>
@@ -172,6 +173,7 @@ import { useAuthStore, useAppStore } from '@/stores'
 import LocaleSwitcher from '@/components/common/LocaleSwitcher.vue'
 import UpstreamHome from '@/views/HomeView.vue'
 import YcBrand from '@/components/yecai/YcBrand.vue'
+import YcThemeSwitch from '@/components/yecai/YcThemeSwitch.vue'
 import YcFlowDiagram from '@/components/yecai/YcFlowDiagram.vue'
 import YcOdometer from '@/components/yecai/YcOdometer.vue'
 import { useYcPrices } from '@/composables/useYcPrices'

@@ -8,11 +8,13 @@
         <router-link v-for="l in links" :key="l.to" :to="l.to" :class="{ 'is-on': isOn(l) }">{{ l.text }}</router-link>
         <p class="yc-side-more">{{ t('yc.shell.more') }}</p>
         <router-link v-for="l in more" :key="l.to" :to="l.to" class="is-minor" :class="{ 'is-on': isOn(l) }">{{ l.text }}</router-link>
+        <YcThemeSwitch class="yc-side-narrow" />
         <button type="button" class="is-minor yc-side-narrow" @click="switchLocale">{{ otherLocale.name }}</button>
         <button type="button" class="is-minor yc-side-narrow" @click="logout">{{ t('nav.logout') }}</button>
       </nav>
       <div class="yc-side-foot">
         <router-link to="/topup" class="yc-side-bal"><span>{{ t('yc.dash.balance') }}</span><b>{{ yuan(authStore.user?.balance) }}</b></router-link>
+        <YcThemeSwitch class="yc-side-wide yc-side-theme" />
         <div class="yc-side-tools">
           <AnnouncementBell />
           <button type="button" class="yc-side-wide" @click="switchLocale">{{ otherLocale.name }}</button>
@@ -32,6 +34,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAdminSettingsStore, useAuthStore, useAppStore } from '@/stores'
 import YcBrand from '@/components/yecai/YcBrand.vue'
+import YcThemeSwitch from '@/components/yecai/YcThemeSwitch.vue'
 import { FeatureFlags, isFeatureFlagEnabled } from '@/utils/featureFlags'
 import { availableLocales, setLocale } from '@/i18n'
 import { useBatchImageAccess } from '@/composables/useBatchImageAccess'
@@ -133,13 +136,14 @@ onMounted(() => {
 .yc-side-nav a:hover, .yc-side-nav button:hover { background: var(--yc-fill); color: var(--yc-ink); }
 .yc-side-more { margin: 18px 14px 6px; font-size: 12px; font-weight: 650; letter-spacing: 0.08em; color: var(--yc-dim); }
 .yc-side-nav .is-minor { padding: 8px 14px; font-size: 14px; }
-.yc-side-narrow { display: none; }
+.yc-side-nav .yc-side-narrow { display: none; }
 .yc-side-nav a.is-on { background: var(--yc-lime); color: var(--yc-on-lime); font-weight: 650; box-shadow: 0 8px 20px -10px rgb(140 180 0 / 0.9); }
 .yc-side-foot { margin-top: auto; display: flex; flex-direction: column; gap: 4px; font-size: 14px; color: var(--yc-mut); }
 .yc-side-foot a { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 12px; }
 .yc-side-foot a:hover, .yc-side-foot a.is-on, .yc-side-tools > button:hover { background: var(--yc-fill); color: var(--yc-ink); }
 .yc-side-bal { justify-content: space-between; margin-bottom: 4px; background: var(--yc-fill); }
 .yc-side-bal b { font-size: 15px; color: var(--yc-ink); font-variant-numeric: tabular-nums; }
+.yc-side-theme { align-self: flex-start; margin: 2px 0 2px 6px; }
 .yc-side-tools { display: flex; align-items: center; gap: 2px; }
 .yc-side-tools > button { padding: 7px 10px; border-radius: 10px; font-size: 13.5px; white-space: nowrap; }
 .yc-side-me i { flex: none; width: 30px; height: 30px; display: grid; place-items: center; border-radius: 50%; background: var(--yc-ink); color: var(--yc-bg); font-style: normal; font-weight: 700; font-size: 13px; }
@@ -150,7 +154,8 @@ onMounted(() => {
   .yc-side { position: sticky; z-index: 20; height: auto; flex-direction: row; align-items: center; gap: 8px; padding: 10px 14px; border-right: 0; border-bottom: 1px solid var(--yc-line); background: color-mix(in srgb, var(--yc-bg) 86%, transparent); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
   .yc-side-brand { padding: 0; }
   .yc-side-brand :deep(.yc-lockup-text), .yc-side-me span, .yc-side-more, .yc-side-foot .yc-side-wide, .yc-side-foot .yc-side-bal { display: none; }
-  .yc-side-narrow { display: block; }
+  .yc-side-nav .yc-side-narrow { display: block; }
+  .yc-side-nav .yc-theme-switch.yc-side-narrow { display: inline-flex; flex: none; }
   .yc-side-nav { flex: 1; min-width: 0; flex-direction: row; overflow-x: auto; scrollbar-width: none; }
   .yc-side-nav a, .yc-side-nav button, .yc-side-nav .is-minor { flex: none; padding: 7px 12px; font-size: 14.5px; }
   .yc-side-foot { margin: 0; flex-direction: row; align-items: center; }
