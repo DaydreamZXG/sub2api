@@ -28,7 +28,7 @@ func (Ticket) Fields() []ent.Field {
 	return []ent.Field{
 		field.Int64("user_id"),
 		field.String("subject").
-			MaxLen(200).
+			MaxRuneLen(200).
 			NotEmpty(),
 		field.String("category").
 			MaxLen(32).
