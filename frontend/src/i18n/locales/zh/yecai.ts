@@ -134,6 +134,15 @@ export default {
     more: '再看 {n} 条',
     advanced: '需要筛选、图表和导出？打开高级视图'
   },
+  topUp: {
+    title: '充值',
+    lead: '充多少就是多少，¥1 就是 ¥1。用多少扣多少。',
+    pay: '去充值', redeem: '我有兑换码', orders: '查看充值记录',
+    minTitle: '可以先少充一点', minText: '最低 ¥{min} 起充，先试试合不合用。', minAny: '金额自己定，先少充一点试试合不合用。',
+    bonusTitle: '多充送 {pct}%', bonusText: '单笔充值满 ¥{min}，额外赠送 {pct}%。',
+    refundTitle: '没用完可以退', refundText: '余额没用完可以申请退款，联系客服办理。',
+    clearTitle: '每一笔都查得到', clearText: '每次请求扣了多少，都记在账单里，随时能看。'
+  },
   prices: {
     title: '价目表',
     lead: '每个模型一个价，直接写人民币。单位是每百万 Token，用多少扣多少。',

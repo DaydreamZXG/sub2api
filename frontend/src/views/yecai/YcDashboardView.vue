@@ -53,7 +53,7 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useTransition } from '@vueuse/core'
 import { useI18n } from 'vue-i18n'
-import { useAuthStore, useAppStore } from '@/stores'
+import { useAuthStore } from '@/stores'
 import { usageAPI, type UserDashboardStats } from '@/api/usage'
 import type { UsageLog } from '@/types'
 import { formatDateLocalInput, formatRelativeTime } from '@/utils/format'
@@ -62,7 +62,6 @@ import { useYcMoney } from '@/composables/useYcMoney'
 
 const { t } = useI18n()
 const authStore = useAuthStore()
-const appStore = useAppStore()
 const { yuan } = useYcMoney()
 
 const stats = ref<UserDashboardStats | null>(null)
@@ -81,7 +80,7 @@ const shown = reactive({
   today: useTransition(() => stats.value?.today_actual_cost ?? 0, ease),
   total: useTransition(() => stats.value?.total_actual_cost ?? 0, ease)
 })
-const topUpPath = computed(() => (appStore.cachedPublicSettings?.payment_enabled ? '/purchase' : '/redeem'))
+const topUpPath = '/topup'
 
 const greetingKey = computed(() => {
   const h = new Date().getHours()
@@ -95,7 +94,7 @@ const greetingKey = computed(() => {
 const next = computed(() => {
   if (!stats.value) return null
   if (balance.value <= 0 && stats.value.total_requests === 0) {
-    return { to: topUpPath.value, text: 'yc.dash.nextTopUp', action: 'yc.shell.topUp' }
+    return { to: topUpPath, text: 'yc.dash.nextTopUp', action: 'yc.shell.topUp' }
   }
   if (stats.value.total_api_keys === 0) return { to: '/keys', text: 'yc.dash.nextKey', action: 'yc.dash.nextKeyGo' }
   if (stats.value.total_requests === 0) return { to: '/keys', text: 'yc.dash.nextConnect', action: 'yc.dash.nextConnectGo' }

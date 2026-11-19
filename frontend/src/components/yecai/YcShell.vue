@@ -43,7 +43,7 @@ const links = computed(() => [
   { to: '/connect', label: 'yc.shell.connect' },
   ...on(isFeatureFlagEnabled(FeatureFlags.modelPlaza), { to: '/prices', label: 'yc.shell.prices' }),
   { to: '/bills', label: 'yc.shell.bills' },
-  { to: settings.value?.payment_enabled ? '/purchase' : '/redeem', label: 'yc.shell.topUp' }
+  { to: '/topup', label: 'yc.shell.topUp' }
 ])
 // Things most people need rarely; kept one click away.
 const more = computed(() => [
