@@ -157,6 +157,7 @@ export default {
     loading: '正在读取价格…',
     none: '价目表暂时没有内容。',
     noMatch: '没有找到这个模型，换个关键词试试。',
+    from: ' 起', varies: '这是标准价。超长上下文、特定时段或更高推理强度的请求会按更高的档位计费，每一笔以账单为准。',
     line: '线路', cacheRead: '缓存读取', multiplier: '倍率',
     official: '官方价：输入 ${input}、输出 ${output}（每百万 Token）。划掉的人民币价按 1 美元 ≈ {rate} 元折算，仅供对比。',
     foot: '点任意一行可以展开，看每条线路的价格、缓存价和倍率。'

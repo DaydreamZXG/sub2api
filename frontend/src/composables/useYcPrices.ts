@@ -20,6 +20,8 @@ export interface YcPrice {
   /** Official list price in USD per million tokens, for those who want the raw numbers. */
   usdInput: number | null
   usdOutput: number | null
+  /** True when the headline line charges more than the quoted price for some requests. */
+  varies: boolean
 }
 
 export interface YcPriceLine {
@@ -30,6 +32,8 @@ export interface YcPriceLine {
   multiplier: number
   /** Sold through a monthly plan, so only subscribers can use it. */
   plan: boolean
+  /** The price is the standard tier; long context, time of day or reasoning effort can raise it. */
+  varies: boolean
 }
 
 /** Final ¥ prices per model, with the multiplier and recharge ratio already applied. */
@@ -58,7 +62,12 @@ export function useYcPrices() {
           output: toYuan(p.output_price * rate * PER_MILLION),
           cacheRead: p.cache_read_price != null ? toYuan(p.cache_read_price * rate * PER_MILLION) : null,
           multiplier: rate,
-          plan: g.subscription_type === 'subscription'
+          plan: g.subscription_type === 'subscription',
+          varies:
+            (g.long_context_pricing_enabled && (p.intervals?.length ?? 0) > 1) ||
+            (m.time_pricing?.periods.length ?? 0) > 0 ||
+            (g.peak_rate_enabled && g.peak_rate_multiplier !== 1) ||
+            Object.values(p.reasoning_effort_multipliers ?? {}).some((x) => x !== 1)
         }
         const known = best.get(m.name)
         if (known) {
@@ -73,6 +82,7 @@ export function useYcPrices() {
           officialInput: o?.input_price != null ? o.input_price * PER_MILLION * cnyPerUsd.value : null,
           officialOutput: o?.output_price != null ? o.output_price * PER_MILLION * cnyPerUsd.value : null,
           share: null,
+          varies: false,
           lines: [line],
           usdInput: o?.input_price != null ? o.input_price * PER_MILLION : null,
           usdOutput: o?.output_price != null ? o.output_price * PER_MILLION : null
@@ -84,6 +94,7 @@ export function useYcPrices() {
       price.lines.sort((a, b) => Number(a.plan) - Number(b.plan) || a.input - b.input)
       price.input = price.lines[0].input
       price.output = price.lines[0].output
+      price.varies = price.lines[0].varies
       price.share = price.officialInput && price.input < price.officialInput ? price.input / price.officialInput : null
     }
     const rank = (name: string) => {

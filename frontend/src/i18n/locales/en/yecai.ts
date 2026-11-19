@@ -157,6 +157,7 @@ export default {
     loading: 'Loading prices…',
     none: 'No prices to show yet.',
     noMatch: 'No model matches. Try another keyword.',
+    from: '+', varies: 'This is the standard price. Requests with very long context, at certain hours or with higher reasoning effort are charged at a higher tier; your bill shows each one.',
     line: 'Line', cacheRead: 'Cache read', multiplier: 'Multiplier',
     official: 'Official price: ${input} input, ${output} output (per million tokens). Struck-out yuan prices use 1 USD ≈ {rate} CNY, for comparison only.',
     foot: 'Click any row to see each line\'s price, cache price and multiplier.'

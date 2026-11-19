@@ -15,10 +15,10 @@
         <button type="button" class="yc-prices-row" :aria-expanded="open === m.name" @click="open = open === m.name ? '' : m.name">
           <span class="yc-mono yc-prices-name">{{ m.name }}</span>
           <span class="yc-prices-cell" :data-label="t('yc.prices.input')">
-            <b class="yc-num">¥{{ price(m.input) }}</b><s v-if="m.share && m.officialInput">¥{{ price(m.officialInput) }}</s>
+            <b class="yc-num">¥{{ price(m.input) }}<small v-if="m.varies">{{ t('yc.prices.from') }}</small></b><s v-if="m.share && m.officialInput">¥{{ price(m.officialInput) }}</s>
           </span>
           <span class="yc-prices-cell" :data-label="t('yc.prices.output')">
-            <b class="yc-num">¥{{ price(m.output) }}</b><s v-if="m.share && m.officialOutput">¥{{ price(m.officialOutput) }}</s>
+            <b class="yc-num">¥{{ price(m.output) }}<small v-if="m.varies">{{ t('yc.prices.from') }}</small></b><s v-if="m.share && m.officialOutput">¥{{ price(m.officialOutput) }}</s>
           </span>
           <span class="yc-prices-off"><span v-if="m.share" class="yc-badge">{{ t('yc.price.off', { zhe: (m.share * 10).toFixed(1), pct: Math.round((1 - m.share) * 100) }) }}</span></span>
         </button>
@@ -37,6 +37,7 @@
               </tr>
             </tbody>
           </table>
+          <p v-if="m.lines.some((l) => l.varies)" class="yc-note">{{ t('yc.prices.varies') }}</p>
           <p v-if="m.usdInput != null && m.usdOutput != null" class="yc-note">
             {{ t('yc.prices.official', { input: price(m.usdInput), output: price(m.usdOutput), rate: cnyPerUsd }) }}
           </p>
@@ -85,6 +86,7 @@ onMounted(async () => {
 .yc-prices-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14.5px; }
 .yc-prices-cell { display: flex; align-items: baseline; gap: 8px; }
 .yc-prices-cell b { font-size: 19px; }
+.yc-prices-cell b small { font-size: 12px; font-weight: 500; color: var(--yc-mut); }
 .yc-prices-cell s { font-size: 13px; color: var(--yc-dim); }
 .yc-prices-off { text-align: right; }
 .yc-prices-empty { padding: 28px 0; border-top: 1px solid var(--yc-line); color: var(--yc-mut); }

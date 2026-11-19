@@ -110,6 +110,7 @@
             <span v-if="top.share" class="yc-chip">{{ off(top.share) }}</span>
           </p>
           <p class="yc-price-out">{{ t('yc.price.output', { price: price(top.output) }) }}</p>
+          <p v-if="top.varies" class="yc-note">{{ t('yc.prices.varies') }}</p>
         </div>
         <div v-if="choices.length > 1" class="yc-price-list yc-surface" role="group" :aria-label="t('yc.price.pick')">
           <p class="yc-price-pick">{{ t('yc.price.pick') }}</p>
