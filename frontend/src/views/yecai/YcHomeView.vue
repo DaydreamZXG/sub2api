@@ -1,6 +1,6 @@
 <template>
   <UpstreamHome v-if="useUpstreamHome" />
-  <div v-else class="yc yc-home">
+  <div v-else class="yc yc-home" :class="{ 'is-pin': pin }">
     <header class="yc-top">
       <i class="yc-progress" aria-hidden="true" :style="{ transform: `scaleX(${progress})` }"></i>
       <div class="yc-wrap yc-top-in">
@@ -29,8 +29,8 @@
         <div ref="dotsEl" class="yc-hero-dots" :class="{ 'is-live': dotsLive }" aria-hidden="true"><i></i><i></i></div>
         <p class="yc-eyebrow">{{ t('yc.hero.eyebrow') }}</p>
         <h1 v-reveal class="yc-h1">
-          {{ t('yc.hero.titleA') }}<br />
-          <span class="yc-mark">{{ t('yc.hero.titleB') }}</span>
+          <span class="yc-h1-line"><span>{{ t('yc.hero.titleA') }}</span></span>
+          <span class="yc-h1-line"><span><span class="yc-mark">{{ t('yc.hero.titleB') }}</span></span></span>
         </h1>
         <p class="yc-lead">{{ t('yc.hero.lead') }}</p>
         <div class="yc-hero-cta">
@@ -50,6 +50,7 @@
 
       <section id="pains">
         <article v-for="(p, i) in pains" :key="p.id" v-reveal class="yc-pain yc-wrap yc-reveal">
+          <div class="yc-pain-stage">
           <header class="yc-pain-head">
             <span class="yc-pain-n yc-num" aria-hidden="true">{{ String(i + 1).padStart(2, '0') }}</span>
             <p class="yc-eyebrow">{{ t(`yc.pain.${p.id}.tag`) }}</p>
@@ -94,16 +95,17 @@
               <p v-if="p.id === 'help' && contactInfo" class="yc-vs-contact">{{ contactInfo }}</p>
             </div>
           </div>
+          </div>
         </article>
       </section>
 
       <section v-if="top" id="price" v-reveal class="yc-sec yc-wrap yc-price yc-reveal">
         <p class="yc-eyebrow">{{ t('yc.price.eyebrow') }}</p>
         <h2 class="yc-h2">{{ t('yc.price.title') }}</h2>
-        <div class="yc-price-top" aria-live="polite">
+        <div :key="top.name" class="yc-price-top" :class="{ 'is-quick': picked }" aria-live="polite">
           <p class="yc-price-name">{{ top.name }}</p>
-          <p v-if="top.officialInput && top.share" class="yc-price-was">{{ t('yc.price.official') }} ¥{{ price(top.officialInput) }}</p>
-          <p :key="top.name" class="yc-price-now yc-num"><span class="yc-mark">¥{{ price(top.input) }}</span></p>
+          <p v-if="top.officialInput && top.share" class="yc-price-was"><span>{{ t('yc.price.official') }} ¥{{ price(top.officialInput) }}</span></p>
+          <p class="yc-price-now yc-num"><span class="yc-mark">¥{{ price(top.input) }}</span></p>
           <p class="yc-price-unit">
             {{ t('yc.price.perMillionIn') }}
             <span v-if="top.share" class="yc-chip">{{ off(top.share) }}</span>
@@ -163,7 +165,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useIntervalFn, useTransition, useWindowScroll } from '@vueuse/core'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore, useAppStore } from '@/stores'
@@ -256,6 +258,37 @@ function lightDots(event: PointerEvent) {
   dotsLive.value = true
 }
 
+// Wide screens pin each pain screen and turn the page with the scroll: --p is the progress through
+// the screen, --a the eased turn from the old card to the new one.
+const pin = ref(false)
+let pinQuery: MediaQueryList | null = null
+let turnFrame = 0
+function turnPages() {
+  turnFrame = 0
+  if (!pin.value) return
+  const stage = window.innerHeight - 64
+  for (const el of document.querySelectorAll<HTMLElement>('.yc-pain')) {
+    const box = el.getBoundingClientRect()
+    const p = Math.min(1, Math.max(0, (64 - box.top) / (box.height - stage)))
+    const t = Math.min(1, Math.max(0, (p - 0.1) / 0.55))
+    el.style.setProperty('--p', p.toFixed(4))
+    el.style.setProperty('--a', (t * t * (3 - 2 * t)).toFixed(4))
+  }
+}
+function queueTurn() {
+  if (!turnFrame) turnFrame = requestAnimationFrame(turnPages)
+}
+function syncPin() {
+  pin.value = pinQuery?.matches === true
+  queueTurn()
+}
+onBeforeUnmount(() => {
+  pinQuery?.removeEventListener('change', syncPin)
+  window.removeEventListener('scroll', queueTurn)
+  window.removeEventListener('resize', queueTurn)
+  cancelAnimationFrame(turnFrame)
+})
+
 const picked = ref('')
 const choices = computed(() => prices.value.slice(0, 6))
 const top = computed(() => choices.value.find((m) => m.name === picked.value) ?? choices.value[0] ?? null)
@@ -313,6 +346,11 @@ onMounted(async () => {
   document.documentElement.classList.toggle('dark', dark)
   authStore.checkAuth()
   loadSiteStats()
+  pinQuery = window.matchMedia('(min-width: 861px) and (min-height: 700px) and (prefers-reduced-motion: no-preference)')
+  pinQuery.addEventListener('change', syncPin)
+  window.addEventListener('scroll', queueTurn, { passive: true })
+  window.addEventListener('resize', queueTurn, { passive: true })
+  syncPin()
   if (!appStore.publicSettingsLoaded) await appStore.fetchPublicSettings()
   if (showModelPlaza.value) loadPrices()
 })
@@ -341,6 +379,7 @@ onMounted(async () => {
 :global(.dark .yc .yc-hero-dots i:first-child) { background-image: radial-gradient(circle, rgb(244 246 241 / 0.14) 1.1px, transparent 1.6px); }
 :global(.dark .yc .yc-hero-dots i:last-child) { background-image: radial-gradient(circle, #c8ff00 1.7px, transparent 2.2px); }
 .yc-h1 { margin-top: 22px; font-size: clamp(40px, 8.4vw, 104px); line-height: 1.03; letter-spacing: -0.05em; font-weight: 800; }
+.yc-h1-line { display: block; }
 .yc-lead { max-width: 640px; margin: 30px auto 0; font-size: clamp(16px, 1.7vw, 20px); line-height: 1.7; color: var(--yc-mut); text-wrap: pretty; }
 .yc-hero-cta { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 38px; }
 .yc-live { margin-top: clamp(44px, 6vw, 72px); }
@@ -398,6 +437,7 @@ onMounted(async () => {
 .yc-price .yc-h2 { margin-left: auto; margin-right: auto; }
 .yc-price-top { margin-top: clamp(36px, 5vw, 64px); }
 .yc-price-name { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 15px; color: var(--yc-mut); }
+.yc-price-was span { display: inline-block; position: relative; }
 .yc-price-was { margin-top: 18px; font-size: clamp(20px, 2.6vw, 30px); color: var(--yc-dim); text-decoration: line-through; }
 .yc-price-now { margin-top: 4px; font-size: clamp(88px, 19vw, 240px); line-height: 1; }
 .yc-price-unit { margin-top: 20px; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 12px; font-size: 16px; color: var(--yc-mut); }
@@ -447,12 +487,51 @@ onMounted(async () => {
   .yc-top-in { gap: 12px; }
 }
 @media (prefers-reduced-motion: no-preference) {
-  .yc-h1, .yc-lead, .yc-hero-cta, .yc-hero-flow { animation: yc-rise 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
-  .yc-lead { animation-delay: 0.08s; }
-  .yc-hero-cta { animation-delay: 0.16s; }
-  .yc-hero-flow { animation-delay: 0.28s; }
-  .yc-live { animation: yc-rise 0.8s 0.22s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
-  .yc-price-now { animation: yc-pop 0.45s cubic-bezier(0.2, 0.9, 0.2, 1.1) both; }
+  .yc-lead, .yc-hero-cta, .yc-hero-flow { animation: yc-rise 1s cubic-bezier(0.16, 1, 0.3, 1) 0.35s both; }
+
+  /* Opening: both headline lines surge up from below, then the highlighter sweeps. */
+  .yc-h1-line { overflow: hidden; padding: 0.06em 0.12em 0.1em; margin: -0.06em -0.12em -0.1em; }
+  .yc-h1-line > span { display: inline-block; transform-origin: 0 100%; animation: yc-surge 1.1s cubic-bezier(0.16, 1, 0.3, 1) both; }
+  .yc-h1-line + .yc-h1-line > span { animation-delay: 0.14s; }
+  .yc-home .yc-h1.is-in .yc-mark { animation-delay: 0.95s; animation-duration: 0.7s; }
+
+  /* Narrow screens: the two cards swing in from either side. */
+  .yc-home:not(.is-pin) .yc-vs-col { transition: opacity 0.7s ease, transform 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
+  .yc-home:not(.is-pin) .yc-vs-before:not(.is-in) { opacity: 0; transform: translateX(-14%) rotate(-4deg); }
+  .yc-home:not(.is-pin) .yc-vs-after:not(.is-in) { opacity: 0; transform: translateX(18%) rotate(4deg) scale(0.92); }
+
+  /* Wide screens: each pain screen holds still while the old card is knocked back and the new one takes over. */
+  .is-pin .yc-pain { height: 240vh; padding-top: 0; }
+  .is-pin .yc-pain-stage { position: sticky; top: 64px; height: calc(100vh - 64px); display: flex; flex-direction: column; justify-content: center; }
+  .is-pin .yc-pain .yc-h2 { font-size: clamp(30px, 4.4vw, 54px); }
+  .is-pin .yc-pain-n { top: -0.5em; font-size: clamp(200px, 32vw, 460px); transform: translateX(calc((0.35 - var(--p, 0)) * 95vw)); }
+  .is-pin .yc-pain-old { opacity: calc(1 - var(--a, 0) * 0.55); }
+  .yc-home.is-pin .yc-pain .yc-mark { animation: none; background-size: calc(var(--a, 0) * 100%) 100%; }
+  :global(.dark .yc.yc-home.is-pin .yc-pain .yc-mark) { animation: none; background-position: calc((1 - var(--a, 0)) * 100%) 0; }
+  .is-pin .yc-vs { grid-template-columns: minmax(0, 1fr); margin-top: clamp(20px, 4vh, 44px); }
+  .is-pin .yc-vs-col { grid-area: 1 / 1; align-self: center; width: 100%; max-width: 860px; margin: 0 auto; }
+  .is-pin .yc-vs-before { background: var(--yc-bg); transform-origin: 20% 100%; transform: translateX(calc(var(--a, 0) * -36%)) rotate(calc(var(--a, 0) * -11deg)) scale(calc(1 - var(--a, 0) * 0.28)); opacity: calc(1 - var(--a, 0) * 0.72); filter: blur(calc(var(--a, 0) * 2px)); }
+  .is-pin .yc-vs-after { z-index: 1; transform: translateX(calc((1 - var(--a, 0)) * 76vw)) rotate(calc((1 - var(--a, 0)) * 10deg)) perspective(1100px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transition: transform 0.18s ease-out; }
+  .is-pin .yc-shot img { max-height: min(22vh, 240px); object-fit: cover; object-position: top; }
+  .is-pin .yc-vs-after li { transition-delay: calc(0.1s + var(--i) * 0.12s); }
+  .is-pin .yc-vs-after li::before { transition-delay: calc(0.25s + var(--i) * 0.12s); }
+
+  /* Price: the official price is struck out and shrinks away, then ours slams in. */
+  .yc-price-top { --d: 0.2s; }
+  .yc-price-top.is-quick { --d: 0s; }
+  .yc-price .yc-price-was { text-decoration: none; opacity: 0; }
+  .yc-price.is-in .yc-price-was { animation: yc-was 1.15s cubic-bezier(0.2, 0.7, 0.2, 1) var(--d) both; }
+  .yc-price-was span::after { content: ''; position: absolute; left: -4%; right: -4%; top: 52%; height: 0.09em; background: currentColor; transform: scaleX(0); transform-origin: left; }
+  .yc-price.is-in .yc-price-was span::after { animation: yc-cross 0.3s ease-out calc(var(--d) + 0.5s) both; }
+  .yc-price .yc-price-now { opacity: 0; animation: none; }
+  .yc-price.is-in .yc-price-now { animation: yc-slam 0.75s cubic-bezier(0.2, 0.8, 0.2, 1) calc(var(--d) + 1s) both; }
+  .yc-home .yc-price.is-in .yc-price-now .yc-mark { animation-delay: calc(var(--d) + 1.5s); animation-duration: 0.6s; }
+  .yc-price .yc-price-unit, .yc-price .yc-price-out { opacity: 0; }
+  .yc-price.is-in .yc-price-unit, .yc-price.is-in .yc-price-out { animation: yc-rise 0.6s ease calc(var(--d) + 1.55s) both; }
+  .yc-lead { animation-delay: 0.45s; }
+  .yc-hero-cta { animation-delay: 0.55s; }
+  .yc-hero-flow { animation-delay: 0.75s; }
+  .yc-live { animation: yc-rise 1s 0.65s cubic-bezier(0.16, 1, 0.3, 1) both; }
 
   /* The highlighter is drawn across each headline as it comes into view. */
   .yc-home .yc-mark { background-repeat: no-repeat; background-size: 0% 100%; }
@@ -481,6 +560,9 @@ onMounted(async () => {
 @keyframes yc-draw { to { background-size: 100% 100%; } }
 @keyframes yc-draw-dark { to { background-position: 0 0; } }
 @keyframes yc-sheen { 0%, 62% { left: -60%; } 100% { left: 130%; } }
-@keyframes yc-pop { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: none; } }
-@keyframes yc-rise { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
+@keyframes yc-surge { from { transform: translateY(115%) rotate(7deg); } to { transform: none; } }
+@keyframes yc-was { 0% { opacity: 0; transform: translateY(40px) scale(1.7); } 22%, 72% { opacity: 1; transform: scale(1.7); } 100% { opacity: 1; transform: none; } }
+@keyframes yc-cross { to { transform: scaleX(1); } }
+@keyframes yc-slam { 0% { opacity: 0; transform: scale(3.4); } 55% { opacity: 1; transform: scale(0.93); } 78% { transform: scale(1.03); } 100% { opacity: 1; transform: none; } }
+@keyframes yc-rise { from { opacity: 0; transform: translateY(48px); } to { opacity: 1; transform: none; } }
 </style>
