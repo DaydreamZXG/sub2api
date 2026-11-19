@@ -58,7 +58,7 @@ func (s *APIKeyService) ResolveAppLine(ctx context.Context, apiKey *APIKey, appT
 		return nil, ErrAppOnlyLine
 	}
 	fallback, err := s.groupRepo.GetByIDLite(ctx, *apiKey.Group.AppFallbackGroupID)
-	if errors.Is(err, ErrGroupNotFound) || (err == nil && !AppFallbackGroupUsable(fallback)) {
+	if errors.Is(err, ErrGroupNotFound) || (err == nil && (!AppFallbackGroupUsable(fallback) || fallback.Platform != apiKey.Group.Platform)) {
 		return nil, ErrAppOnlyLine
 	}
 	if err != nil {
