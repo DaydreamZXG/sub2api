@@ -36,6 +36,7 @@ import { paymentAPI } from '@/api/payment'
 import type { CheckoutInfoResponse } from '@/types/payment'
 import YcShell from '@/components/yecai/YcShell.vue'
 import { useYcMoney } from '@/composables/useYcMoney'
+import { currencySymbol, normalizePaymentCurrency } from '@/components/payment/currency'
 
 const { t } = useI18n()
 const appStore = useAppStore()
@@ -46,17 +47,30 @@ const checkout = ref<CheckoutInfoResponse | null>(null)
 const payEnabled = computed(() => appStore.cachedPublicSettings?.payment_enabled === true)
 const canPay = computed(() => payEnabled.value && checkout.value?.balance_disabled !== true)
 
+// Limits and bonus thresholds are counted in the payment method's currency. Amounts are only
+// quoted when every available method uses the same one.
+const payCurrency = computed(() => {
+  const used = new Set(
+    Object.values(checkout.value?.methods ?? {})
+      .filter((method) => method.available)
+      .map((method) => normalizePaymentCurrency(method.currency))
+  )
+  return used.size === 1 ? [...used][0] : null
+})
+
 const facts = computed(() => {
   const info = checkout.value
-  const tiers = info?.recharge_bonus_mode !== 'discount' ? (info?.recharge_bonus_tiers ?? []) : []
+  const currency = payCurrency.value
+  const paid = (amount: number) => `${currencySymbol(currency)}${amount}`
+  const tiers = currency && info?.recharge_bonus_mode !== 'discount' ? (info?.recharge_bonus_tiers ?? []) : []
   return [
     {
       title: t('yc.topUp.minTitle'),
-      text: info && info.global_min > 0 ? t('yc.topUp.minText', { min: info.global_min }) : t('yc.topUp.minAny')
+      text: info && currency && info.global_min > 0 ? t('yc.topUp.minText', { min: paid(info.global_min) }) : t('yc.topUp.minAny')
     },
     ...tiers.map((tier) => ({
       title: t('yc.topUp.bonusTitle', { pct: tier.bonus_percent }),
-      text: t('yc.topUp.bonusText', { min: tier.min_amount, pct: tier.bonus_percent })
+      text: t('yc.topUp.bonusText', { min: paid(tier.min_amount), pct: tier.bonus_percent })
     })),
     { title: t('yc.topUp.refundTitle'), text: t('yc.topUp.refundText') },
     { title: t('yc.topUp.clearTitle'), text: t('yc.topUp.clearText') }

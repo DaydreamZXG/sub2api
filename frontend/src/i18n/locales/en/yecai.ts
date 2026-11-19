@@ -138,8 +138,8 @@ export default {
     title: 'Top up',
     lead: 'You get exactly what you pay: ¥1 is ¥1. You are charged only for what you use.',
     pay: 'Top up now', buyPlan: 'See monthly plans', redeem: 'I have a code', orders: 'See top-up history',
-    minTitle: 'Start small', minText: 'The minimum is ¥{min}. Try it before adding more.', minAny: 'You choose the amount. Start small and see if it suits you.',
-    bonusTitle: '{pct}% extra on larger top-ups', bonusText: 'Top up ¥{min} or more in one payment and get {pct}% extra.',
+    minTitle: 'Start small', minText: 'The minimum is {min}. Try it before adding more.', minAny: 'You choose the amount. Start small and see if it suits you.',
+    bonusTitle: '{pct}% extra on larger top-ups', bonusText: 'Top up {min} or more in one payment and get {pct}% extra.',
     refundTitle: 'Unused balance is refundable', refundText: 'You can ask for a refund of balance you have not used. Contact support to arrange it.',
     clearTitle: 'Every charge is on record', clearText: 'What each request cost is listed in your bills, any time.'
   },
