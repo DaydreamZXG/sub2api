@@ -1036,6 +1036,9 @@ router.beforeEach(async (to, _from, next) => {
  * Navigation guard: End loading and trigger prefetch
  */
 router.afterEach((to) => {
+  // The admin console keeps its original colours; everything else uses the redesigned palette.
+  document.documentElement.classList.toggle('yc-theme', !to.path.startsWith('/admin'))
+
   // 结束导航加载状态
   navigationLoading.endNavigation()
 

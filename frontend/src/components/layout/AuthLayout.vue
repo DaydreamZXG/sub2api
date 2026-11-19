@@ -1,28 +1,7 @@
 <template>
-  <div class="relative flex min-h-screen items-center justify-center overflow-hidden p-4">
-    <!-- Background -->
-    <div
-      class="absolute inset-0 bg-gradient-to-br from-gray-50 via-primary-50/30 to-gray-100 dark:from-dark-950 dark:via-dark-900 dark:to-dark-950"
-    ></div>
-
-    <!-- Decorative Elements -->
-    <div class="pointer-events-none absolute inset-0 overflow-hidden">
-      <!-- Gradient Orbs -->
-      <div
-        class="absolute -right-40 -top-40 h-80 w-80 rounded-full bg-primary-400/20 blur-3xl"
-      ></div>
-      <div
-        class="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-primary-500/15 blur-3xl"
-      ></div>
-      <div
-        class="absolute left-1/2 top-1/2 h-96 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary-300/10 blur-3xl"
-      ></div>
-
-      <!-- Grid Pattern -->
-      <div
-        class="absolute inset-0 bg-[linear-gradient(rgba(20,184,166,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(20,184,166,0.03)_1px,transparent_1px)] bg-[size:64px_64px]"
-      ></div>
-    </div>
+  <div class="yc relative flex min-h-screen items-center justify-center overflow-hidden p-4">
+    <!-- A single soft lime glow, the same accent the home page uses -->
+    <div class="yc-auth-glow pointer-events-none absolute" aria-hidden="true"></div>
 
     <!-- Content Container -->
     <div class="relative z-10 w-full max-w-md">
@@ -30,12 +9,10 @@
       <div class="mb-8 text-center">
         <!-- Custom Logo or Default Logo -->
         <template v-if="settingsLoaded">
-          <div
-            class="mb-4 inline-flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl shadow-lg shadow-primary-500/30"
-          >
+          <router-link to="/home" class="mb-4 inline-flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl">
             <img :src="siteLogo || '/logo.svg'" alt="Logo" class="h-full w-full object-contain" />
-          </div>
-          <h1 class="text-gradient mb-2 text-3xl font-bold">
+          </router-link>
+          <h1 class="yc-auth-title mb-2">
             {{ siteName }}
           </h1>
           <p class="text-sm text-gray-500 dark:text-dark-400">
@@ -45,7 +22,7 @@
       </div>
 
       <!-- Card Container -->
-      <div class="card-glass rounded-2xl p-8 shadow-glass">
+      <div class="yc-surface p-8">
         <slot />
       </div>
 
@@ -66,6 +43,7 @@
 import { computed, onMounted } from 'vue'
 import { useAppStore } from '@/stores'
 import { sanitizeUrl } from '@/utils/url'
+import '@/styles/yecai.css'
 
 const appStore = useAppStore()
 
@@ -82,7 +60,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.text-gradient {
-  @apply bg-gradient-to-r from-primary-600 to-primary-500 bg-clip-text text-transparent;
-}
+.yc-auth-title { font-size: 30px; line-height: 1.2; letter-spacing: -0.03em; font-weight: 800; color: var(--yc-ink); }
+.yc-auth-glow { top: -22rem; left: 50%; width: 52rem; height: 40rem; transform: translateX(-50%); border-radius: 50%; background: radial-gradient(closest-side, rgb(200 255 0 / 0.28), transparent); }
+:global(.dark) .yc-auth-glow { background: radial-gradient(closest-side, rgb(200 255 0 / 0.1), transparent); }
 </style>
