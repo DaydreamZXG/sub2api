@@ -6088,9 +6088,13 @@ const handleCreateGroup = async () => {
     // 构建请求数据，包含模型路由配置
     const requestData = {
       ...createGroupForm,
-      app_fallback_group_id: createForm.app_only
-        ? createForm.app_fallback_group_id
-        : null,
+      // 订阅分组不支持“仅限 app”，开关在表单里也是隐藏的
+      app_only:
+        createForm.subscription_type !== "subscription" && createForm.app_only,
+      app_fallback_group_id:
+        createForm.subscription_type !== "subscription" && createForm.app_only
+          ? createForm.app_fallback_group_id
+          : null,
       force_openai_fast: normalizeGroupOpenAIFast(
         createForm.platform,
         createForm.force_openai_fast,
@@ -6474,8 +6478,13 @@ const handleUpdateGroup = async () => {
       fallback_group_id:
         editForm.fallback_group_id === null ? 0 : editForm.fallback_group_id,
       // null -> 0：后端用 0 表示清除；关掉开关时一并清除
+      // 订阅分组不支持“仅限 app”：改成订阅分组时一并关掉
+      app_only:
+        editForm.subscription_type !== "subscription" && editForm.app_only,
       app_fallback_group_id:
-        editForm.app_only && editForm.app_fallback_group_id !== null
+        editForm.subscription_type !== "subscription" &&
+        editForm.app_only &&
+        editForm.app_fallback_group_id !== null
           ? editForm.app_fallback_group_id
           : 0,
       fallback_group_id_on_invalid_request:
