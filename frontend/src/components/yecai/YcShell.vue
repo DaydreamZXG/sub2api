@@ -1,19 +1,19 @@
 <template>
   <div class="yc yc-shell">
-    <header class="yc-shell-top">
-      <div class="yc-wrap yc-shell-in">
-        <router-link to="/dashboard" class="yc-shell-brand">
-          <img :src="siteLogo || '/logo.svg'" alt="" />
-          <span>{{ siteName }}</span>
-        </router-link>
-        <nav class="yc-shell-nav" :aria-label="t('yc.nav.aria')">
-          <router-link v-for="l in links" :key="l.to" :to="l.to" active-class="is-on">{{ t(l.label) }}</router-link>
-        </nav>
-        <router-link v-if="authStore.isAdmin" to="/admin/dashboard" class="yc-shell-side">{{ t('yc.shell.admin') }}</router-link>
-        <router-link to="/profile" class="yc-shell-me" :title="t('yc.shell.account')">{{ initial }}</router-link>
+    <aside class="yc-side">
+      <router-link to="/dashboard" class="yc-side-brand">
+        <img :src="siteLogo || '/logo.svg'" alt="" />
+        <span>{{ siteName }}</span>
+      </router-link>
+      <nav class="yc-side-nav" :aria-label="t('yc.nav.aria')">
+        <router-link v-for="l in links" :key="l.to" :to="l.to" active-class="is-on">{{ t(l.label) }}</router-link>
+      </nav>
+      <div class="yc-side-foot">
+        <router-link v-if="authStore.isAdmin" to="/admin/dashboard">{{ t('yc.shell.admin') }}</router-link>
+        <router-link to="/profile" class="yc-side-me"><i>{{ initial }}</i><span>{{ t('yc.shell.account') }}</span></router-link>
       </div>
-    </header>
-    <main class="yc-wrap yc-shell-main"><slot /></main>
+    </aside>
+    <main class="yc-shell-main"><slot /></main>
   </div>
 </template>
 
@@ -43,20 +43,29 @@ const links = computed(() => [
 </script>
 
 <style scoped>
-.yc-shell { min-height: 100vh; }
-.yc-shell-top { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--yc-bg) 84%, transparent); backdrop-filter: saturate(160%) blur(18px); -webkit-backdrop-filter: saturate(160%) blur(18px); border-bottom: 1px solid var(--yc-line); }
-.yc-shell-in { height: 60px; display: flex; align-items: center; gap: 24px; }
-.yc-shell-brand { display: flex; align-items: center; gap: 10px; font-weight: 750; font-size: 16.5px; white-space: nowrap; }
-.yc-shell-brand img { width: 28px; height: 28px; border-radius: 8px; object-fit: contain; }
-.yc-shell-nav { display: flex; gap: 4px; margin-right: auto; overflow-x: auto; scrollbar-width: none; }
-.yc-shell-nav a { padding: 7px 14px; border-radius: 999px; font-size: 14.5px; color: var(--yc-mut); white-space: nowrap; }
-.yc-shell-nav a:hover { color: var(--yc-ink); }
-.yc-shell-nav a.is-on { background: var(--yc-lime); color: var(--yc-on-lime); font-weight: 650; }
-.yc-shell-side { font-size: 13.5px; color: var(--yc-mut); white-space: nowrap; }
-.yc-shell-me { flex: none; width: 34px; height: 34px; display: grid; place-items: center; border-radius: 50%; background: var(--yc-fill); box-shadow: inset 0 0 0 1px var(--yc-line); font-weight: 700; font-size: 14px; }
-.yc-shell-main { padding-top: 36px; padding-bottom: 72px; }
-@media (max-width: 640px) {
-  .yc-shell-in { gap: 12px; }
-  .yc-shell-brand span, .yc-shell-side { display: none; }
+.yc-shell { min-height: 100vh; display: grid; grid-template-columns: 232px minmax(0, 1fr); }
+.yc-side { position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; padding: 22px 14px 18px; border-right: 1px solid var(--yc-line); background: color-mix(in srgb, var(--yc-paper) 70%, transparent); }
+.yc-side-brand { display: flex; align-items: center; gap: 10px; padding: 0 10px 22px; font-weight: 750; font-size: 17px; white-space: nowrap; }
+.yc-side-brand img { width: 30px; height: 30px; border-radius: 9px; object-fit: contain; }
+.yc-side-nav { display: flex; flex-direction: column; gap: 2px; }
+.yc-side-nav a { position: relative; padding: 10px 14px; border-radius: 12px; font-size: 15px; color: var(--yc-mut); white-space: nowrap; transition: background-color 0.15s ease, color 0.15s ease; }
+.yc-side-nav a:hover { background: var(--yc-fill); color: var(--yc-ink); }
+.yc-side-nav a.is-on { background: var(--yc-lime); color: var(--yc-on-lime); font-weight: 650; box-shadow: 0 8px 20px -10px rgb(140 180 0 / 0.9); }
+.yc-side-foot { margin-top: auto; display: flex; flex-direction: column; gap: 4px; font-size: 14px; color: var(--yc-mut); }
+.yc-side-foot a { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 12px; }
+.yc-side-foot a:hover { background: var(--yc-fill); color: var(--yc-ink); }
+.yc-side-me i { flex: none; width: 30px; height: 30px; display: grid; place-items: center; border-radius: 50%; background: var(--yc-ink); color: var(--yc-bg); font-style: normal; font-weight: 700; font-size: 13px; }
+.yc-shell-main { width: 100%; max-width: 1080px; margin: 0 auto; padding: 44px 36px 80px; }
+@media (max-width: 860px) {
+  .yc-shell { grid-template-columns: 1fr; }
+  .yc-side { position: sticky; z-index: 20; height: auto; flex-direction: row; align-items: center; gap: 8px; padding: 10px 14px; border-right: 0; border-bottom: 1px solid var(--yc-line); background: color-mix(in srgb, var(--yc-bg) 86%, transparent); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+  .yc-side-brand { padding: 0; }
+  .yc-side-brand span, .yc-side-me span { display: none; }
+  .yc-side-nav { flex: 1; flex-direction: row; overflow-x: auto; scrollbar-width: none; }
+  .yc-side-nav a { padding: 7px 12px; font-size: 14.5px; }
+  .yc-side-foot { margin: 0; flex-direction: row; }
+  .yc-side-foot a:not(.yc-side-me) { display: none; }
+  .yc-side-foot a { padding: 0; }
+  .yc-shell-main { padding: 24px 18px 56px; }
 }
 </style>
