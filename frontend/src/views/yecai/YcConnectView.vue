@@ -10,6 +10,9 @@
         <p class="yc-note">{{ t('yc.connect.clientText') }}</p>
         <div class="yc-way-cta">
           <a v-if="clientUrl" :href="clientUrl" class="yc-btn yc-btn-lime">{{ t(clientLabel) }} ↓</a>
+          <button type="button" class="yc-btn yc-btn-ghost" :disabled="handingOver" @click="connectApp">
+            {{ t('yc.connect.appConnect') }}
+          </button>
           <span class="yc-note">
             <a :href="YC_CLIENT_DOWNLOADS.windows" class="yc-link">Windows</a> ·
             <a :href="YC_CLIENT_DOWNLOADS.macos" class="yc-link">macOS</a>
@@ -102,6 +105,7 @@
 </template>
 
 <script setup lang="ts">
+import { connectDeepLink, issueConnectCode } from '@/api/desktop'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores'
@@ -199,6 +203,26 @@ onMounted(async () => {
     loading.value = false
   }
 })
+
+const handingOver = ref(false)
+
+// Hands this signed-in account to the installed desktop assistant with a one-time code.
+async function connectApp() {
+  if (window.location.protocol !== 'https:') {
+    appStore.showError(t('yc.connect.appConnectNeedsHttps'))
+    return
+  }
+  handingOver.value = true
+  try {
+    const connect = await issueConnectCode(window.location.origin)
+    window.location.href = connectDeepLink(connect)
+    appStore.showInfo(t('yc.connect.appConnectHint'))
+  } catch {
+    appStore.showError(t('yc.connect.appConnectFailed'))
+  } finally {
+    handingOver.value = false
+  }
+}
 </script>
 
 <style scoped>
