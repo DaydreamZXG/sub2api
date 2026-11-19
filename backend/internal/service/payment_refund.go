@@ -163,7 +163,12 @@ func (s *PaymentService) RequestRefund(ctx context.Context, oid, uid int64, reas
 	if err != nil {
 		return fmt.Errorf("get user: %w", err)
 	}
-	if u.Balance < o.Amount {
+	// 订单的赠送还种在菜园里时，退款会先把它收回余额，所以这里一并算作可扣的余额。
+	growing, err := s.garden.GrowingForOrder(ctx, o.ID)
+	if err != nil {
+		return fmt.Errorf("get garden crop: %w", err)
+	}
+	if u.Balance+growing < o.Amount {
 		return infraerrors.BadRequest("BALANCE_NOT_ENOUGH", "refund amount exceeds balance")
 	}
 	nr := strings.TrimSpace(reason)
@@ -269,11 +274,12 @@ func (s *PaymentService) prepDeduct(ctx context.Context, o *dbent.PaymentOrder, 
 		}
 		return nil
 	}
-	// 订单的赠送还种在菜园里时先收回余额，后面的扣减和没有菜园时一样算。
-	if s.garden != nil {
-		if _, err := s.garden.UprootForOrder(ctx, o.UserID, o.ID); err != nil {
-			slog.Warn("refund: uproot garden crop failed", "orderID", o.ID, "error", err)
-		}
+	// 订单的赠送还种在菜园里时，执行退款会先把它收回余额（ExecuteRefund），这里只读不改：
+	// 准备阶段被拒绝或网关失败时，菜不能凭空变成可用余额。读不到就停下，不按少算的余额继续。
+	growing, err := s.garden.GrowingForOrder(ctx, o.ID)
+	if err != nil {
+		slog.Error("refund: read garden crop failed", "orderID", o.ID, "error", err)
+		return &RefundResult{Success: false, Warning: "cannot read the order's garden crop, try again"}
 	}
 	u, err := s.userRepo.GetByID(ctx, o.UserID)
 	if err != nil {
@@ -283,10 +289,11 @@ func (s *PaymentService) prepDeduct(ctx context.Context, o *dbent.PaymentOrder, 
 		return nil
 	}
 	p.DeductionType = payment.DeductionTypeBalance
-	if u.Balance < p.RefundAmount && !force {
+	available := u.Balance + growing
+	if available < p.RefundAmount && !force {
 		return &RefundResult{Success: false, Warning: "user balance is insufficient for deduction, use force", RequireForce: true}
 	}
-	p.BalanceToDeduct = math.Max(0, math.Min(p.RefundAmount, u.Balance))
+	p.BalanceToDeduct = math.Max(0, math.Min(p.RefundAmount, available))
 	return nil
 }
 
@@ -322,8 +329,16 @@ func (s *PaymentService) ExecuteRefund(ctx context.Context, p *RefundPlan) (*Ref
 		// Skip balance deduction on retry if previous attempt already deducted
 		// but failed to roll back (REFUND_ROLLBACK_FAILED in audit log).
 		if !s.hasAuditLog(ctx, p.OrderID, "REFUND_ROLLBACK_FAILED") {
+			// 赠送还种在菜园里时先收回余额再扣；收不回来就不退，否则会少扣而菜还能收。
+			uprooted, err := s.garden.UprootForOrder(ctx, p.Order.UserID, p.OrderID)
+			if err != nil {
+				s.restoreStatus(ctx, p)
+				return nil, fmt.Errorf("uproot garden crop: %w", err)
+			}
+			p.cropUprooted = uprooted
 			deducted, err := s.deductAvailableBalance(ctx, p.Order.UserID, p.BalanceToDeduct)
 			if err != nil {
+				s.replantRefundedCrop(ctx, p)
 				s.restoreStatus(ctx, p)
 				return nil, fmt.Errorf("deduction: %w", err)
 			}
@@ -595,6 +610,7 @@ func (s *PaymentService) finalizeRefundFailed(ctx context.Context, p *RefundPlan
 	if returnErr == nil {
 		if p.deductionHeld && p.DeductionType == payment.DeductionTypeBalance && p.BalanceToDeduct > 0 {
 			s.invalidateRefundBalanceCache(ctx, p.Order.UserID)
+			s.replantRefundedCrop(ctx, p)
 		}
 		return &RefundResult{Success: false, Warning: warning}, nil
 	}
@@ -706,6 +722,8 @@ type refundPendingAuditDetail struct {
 	BalanceDeducted     float64 `json:"balanceDeducted"`
 	SubDaysDeducted     int     `json:"subDaysDeducted"`
 	SubscriptionID      int64   `json:"subscriptionID,omitempty"`
+	// CropUprooted 是进入 pending 前从菜园收回余额的额度；网关最终失败、扣减归还后要种回去。
+	CropUprooted float64 `json:"cropUprooted,omitempty"`
 	// requestedAt 取自审计记录的创建时间，不参与序列化。
 	requestedAt time.Time
 }
@@ -719,6 +737,7 @@ func (d refundPendingAuditDetail) applyTo(p *RefundPlan) {
 	p.BalanceToDeduct = d.BalanceDeducted
 	p.SubDaysToDeduct = d.SubDaysDeducted
 	p.SubscriptionID = d.SubscriptionID
+	p.cropUprooted = d.CropUprooted
 }
 
 // latestRefundPendingDetail 读取最近一次 REFUND_PENDING 审计。没有记录视为旧订单（扣减已在
@@ -821,6 +840,7 @@ func (s *PaymentService) markRefundPending(ctx context.Context, p *RefundPlan, r
 		BalanceDeducted: p.BalanceToDeduct,
 		SubDaysDeducted: p.SubDaysToDeduct,
 		SubscriptionID:  p.SubscriptionID,
+		CropUprooted:    p.cropUprooted,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("marshal refund pending audit: %w", err)
@@ -877,6 +897,7 @@ func (s *PaymentService) RollbackRefund(ctx context.Context, p *RefundPlan, gErr
 			return false
 		}
 		s.invalidateRefundBalanceCache(ctx, p.Order.UserID)
+		s.replantRefundedCrop(ctx, p)
 	}
 	if p.DeductionType == payment.DeductionTypeSubscription && p.SubDaysToDeduct > 0 && p.SubscriptionID > 0 {
 		if _, err := s.subscriptionSvc.ExtendSubscription(ctx, p.SubscriptionID, p.SubDaysToDeduct); err != nil {
@@ -886,6 +907,19 @@ func (s *PaymentService) RollbackRefund(ctx context.Context, p *RefundPlan, gErr
 		}
 	}
 	return true
+}
+
+// replantRefundedCrop puts back the crop this refund uprooted, once its balance deduction has been returned.
+// A failure leaves the bonus in the balance instead of the garden; it is logged and does not fail the rollback.
+func (s *PaymentService) replantRefundedCrop(ctx context.Context, p *RefundPlan) {
+	if p.cropUprooted <= 0 {
+		return
+	}
+	p.cropUprooted = 0
+	if _, err := s.garden.ReplantForOrder(ctx, p.Order.UserID, p.OrderID); err != nil {
+		slog.Error("refund: replant garden crop failed", "orderID", p.OrderID, "error", err)
+		s.writeAuditLog(ctx, p.OrderID, "GARDEN_REPLANT_FAILED", "system", map[string]any{"error": err.Error()})
+	}
 }
 
 func (s *PaymentService) restoreStatus(ctx context.Context, p *RefundPlan) {

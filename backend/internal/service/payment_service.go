@@ -136,6 +136,8 @@ type RefundPlan struct {
 	SubscriptionID  int64
 	// deductionHeld 表示扣减已在进入 REFUND_PENDING 前执行并保留，终态收敛时不再重复扣减。
 	deductionHeld bool
+	// cropUprooted 是这次退款扣减前从菜园收回余额的额度；扣减被归还时要把菜种回去。
+	cropUprooted float64
 }
 
 type RefundResult struct {

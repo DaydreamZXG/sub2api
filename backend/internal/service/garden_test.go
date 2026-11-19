@@ -13,6 +13,12 @@ type fakeGardenRepo struct {
 	planted    map[int64]float64
 	ripenAfter time.Duration
 	crop       *GardenCrop
+	growing    float64
+	growingErr error
+}
+
+func (r *fakeGardenRepo) GrowingForOrder(context.Context, int64) (float64, error) {
+	return r.growing, r.growingErr
 }
 
 func (r *fakeGardenRepo) Plant(_ context.Context, _, orderID int64, amount float64, ripenAfter time.Duration) (bool, error) {
