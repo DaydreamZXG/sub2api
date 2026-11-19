@@ -1,5 +1,5 @@
 export default {
-  nav: { aria: '页面导航', pains: '解决什么', prices: '价格', faq: '常见问题', docs: '文档' },
+  nav: { aria: '页面导航', docs: '文档' },
   cta: { start: '开始使用', login: '登录', console: '进入控制台' },
   flow: { aria: '你的工具通过一把密钥连到各家模型', key: '你的密钥' },
   hero: {
@@ -57,7 +57,7 @@ export default {
       a3: '接不上、缓存、网络问题都可以找我们'
     }
   },
-  live: { label: '全站已处理 Token，实时更新', today: '今天 {tokens} · 累计 {requests} 次请求' },
+  live: { label: '全站已处理 Token · 实时', today: '今天', requests: '累计请求' },
   client: {
     download: '下载客户端',
     windows: '下载 Windows 版',
@@ -67,7 +67,7 @@ export default {
     shotAlt: '客户端里的“我的应用”：自动发现电脑上的 Claude 和 Codex，可以一键接入'
   },
   price: {
-    eyebrow: '价格',
+    eyebrow: '价目',
     title: '最后，说价格。',
     official: '官方价',
     perMillionIn: '每百万 Token 输入',

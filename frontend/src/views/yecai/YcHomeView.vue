@@ -1,61 +1,73 @@
 <template>
   <UpstreamHome v-if="useUpstreamHome" />
   <div v-else class="yc yc-home">
-    <header class="yc-top">
-      <div class="yc-wrap yc-top-in">
-        <router-link to="/home" class="yc-brand">
-          <img :src="siteLogo || '/logo.svg'" alt="" class="yc-brand-logo" />
-          <span>{{ siteName }}</span>
-        </router-link>
-        <nav class="yc-top-nav" :aria-label="t('yc.nav.aria')">
-          <a href="#pains">{{ t('yc.nav.pains') }}</a>
-          <a v-if="top" href="#price">{{ t('yc.nav.prices') }}</a>
-          <a href="#faq">{{ t('yc.nav.faq') }}</a>
-        </nav>
-        <div class="yc-top-actions">
-          <LocaleSwitcher />
-          <router-link v-if="isAuthenticated" :to="consolePath" class="yc-btn yc-btn-lime yc-btn-sm">{{ t('yc.cta.console') }}</router-link>
-          <template v-else>
-            <router-link to="/login" class="yc-btn yc-btn-ghost yc-btn-sm yc-hide-sm">{{ t('yc.cta.login') }}</router-link>
-            <router-link :to="startPath" class="yc-btn yc-btn-lime yc-btn-sm">{{ t('yc.cta.start') }}</router-link>
-          </template>
-        </div>
+    <header class="yc-rail">
+      <router-link to="/home" class="yc-brand">
+        <img :src="siteLogo || '/logo.svg'" alt="" class="yc-brand-logo" />
+        <span>{{ siteName }}</span>
+      </router-link>
+      <div class="yc-rail-lang"><LocaleSwitcher /></div>
+      <nav class="yc-index" :aria-label="t('yc.nav.aria')">
+        <a
+          v-for="s in sections"
+          :key="s.id"
+          :href="`#${s.id}`"
+          :class="{ 'is-on': s.id === active }"
+          :aria-current="s.id === active ? 'location' : undefined"
+        >
+          <span class="yc-index-n">{{ num(s.id) }}</span>{{ t(s.label) }}
+        </a>
+      </nav>
+      <div class="yc-rail-foot">
+        <router-link v-if="isAuthenticated" :to="consolePath" class="yc-btn yc-btn-lime yc-btn-sm">{{ t('yc.cta.console') }}</router-link>
+        <template v-else>
+          <router-link to="/login" class="yc-btn yc-btn-ghost yc-btn-sm yc-hide-sm">{{ t('yc.cta.login') }}</router-link>
+          <router-link :to="startPath" class="yc-btn yc-btn-lime yc-btn-sm">{{ t('yc.cta.start') }}</router-link>
+        </template>
       </div>
     </header>
 
-    <main>
-      <section class="yc-hero yc-wrap">
-        <p class="yc-eyebrow">{{ t('yc.hero.eyebrow') }}</p>
+    <main class="yc-main">
+      <section class="yc-hero">
+        <p class="yc-label">{{ t('yc.hero.eyebrow') }}</p>
         <h1 class="yc-h1">
           {{ t('yc.hero.titleA') }}<br />
           <span class="yc-mark">{{ t('yc.hero.titleB') }}</span>
         </h1>
-        <p class="yc-lead">{{ t('yc.hero.lead') }}</p>
-        <div class="yc-hero-cta">
-          <router-link :to="isAuthenticated ? consolePath : startPath" class="yc-btn yc-btn-lime">
-            {{ isAuthenticated ? t('yc.cta.console') : t('yc.cta.start') }}
-            <span aria-hidden="true">→</span>
-          </router-link>
-          <a :href="clientUrl || '#pains'" class="yc-btn yc-btn-ghost">{{ t(clientLabel) }}</a>
+        <div class="yc-hero-row">
+          <p class="yc-lead">{{ t('yc.hero.lead') }}</p>
+          <div class="yc-hero-cta">
+            <router-link :to="isAuthenticated ? consolePath : startPath" class="yc-cta-block">
+              <span>{{ isAuthenticated ? t('yc.cta.console') : t('yc.cta.start') }}</span>
+              <span class="yc-cta-arrow" aria-hidden="true">→</span>
+            </router-link>
+            <a :href="clientUrl || '#pain-setup'" class="yc-cta-alt">{{ t(clientLabel) }} ↓</a>
+          </div>
         </div>
-        <div v-if="site" class="yc-live" aria-live="off">
-          <p class="yc-live-lab"><i aria-hidden="true"></i>{{ t('yc.live.label') }}</p>
-          <p class="yc-live-num yc-num">{{ Math.round(liveTotal).toLocaleString() }}</p>
-          <p class="yc-live-sub">{{ t('yc.live.today', { tokens: Math.round(liveToday).toLocaleString(), requests: site.total_requests.toLocaleString() }) }}</p>
-        </div>
+        <dl v-if="site" class="yc-live">
+          <div class="yc-live-main">
+            <dt><i aria-hidden="true"></i>{{ t('yc.live.label') }}</dt>
+            <dd class="yc-live-num yc-num">{{ Math.round(liveTotal).toLocaleString() }}</dd>
+          </div>
+          <div>
+            <dt>{{ t('yc.live.today') }}</dt>
+            <dd class="yc-num">{{ Math.round(liveToday).toLocaleString() }}</dd>
+          </div>
+          <div>
+            <dt>{{ t('yc.live.requests') }}</dt>
+            <dd class="yc-num">{{ site.total_requests.toLocaleString() }}</dd>
+          </div>
+        </dl>
         <YcFlowDiagram class="yc-hero-flow" />
       </section>
 
       <section id="pains">
-        <article v-for="(p, i) in pains" :key="p.id" v-reveal class="yc-pain yc-wrap yc-reveal">
-          <header class="yc-pain-head">
-            <span class="yc-pain-n yc-num" aria-hidden="true">{{ String(i + 1).padStart(2, '0') }}</span>
-            <p class="yc-eyebrow">{{ t(`yc.pain.${p.id}.tag`) }}</p>
-            <h2 class="yc-h2">
-              <span class="yc-pain-old">{{ t(`yc.pain.${p.id}.titleA`) }}</span><br />
-              <span class="yc-mark">{{ t(`yc.pain.${p.id}.titleB`) }}</span>
-            </h2>
-          </header>
+        <article v-for="p in pains" :id="`pain-${p.id}`" :key="p.id" v-reveal class="yc-sec yc-pain yc-reveal">
+          <p class="yc-label"><b>{{ num(`pain-${p.id}`) }}</b>{{ t(`yc.pain.${p.id}.tag`) }}</p>
+          <h2 class="yc-pain-h">
+            <span class="yc-pain-old">{{ t(`yc.pain.${p.id}.titleA`) }}</span><br />
+            <span class="yc-mark">{{ t(`yc.pain.${p.id}.titleB`) }}</span>
+          </h2>
           <div class="yc-vs">
             <div class="yc-vs-col yc-vs-before">
               <p class="yc-vs-lab">{{ t('yc.pain.before') }}</p>
@@ -65,7 +77,7 @@
                 <li v-for="k in ITEMS" :key="k">{{ t(`yc.pain.${p.id}.b${k}`) }}</li>
               </ul>
             </div>
-            <div class="yc-vs-col yc-vs-after yc-surface">
+            <div class="yc-vs-col yc-vs-after">
               <p class="yc-vs-lab">{{ t('yc.pain.after') }}</p>
               <p v-if="p.id === 'price' && top" class="yc-vs-price">
                 <span>{{ top.name }}</span>
@@ -95,44 +107,47 @@
         </article>
       </section>
 
-      <section v-if="top" id="price" v-reveal class="yc-sec yc-wrap yc-price yc-reveal">
-        <p class="yc-eyebrow">{{ t('yc.price.eyebrow') }}</p>
-        <h2 class="yc-h2">{{ t('yc.price.title') }}</h2>
+      <section v-if="top" id="price" v-reveal class="yc-flood yc-price yc-reveal">
+        <p class="yc-label"><b>{{ num('price') }}</b>{{ t('yc.price.eyebrow') }}</p>
+        <h2 class="yc-flood-h">{{ t('yc.price.title') }}</h2>
         <div class="yc-price-top" aria-live="polite">
-          <p class="yc-price-name">{{ top.name }}</p>
-          <p v-if="top.officialInput && top.share" class="yc-price-was">{{ t('yc.price.official') }} ¥{{ price(top.officialInput) }}</p>
-          <p :key="top.name" class="yc-price-now yc-num"><span class="yc-mark">¥{{ price(top.input) }}</span></p>
-          <p class="yc-price-unit">
-            {{ t('yc.price.perMillionIn') }}
-            <span v-if="top.share" class="yc-chip">{{ off(top.share) }}</span>
-          </p>
-          <p class="yc-price-out">{{ t('yc.price.output', { price: price(top.output) }) }}</p>
+          <p :key="top.name" class="yc-price-now yc-num">¥{{ price(top.input) }}</p>
+          <div class="yc-price-meta">
+            <p class="yc-price-name">{{ top.name }}</p>
+            <p class="yc-price-unit">{{ t('yc.price.perMillionIn') }}</p>
+            <p v-if="top.officialInput && top.share" class="yc-price-was">{{ t('yc.price.official') }} ¥{{ price(top.officialInput) }}</p>
+            <p v-if="top.share"><span class="yc-chip">{{ off(top.share) }}</span></p>
+            <p class="yc-price-out">{{ t('yc.price.output', { price: price(top.output) }) }}</p>
+          </div>
         </div>
-        <div v-if="choices.length > 1" class="yc-price-list yc-surface" role="group" :aria-label="t('yc.price.pick')">
+        <div v-if="choices.length > 1" class="yc-price-list" role="group" :aria-label="t('yc.price.pick')">
           <p class="yc-price-pick">{{ t('yc.price.pick') }}</p>
-          <button
-            v-for="m in choices"
-            :key="m.name"
-            type="button"
-            class="yc-price-row"
-            :class="{ 'is-on': m.name === top.name }"
-            :aria-pressed="m.name === top.name"
-            @click="picked = m.name"
-          >
-            <span class="yc-price-row-name">{{ m.name }}</span>
-            <s v-if="m.officialInput && m.share">¥{{ price(m.officialInput) }}</s><s v-else></s>
-            <b class="yc-num">¥{{ price(m.input) }}</b>
-            <span v-if="m.share" class="yc-chip">{{ off(m.share) }}</span><span v-else></span>
-          </button>
+          <div class="yc-price-grid">
+            <button
+              v-for="m in choices"
+              :key="m.name"
+              type="button"
+              class="yc-price-row"
+              :class="{ 'is-on': m.name === top.name }"
+              :aria-pressed="m.name === top.name"
+              @click="picked = m.name"
+            >
+              <span class="yc-price-row-name">{{ m.name }}</span>
+              <b class="yc-num">¥{{ price(m.input) }}</b>
+              <span v-if="m.share" class="yc-price-row-off">
+                <s v-if="m.officialInput">¥{{ price(m.officialInput) }}</s> {{ off(m.share) }}
+              </span>
+            </button>
+          </div>
         </div>
         <p class="yc-price-note">{{ t('yc.price.note', { rate: cnyPerUsd }) }}</p>
         <router-link v-if="showModelPlaza" to="/model-plaza" class="yc-price-all">{{ t('yc.price.all') }} →</router-link>
       </section>
 
-      <section id="faq" class="yc-sec yc-wrap yc-faq">
+      <section id="faq" class="yc-sec yc-faq">
         <div>
-          <p class="yc-eyebrow">{{ t('yc.faq.eyebrow') }}</p>
-          <h2 class="yc-h2">{{ t('yc.faq.title') }}</h2>
+          <p class="yc-label"><b>{{ num('faq') }}</b>{{ t('yc.faq.eyebrow') }}</p>
+          <h2 class="yc-pain-h">{{ t('yc.faq.title') }}</h2>
         </div>
         <div class="yc-faq-list">
           <details v-for="k in FAQS" :key="k">
@@ -142,26 +157,24 @@
         </div>
       </section>
 
-      <section class="yc-wrap">
-        <div class="yc-final">
-          <h2 class="yc-h2">{{ t('yc.final.title') }}</h2>
-          <router-link :to="isAuthenticated ? consolePath : startPath" class="yc-btn yc-btn-lime">
-            {{ isAuthenticated ? t('yc.cta.console') : t('yc.cta.start') }}
-            <span aria-hidden="true">→</span>
-          </router-link>
-        </div>
+      <section class="yc-final">
+        <h2>{{ t('yc.final.title') }}</h2>
+        <router-link :to="isAuthenticated ? consolePath : startPath" class="yc-cta-block">
+          <span>{{ isAuthenticated ? t('yc.cta.console') : t('yc.cta.start') }}</span>
+          <span class="yc-cta-arrow" aria-hidden="true">→</span>
+        </router-link>
       </section>
-    </main>
 
-    <footer class="yc-wrap yc-foot">
-      <span>© {{ year }} {{ siteName }}</span>
-      <a v-if="docUrl" :href="docUrl" target="_blank" rel="noopener noreferrer">{{ t('yc.nav.docs') }}</a>
-    </footer>
+      <footer class="yc-foot">
+        <span>© {{ year }} {{ siteName }}</span>
+        <a v-if="docUrl" :href="docUrl" target="_blank" rel="noopener noreferrer">{{ t('yc.nav.docs') }}</a>
+      </footer>
+    </main>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useIntervalFn, useTransition } from '@vueuse/core'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore, useAppStore } from '@/stores'
@@ -239,6 +252,37 @@ const picked = ref('')
 const choices = computed(() => prices.value.slice(0, 6))
 const top = computed(() => choices.value.find((m) => m.name === picked.value) ?? choices.value[0] ?? null)
 
+// Left index: one entry per section, numbered in page order; the one in view is highlighted.
+const sections = computed(() => [
+  ...pains.map((p) => ({ id: `pain-${p.id}`, label: `yc.pain.${p.id}.tag` })),
+  ...(top.value ? [{ id: 'price', label: 'yc.price.eyebrow' }] : []),
+  { id: 'faq', label: 'yc.faq.eyebrow' }
+])
+function num(id: string): string {
+  return String(sections.value.findIndex((s) => s.id === id) + 1).padStart(2, '0')
+}
+const active = ref('')
+let spy: IntersectionObserver | null = null
+function watchSections() {
+  spy?.disconnect()
+  if (!('IntersectionObserver' in window)) return
+  spy = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) if (entry.isIntersecting) active.value = entry.target.id
+    },
+    { rootMargin: '-35% 0px -60% 0px' }
+  )
+  for (const s of sections.value) {
+    const el = document.getElementById(s.id)
+    if (el) spy.observe(el)
+  }
+}
+watch(
+  () => sections.value.length,
+  () => nextTick(watchSections)
+)
+onBeforeUnmount(() => spy?.disconnect())
+
 function price(value: number): string {
   if (value >= 100) return value.toFixed(0)
   return value >= 10 ? value.toFixed(1) : value.toFixed(2)
@@ -272,67 +316,88 @@ onMounted(async () => {
   document.documentElement.classList.toggle('dark', dark)
   authStore.checkAuth()
   loadSiteStats()
+  watchSections()
   if (!appStore.publicSettingsLoaded) await appStore.fetchPublicSettings()
   if (showModelPlaza.value) loadPrices()
 })
 </script>
 
 <style scoped>
-.yc-home { min-height: 100vh; overflow-x: clip; }
-.yc-top { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--yc-bg) 78%, transparent); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); border-bottom: 1px solid var(--yc-line); }
-.yc-top-in { height: 64px; display: flex; align-items: center; gap: 28px; }
+/* Layout: a fixed index rail on the left, hairline-ruled sections on the right, and one screen flooded with lime. */
+.yc-home { --pad: clamp(20px, 5vw, 72px); --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; min-height: 100vh; display: grid; grid-template-columns: clamp(216px, 18vw, 288px) minmax(0, 1fr); overflow-x: clip; }
+.yc-home .yc-btn { border-radius: 2px; }
+.yc-rail { position: sticky; top: 0; z-index: 20; height: 100vh; height: 100dvh; display: flex; flex-direction: column; padding: 28px 28px 24px; border-right: 1px solid var(--yc-line); overflow-y: auto; }
 .yc-brand { display: flex; align-items: center; gap: 10px; font-weight: 750; font-size: 17px; letter-spacing: -0.01em; white-space: nowrap; }
-.yc-brand-logo { width: 30px; height: 30px; border-radius: 8px; object-fit: contain; }
-.yc-top-nav { display: flex; gap: 26px; margin-right: auto; font-size: 14.5px; color: var(--yc-mut); }
-.yc-top-nav a:hover { color: var(--yc-ink); }
-.yc-top-actions { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+.yc-brand-logo { width: 30px; height: 30px; border-radius: 6px; object-fit: contain; }
+.yc-rail-lang { margin: 14px 0 0 -8px; align-self: flex-start; }
+.yc-index { margin-top: auto; padding-top: 32px; display: grid; }
+.yc-index a { display: flex; align-items: center; gap: 12px; padding: 9px 0; border-top: 1px solid var(--yc-line); font-size: 13.5px; color: var(--yc-dim); transition: color 0.15s ease; }
+.yc-index a:last-child { border-bottom: 1px solid var(--yc-line); }
+.yc-index a:hover { color: var(--yc-ink); }
+.yc-index a::after { content: ''; margin-left: auto; width: 8px; height: 8px; }
+.yc-index a.is-on { color: var(--yc-ink); font-weight: 650; }
+.yc-index a.is-on::after { background: var(--yc-lime); box-shadow: 0 0 0 1px var(--yc-on-lime); }
+.yc-index-n { width: 20px; font-family: var(--mono); font-size: 11.5px; font-weight: 400; }
+.yc-rail-foot { margin-top: 24px; display: grid; gap: 8px; }
 
-.yc-hero { position: relative; padding-top: clamp(64px, 10vw, 128px); text-align: center; }
-.yc-hero::before { content: ''; position: absolute; z-index: 0; left: 50%; top: 4%; width: min(900px, 110%); aspect-ratio: 2 / 1; transform: translateX(-50%); background: radial-gradient(closest-side, rgb(200 255 0 / 0.42), transparent 72%); filter: blur(48px); pointer-events: none; }
-:global(.dark .yc .yc-hero::before) { background: radial-gradient(closest-side, rgb(200 255 0 / 0.16), transparent 72%); }
-.yc-hero > * { position: relative; z-index: 1; }
-.yc-h1 { margin-top: 22px; font-size: clamp(40px, 8.4vw, 104px); line-height: 1.03; letter-spacing: -0.05em; font-weight: 800; }
-.yc-lead { max-width: 640px; margin: 30px auto 0; font-size: clamp(16px, 1.7vw, 20px); line-height: 1.7; color: var(--yc-mut); text-wrap: pretty; }
-.yc-hero-cta { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 38px; }
-.yc-live { margin-top: clamp(44px, 6vw, 72px); }
-.yc-live-lab { display: inline-flex; align-items: center; gap: 9px; font-size: 13.5px; font-weight: 650; color: var(--yc-mut); }
-.yc-live-lab i { width: 8px; height: 8px; border-radius: 50%; background: var(--yc-lime); box-shadow: 0 0 0 1px var(--yc-ink); animation: yc-blink 1.6s ease-in-out infinite; }
-.yc-live-num { margin-top: 8px; font-size: clamp(34px, 7.2vw, 88px); line-height: 1.05; overflow-wrap: anywhere; }
-.yc-live-sub { margin-top: 10px; font-size: 14px; color: var(--yc-mut); }
+.yc-main { min-width: 0; }
+.yc-label { display: flex; align-items: baseline; gap: 14px; font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--yc-mut); }
+.yc-label b { font-weight: 600; color: var(--yc-ink); }
+
+.yc-hero { padding: clamp(48px, 7vw, 104px) var(--pad) clamp(56px, 7vw, 96px); }
+.yc-h1 { margin-top: 28px; font-size: clamp(44px, 8.6vw, 128px); line-height: 1.02; letter-spacing: -0.055em; font-weight: 800; }
+.yc-hero-row { margin-top: clamp(40px, 5vw, 72px); padding-top: 28px; border-top: 1.5px solid var(--yc-ink); display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 32px 56px; align-items: start; }
+.yc-lead { max-width: 600px; font-size: clamp(18px, 2vw, 26px); line-height: 1.55; font-weight: 500; letter-spacing: -0.01em; text-wrap: pretty; }
+.yc-hero-cta { display: grid; gap: 14px; }
+.yc-cta-block { display: flex; flex-direction: column; justify-content: space-between; gap: 28px; width: clamp(220px, 22vw, 300px); min-height: 150px; padding: 20px 22px; background: var(--yc-lime); color: var(--yc-on-lime); font-size: 22px; font-weight: 750; letter-spacing: -0.02em; }
+.yc-cta-arrow { align-self: flex-end; font-size: 34px; line-height: 1; transition: transform 0.25s cubic-bezier(0.2, 0.7, 0.2, 1); }
+.yc-cta-block:hover .yc-cta-arrow { transform: translateX(8px); }
+.yc-cta-alt { font-size: 13.5px; color: var(--yc-mut); text-decoration: underline; text-underline-offset: 4px; }
+.yc-cta-alt:hover { color: var(--yc-ink); }
+
+.yc-live { margin-top: clamp(48px, 6vw, 88px); display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid var(--yc-line); border-bottom: 1px solid var(--yc-line); }
+.yc-live > div { padding: 20px 0 22px; }
+.yc-live > div + div { border-top: 1px solid var(--yc-line); }
+.yc-live > div:last-child { padding-left: 24px; border-left: 1px solid var(--yc-line); }
+.yc-live-main { grid-column: 1 / -1; }
+.yc-live dt { display: flex; align-items: center; gap: 9px; font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.04em; color: var(--yc-mut); }
+.yc-live dt i { width: 8px; height: 8px; background: var(--yc-lime); box-shadow: 0 0 0 1px var(--yc-on-lime); animation: yc-blink 1.6s ease-in-out infinite; }
+.yc-live dd { margin-top: 8px; font-size: clamp(20px, 2.4vw, 30px); line-height: 1.1; overflow-wrap: anywhere; }
+.yc-live .yc-live-num { font-size: clamp(36px, 7vw, 96px); line-height: 1; }
 @keyframes yc-blink { 50% { opacity: 0.35; } }
-.yc-hero-flow { margin-top: clamp(48px, 7vw, 88px); }
+.yc-hero-flow { margin-top: clamp(48px, 6vw, 80px); }
 
-.yc-pain { padding-top: clamp(96px, 14vw, 184px); }
-.yc-pain-head { position: relative; }
-.yc-pain-n { position: absolute; right: 0; top: -0.32em; font-size: clamp(96px, 17vw, 220px); line-height: 1; color: transparent; -webkit-text-stroke: 1.5px var(--yc-line); pointer-events: none; user-select: none; }
-.yc-pain .yc-h2 { position: relative; margin-top: 16px; font-size: clamp(30px, 5.4vw, 64px); line-height: 1.14; letter-spacing: -0.04em; }
-.yc-pain-old { color: var(--yc-dim); }
-.yc-vs { display: grid; grid-template-columns: 1fr 1.15fr; gap: 20px; margin-top: clamp(36px, 5vw, 60px); align-items: stretch; }
-.yc-vs-col { padding: 28px 30px 30px; border-radius: 24px; }
-.yc-vs-before { border: 1px dashed var(--yc-line); color: var(--yc-mut); }
-.yc-vs-lab { display: inline-block; padding: 4px 12px; border-radius: 999px; font-size: 12.5px; font-weight: 700; letter-spacing: 0.06em; }
-.yc-vs-before .yc-vs-lab { background: var(--yc-fill); color: var(--yc-mut); }
-.yc-vs-after .yc-vs-lab { background: var(--yc-lime); color: var(--yc-on-lime); }
-.yc-vs-col ul { margin-top: 20px; display: grid; gap: 12px; font-size: 17px; line-height: 1.55; }
-.yc-vs-col li { position: relative; padding-left: 26px; }
+.yc-sec { padding: clamp(72px, 9vw, 128px) var(--pad); border-top: 1px solid var(--yc-line); }
+.yc-pain-h { margin-top: 22px; max-width: 980px; font-size: clamp(28px, 4.4vw, 60px); line-height: 1.16; letter-spacing: -0.035em; font-weight: 780; text-wrap: balance; }
+.yc-pain-old { color: var(--yc-dim); font-weight: 500; }
+.yc-vs { margin-top: clamp(36px, 5vw, 64px); display: grid; grid-template-columns: 1fr 1.25fr; border-top: 1.5px solid var(--yc-ink); }
+.yc-vs-col { padding: 26px 0 0; }
+.yc-vs-before { padding-right: 36px; color: var(--yc-mut); }
+.yc-vs-after { padding-left: 36px; border-left: 1px solid var(--yc-line); }
+.yc-vs-lab { display: inline-block; font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.08em; }
+.yc-vs-before .yc-vs-lab { color: var(--yc-dim); }
+.yc-vs-after .yc-vs-lab { padding: 2px 8px; background: var(--yc-lime); color: var(--yc-on-lime); font-weight: 600; }
+.yc-vs-col ul { margin-top: 20px; font-size: 17px; line-height: 1.55; }
+.yc-vs-col li { position: relative; padding: 12px 0 12px 28px; border-top: 1px solid var(--yc-line); }
 .yc-vs-before li::before { content: '×'; position: absolute; left: 2px; color: var(--yc-dim); }
 .yc-vs-before li { text-decoration: line-through; text-decoration-color: var(--yc-line); }
 .yc-vs-after li { font-weight: 600; }
-.yc-vs-after li::before { content: ''; position: absolute; left: 2px; top: 0.5em; width: 11px; height: 6px; border-left: 2.5px solid var(--yc-ink); border-bottom: 2.5px solid var(--yc-ink); transform: rotate(-45deg); }
-.yc-vs-code { margin-top: 18px; padding: 14px 16px; border-radius: 14px; background: var(--yc-fill); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12.5px; line-height: 1.7; color: var(--yc-dim); overflow-x: auto; }
-.yc-vs-formula { margin-top: 18px; padding: 14px 16px; border-radius: 14px; background: var(--yc-fill); font-size: 15px; color: var(--yc-dim); }
+.yc-vs-after li::before { content: ''; position: absolute; left: 2px; top: 1.25em; width: 11px; height: 6px; border-left: 2.5px solid var(--yc-ink); border-bottom: 2.5px solid var(--yc-ink); transform: rotate(-45deg); }
+.yc-vs-code, .yc-vs-formula { margin-top: 18px; padding: 14px 16px; background: var(--yc-fill); border-left: 2px solid var(--yc-line); color: var(--yc-dim); }
+.yc-vs-code { font-family: var(--mono); font-size: 12.5px; line-height: 1.7; overflow-x: auto; }
+.yc-vs-formula { font-size: 15px; }
 .yc-vs-price { margin-top: 18px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; }
-.yc-vs-price span { width: 100%; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13.5px; color: var(--yc-mut); }
-.yc-vs-price b { font-size: clamp(44px, 6vw, 68px); line-height: 1; }
+.yc-vs-price span { width: 100%; font-family: var(--mono); font-size: 13.5px; color: var(--yc-mut); }
+.yc-vs-price b { font-size: clamp(44px, 6vw, 72px); line-height: 1; }
 .yc-vs-price small { font-size: 14px; color: var(--yc-mut); }
 .yc-client-get { margin-top: 22px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; }
 .yc-client-alt { font-size: 13.5px; color: var(--yc-mut); }
 .yc-client-alt a { text-decoration: underline; text-underline-offset: 3px; }
 .yc-client-alt a:hover { color: var(--yc-ink); }
 .yc-client-note { margin-top: 12px; font-size: 13.5px; color: var(--yc-mut); }
-.yc-shot { margin: 24px -30px -30px; border-top: 1px solid var(--yc-line); border-radius: 0 0 23px 23px; overflow: hidden; background: var(--yc-fill); }
-.yc-shot figcaption { display: flex; align-items: center; gap: 6px; height: 34px; padding: 0 14px; border-bottom: 1px solid var(--yc-line); font-size: 12px; color: var(--yc-mut); }
-.yc-shot figcaption i { width: 9px; height: 9px; border-radius: 50%; background: var(--yc-line); }
+.yc-shot { margin-top: 24px; border: 1px solid var(--yc-line); background: var(--yc-fill); }
+.yc-shot figcaption { display: flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border-bottom: 1px solid var(--yc-line); font-family: var(--mono); font-size: 11.5px; color: var(--yc-mut); }
+.yc-shot figcaption i { width: 8px; height: 8px; border-radius: 50%; background: var(--yc-line); }
 .yc-shot figcaption span { margin-left: 8px; }
 .yc-shot img { display: block; width: 100%; height: auto; }
 .yc-shot-dark { display: none !important; }
@@ -340,32 +405,31 @@ onMounted(async () => {
 :global(.dark .yc .yc-shot-dark) { display: block !important; }
 .yc-vs-contact { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--yc-line); font-size: 15px; color: var(--yc-mut); white-space: pre-line; }
 
-.yc-sec { padding-top: clamp(96px, 14vw, 184px); }
-.yc-sec .yc-h2 { margin-top: 14px; max-width: 760px; }
-.yc-price { text-align: center; }
-.yc-price .yc-h2 { margin-left: auto; margin-right: auto; }
-.yc-price-top { margin-top: clamp(36px, 5vw, 64px); }
-.yc-price-name { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 15px; color: var(--yc-mut); }
-.yc-price-was { margin-top: 18px; font-size: clamp(20px, 2.6vw, 30px); color: var(--yc-dim); text-decoration: line-through; }
-.yc-price-now { margin-top: 4px; font-size: clamp(88px, 19vw, 240px); line-height: 1; }
-.yc-price-unit { margin-top: 20px; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 12px; font-size: 16px; color: var(--yc-mut); }
-.yc-chip { display: inline-block; padding: 4px 12px; border-radius: 999px; background: var(--yc-ink); color: var(--yc-bg); font-size: 13px; font-weight: 700; white-space: nowrap; }
-.yc-price-list { margin: clamp(40px, 6vw, 72px) auto 0; max-width: 820px; padding: 6px 14px 14px; text-align: left; }
-.yc-price-out { margin-top: 10px; font-size: 14px; color: var(--yc-dim); }
-.yc-price-pick { padding: 14px 14px 8px; font-size: 13px; color: var(--yc-mut); }
-.yc-price-row { width: 100%; display: grid; grid-template-columns: minmax(0, 1fr) auto auto 96px; gap: 18px; align-items: center; padding: 16px 14px; border-radius: 14px; text-align: left; transition: background-color 0.15s ease; }
-.yc-price-row:hover { background: var(--yc-fill); }
-.yc-price-row.is-on { background: var(--yc-lime); color: var(--yc-on-lime); }
-.yc-price-row.is-on s { color: rgb(11 15 12 / 0.55); }
-.yc-price-row.is-on .yc-chip { background: var(--yc-on-lime); color: var(--yc-lime); }
-.yc-price-row-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 14.5px; }
-.yc-price-row s { color: var(--yc-dim); font-size: 15px; }
-.yc-price-row b { font-size: 26px; }
-.yc-price-row .yc-chip { justify-self: end; }
-.yc-price-note { margin: 22px auto 0; max-width: 640px; font-size: 13px; line-height: 1.7; color: var(--yc-dim); }
-.yc-price-all { display: inline-block; margin-top: 18px; font-weight: 650; border-bottom: 2px solid var(--yc-lime); }
+/* The price screen is lime edge to edge in both themes. */
+.yc-flood { padding: clamp(72px, 9vw, 128px) var(--pad); background: var(--yc-lime); color: var(--yc-on-lime); }
+.yc-flood :focus-visible { outline-color: var(--yc-on-lime); }
+.yc-flood .yc-label, .yc-flood .yc-label b { color: var(--yc-on-lime); }
+.yc-flood-h { margin-top: 22px; font-size: clamp(28px, 4.4vw, 60px); line-height: 1.1; letter-spacing: -0.035em; font-weight: 800; }
+.yc-price-top { margin-top: clamp(36px, 5vw, 64px); padding-top: 28px; border-top: 2px solid var(--yc-on-lime); display: flex; flex-wrap: wrap; align-items: flex-end; gap: 20px 48px; }
+.yc-price-now { font-size: clamp(88px, 17vw, 260px); line-height: 0.86; letter-spacing: -0.06em; font-weight: 900; }
+.yc-price-meta { display: grid; gap: 8px; padding-bottom: 6px; font-size: 15px; }
+.yc-price-name { font-family: var(--mono); font-size: 17px; font-weight: 700; }
+.yc-price-was { text-decoration: line-through; opacity: 0.6; }
+.yc-chip { display: inline-block; padding: 4px 10px; background: var(--yc-on-lime); color: var(--yc-lime); font-size: 13px; font-weight: 700; white-space: nowrap; }
+.yc-price-out { opacity: 0.7; }
+.yc-price-list { margin-top: clamp(40px, 6vw, 72px); }
+.yc-price-pick { font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.04em; }
+.yc-price-grid { margin-top: 12px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1.5px solid var(--yc-on-lime); border-left: 1.5px solid var(--yc-on-lime); }
+.yc-price-row { display: grid; gap: 10px; padding: 18px 20px 20px; border-right: 1.5px solid var(--yc-on-lime); border-bottom: 1.5px solid var(--yc-on-lime); text-align: left; transition: background-color 0.15s ease, color 0.15s ease; }
+.yc-price-row:hover { background: rgb(11 15 12 / 0.08); }
+.yc-price-row.is-on { background: var(--yc-on-lime); color: var(--yc-lime); }
+.yc-price-row-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--mono); font-size: 13.5px; }
+.yc-price-row b { font-size: clamp(24px, 2.8vw, 34px); line-height: 1; }
+.yc-price-row-off { font-size: 13px; opacity: 0.75; }
+.yc-price-note { margin-top: 24px; max-width: 640px; font-size: 13px; line-height: 1.7; opacity: 0.7; }
+.yc-price-all { display: inline-block; margin-top: 18px; font-weight: 700; border-bottom: 2px solid var(--yc-on-lime); }
 
-.yc-faq { display: grid; grid-template-columns: 1fr 1.4fr; gap: 48px; }
+.yc-faq { display: grid; grid-template-columns: 1fr 1.6fr; gap: 48px; }
 .yc-faq-list { border-top: 1.5px solid var(--yc-ink); }
 .yc-faq-list details { border-bottom: 1px solid var(--yc-line); }
 .yc-faq-list summary { display: flex; justify-content: space-between; gap: 16px; padding: 22px 0; font-size: 17px; font-weight: 650; cursor: pointer; list-style: none; }
@@ -373,34 +437,37 @@ onMounted(async () => {
 .yc-faq-list summary span { color: var(--yc-dim); font-weight: 400; transition: transform 0.2s ease; }
 .yc-faq-list details[open] summary span { transform: rotate(45deg); }
 .yc-faq-list details p { padding: 0 40px 24px 0; color: var(--yc-mut); line-height: 1.75; }
-.yc-final { position: relative; overflow: hidden; margin-top: clamp(96px, 14vw, 184px); padding: clamp(48px, 8vw, 96px) 24px; border-radius: 32px; background: var(--yc-lime); color: var(--yc-on-lime); text-align: center; }
-.yc-final::before { content: ''; position: absolute; inset: 0; background: linear-gradient(115deg, rgb(255 255 255 / 0.55), transparent 38%); pointer-events: none; }
-.yc-final > * { position: relative; }
-.yc-final .yc-h2 { margin: 0 auto 32px; max-width: 640px; }
-.yc-final .yc-btn-lime { background: var(--yc-on-lime); color: var(--yc-lime); box-shadow: none; }
-.yc-final .yc-btn-lime:hover { box-shadow: 0 10px 24px -8px rgb(11 15 12 / 0.6); }
-.yc-foot { display: flex; justify-content: space-between; gap: 16px; padding-top: 48px; padding-bottom: 48px; font-size: 13.5px; color: var(--yc-dim); }
-@media (max-width: 860px) {
-  .yc-top-nav { display: none; }
-  .yc-vs, .yc-faq { grid-template-columns: 1fr; }
-  .yc-vs-col { padding: 22px 22px 24px; }
-  .yc-shot { margin: 22px -22px -24px; }
+
+.yc-final { padding: clamp(72px, 10vw, 144px) var(--pad); background: #0b0f0c; color: #c8ff00; border-top: 1px solid var(--yc-line); display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 40px; }
+.yc-final :focus-visible { outline-color: #c8ff00; }
+.yc-final h2 { max-width: 11em; font-size: clamp(40px, 7.6vw, 112px); line-height: 1.02; letter-spacing: -0.055em; font-weight: 900; }
+.yc-foot { display: flex; justify-content: space-between; gap: 16px; padding: 28px var(--pad); border-top: 1px solid var(--yc-line); font-family: var(--mono); font-size: 12.5px; color: var(--yc-dim); }
+
+@media (max-width: 900px) {
+  .yc-home { display: block; }
+  .yc-rail { height: 60px; flex-direction: row; align-items: center; gap: 12px; padding: 0 20px; border-right: 0; border-bottom: 1px solid var(--yc-line); background: color-mix(in srgb, var(--yc-bg) 82%, transparent); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); overflow: visible; }
+  .yc-index { display: none; }
+  .yc-pain, .yc-flood, .yc-faq { scroll-margin-top: 60px; }
+  .yc-rail-lang { margin: 0 0 0 auto; align-self: center; }
+  .yc-rail-foot { margin-top: 0; display: flex; }
+  .yc-hero-row, .yc-vs, .yc-faq { grid-template-columns: 1fr; }
+  .yc-cta-block { width: 100%; min-height: 0; flex-direction: row; align-items: center; }
+  .yc-cta-arrow { align-self: center; }
+  .yc-vs-before { padding-right: 0; padding-bottom: 28px; }
+  .yc-vs-after { padding-left: 0; border-left: 0; border-top: 1px solid var(--yc-line); }
   .yc-faq { gap: 32px; }
-  .yc-price-row { grid-template-columns: minmax(0, 1fr) auto; }
-  .yc-price-row s, .yc-price-row > span:last-child { display: none; }
-  .yc-price-list { padding: 4px 8px 8px; }
+  .yc-price-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .yc-price-row { padding: 14px 14px 16px; }
 }
 @media (max-width: 480px) {
   .yc-hide-sm { display: none; }
-  .yc-top-in { gap: 12px; }
 }
 @media (prefers-reduced-motion: no-preference) {
-  .yc-h1, .yc-lead, .yc-hero-cta, .yc-hero-flow { animation: yc-rise 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
-  .yc-lead { animation-delay: 0.08s; }
-  .yc-hero-cta { animation-delay: 0.16s; }
+  .yc-h1, .yc-hero-row, .yc-live, .yc-hero-flow { animation: yc-rise 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+  .yc-hero-row { animation-delay: 0.1s; }
+  .yc-live { animation-delay: 0.2s; }
   .yc-hero-flow { animation-delay: 0.28s; }
-  .yc-live { animation: yc-rise 0.8s 0.22s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
-  .yc-price-now { animation: yc-pop 0.45s cubic-bezier(0.2, 0.9, 0.2, 1.1) both; }
+  .yc-price-now { animation: yc-pop 0.45s cubic-bezier(0.2, 0.9, 0.2, 1.1) both; transform-origin: left bottom; }
 }
 @keyframes yc-pop { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: none; } }
 @keyframes yc-rise { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
