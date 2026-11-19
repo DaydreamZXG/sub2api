@@ -21,9 +21,9 @@ type fakeGardenRepo struct {
 	growingErr error
 }
 
-func (r *fakeGardenRepo) PlantGift(_ context.Context, userID int64, amount float64, _ time.Duration) error {
-	r.gifts = append(r.gifts, [2]float64{float64(userID), amount})
-	return nil
+func (r *fakeGardenRepo) PlantGift(_ context.Context, _ string, amount float64, _ time.Duration) (int64, error) {
+	r.gifts = append(r.gifts, [2]float64{9, amount})
+	return 9, nil
 }
 
 func (r *fakeGardenRepo) PlantInviteReward(_ context.Context, inviteeID, _ int64, amount float64, _ time.Duration) (int64, error) {

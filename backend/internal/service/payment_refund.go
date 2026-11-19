@@ -817,6 +817,12 @@ func (s *PaymentService) markRefundOk(ctx context.Context, p *RefundPlan) (*Refu
 		return nil, fmt.Errorf("mark refund: %w", err)
 	}
 	s.writeAuditLog(ctx, p.OrderID, "REFUND_SUCCESS", "admin", map[string]any{"refundAmount": p.RefundAmount, "reason": p.Reason, "balanceDeducted": p.BalanceToDeduct, "force": p.Force})
+	// 订单全额退了，它给邀请人挣来的那棵菜（还没收的话）也拔掉。
+	if fs == OrderStatusRefunded {
+		if err := s.garden.RemoveInviteRewardForOrder(ctx, p.OrderID); err != nil {
+			slog.Error("refund: remove invite crop failed", "orderID", p.OrderID, "error", err)
+		}
+	}
 	return &RefundResult{Success: true, BalanceDeducted: p.BalanceToDeduct, SubDaysDeducted: p.SubDaysToDeduct}, nil
 }
 
@@ -841,6 +847,11 @@ func (s *PaymentService) markRefundOkTx(ctx context.Context, client *dbent.Clien
 		SetOperator("admin").
 		Save(ctx); err != nil {
 		return nil, fmt.Errorf("write refund audit: %w", err)
+	}
+	if fs == OrderStatusRefunded {
+		if err := s.garden.RemoveInviteRewardForOrder(ctx, p.OrderID); err != nil {
+			slog.Error("refund: remove invite crop failed", "orderID", p.OrderID, "error", err)
+		}
 	}
 	return &RefundResult{Success: true, BalanceDeducted: p.BalanceToDeduct, SubDaysDeducted: p.SubDaysToDeduct}, nil
 }

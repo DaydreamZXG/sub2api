@@ -116,8 +116,8 @@ type GardenRepository interface {
 	Uproot(ctx context.Context, orderID int64) (float64, error)
 	// GrowingForOrder reports what the order's growing crop still holds, 0 when it has none.
 	GrowingForOrder(ctx context.Context, orderID int64) (float64, error)
-	// PlantGift plants a crop for the user that is not taken out of their balance.
-	PlantGift(ctx context.Context, userID int64, amount float64, ripenAfter time.Duration) error
+	// PlantGift plants a crop, not taken out of anyone's balance, for the user with this email and reports who that is.
+	PlantGift(ctx context.Context, email string, amount float64, ripenAfter time.Duration) (int64, error)
 	// PlantInviteReward plants a crop for the inviter of the user who paid the order, when that order is the user's
 	// first paid one and they have not earned their inviter a crop before. It reports the inviter, 0 when nothing was planted.
 	PlantInviteReward(ctx context.Context, inviteeID, orderID int64, amount float64, ripenAfter time.Duration) (int64, error)
@@ -230,12 +230,13 @@ func (s *GardenService) UprootForOrder(ctx context.Context, userID, orderID int6
 // GrowingForOrder reports what the order's growing crop still holds: balance a refund of the order can count on.
 // GiftCrop plants a crop the site gives the user, for a post, a promotion or any other campaign.
 // It works while the garden is closed too: crops already planted can always be harvested.
-func (s *GardenService) GiftCrop(ctx context.Context, userID int64, amount float64) error {
-	if math.IsNaN(amount) || amount <= 0 || amount > GardenMaxGiftAmount {
-		return ErrGardenGiftInvalid
+func (s *GardenService) GiftCrop(ctx context.Context, email string, amount float64) (int64, error) {
+	email = strings.TrimSpace(email)
+	if email == "" || math.IsNaN(amount) || amount <= 0 || amount > GardenMaxGiftAmount {
+		return 0, ErrGardenGiftInvalid
 	}
 	settings := s.Settings(ctx)
-	return s.repo.PlantGift(ctx, userID, amount, time.Duration(settings.RipenHours*float64(time.Hour)))
+	return s.repo.PlantGift(ctx, email, amount, time.Duration(settings.RipenHours*float64(time.Hour)))
 }
 
 // PlantInviteReward gives the inviter of the user who paid the order a crop, once per invited user and only for

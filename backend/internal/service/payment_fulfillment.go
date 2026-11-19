@@ -436,6 +436,7 @@ func (s *PaymentService) doBalance(ctx context.Context, o *dbent.PaymentOrder, l
 	switch action {
 	case redeemActionSkipCompleted:
 		s.plantOrderBonus(ctx, o)
+		s.plantInviteReward(ctx, o)
 		if err := s.applyAffiliateRebateForOrder(ctx, o); err != nil {
 			return err
 		}
@@ -453,6 +454,7 @@ func (s *PaymentService) doBalance(ctx context.Context, o *dbent.PaymentOrder, l
 		return fmt.Errorf("redeem balance: %w", err)
 	}
 	s.plantOrderBonus(ctx, o)
+	s.plantInviteReward(ctx, o)
 	if err := s.applyAffiliateRebateForOrder(ctx, o); err != nil {
 		return err
 	}
@@ -467,6 +469,16 @@ func (s *PaymentService) plantOrderBonus(ctx context.Context, o *dbent.PaymentOr
 	}
 	if _, err := s.garden.PlantForOrder(ctx, o.UserID, o.ID, o.BonusAmount); err != nil {
 		s.writeAuditLog(ctx, o.ID, "GARDEN_PLANT_FAILED", "system", map[string]any{"error": err.Error()})
+	}
+}
+
+// plantInviteReward gives the payer's inviter a crop for the payer's first paid order; a failure never fails the order.
+func (s *PaymentService) plantInviteReward(ctx context.Context, o *dbent.PaymentOrder) {
+	if s.garden == nil {
+		return
+	}
+	if _, err := s.garden.PlantInviteReward(ctx, o.UserID, o.ID); err != nil {
+		s.writeAuditLog(ctx, o.ID, "GARDEN_INVITE_REWARD_FAILED", "system", map[string]any{"error": err.Error()})
 	}
 }
 

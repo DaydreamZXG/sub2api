@@ -150,18 +150,18 @@ func replantCrop(ctx context.Context, client *dbent.Client, orderID int64) (floa
 	return left, nil
 }
 
-func (r *gardenRepository) PlantGift(ctx context.Context, userID int64, amount float64, ripenAfter time.Duration) error {
-	result, err := r.db.ExecContext(ctx, `
+func (r *gardenRepository) PlantGift(ctx context.Context, email string, amount float64, ripenAfter time.Duration) (int64, error) {
+	var userID int64
+	err := r.db.QueryRowContext(ctx, `
 		INSERT INTO garden_crops (user_id, source, amount, ripe_at)
-		SELECT id, 'gift', $2, NOW() + make_interval(secs => $3) FROM users WHERE id = $1 AND deleted_at IS NULL`,
-		userID, amount, ripenAfter.Seconds())
-	if err != nil {
-		return err
+		SELECT id, 'gift', $2, NOW() + make_interval(secs => $3)
+		FROM users WHERE LOWER(email) = LOWER($1) AND deleted_at IS NULL
+		ORDER BY id LIMIT 1
+		RETURNING user_id`, email, amount, ripenAfter.Seconds()).Scan(&userID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return 0, service.ErrUserNotFound
 	}
-	if planted, _ := result.RowsAffected(); planted == 0 {
-		return service.ErrUserNotFound
-	}
-	return nil
+	return userID, err
 }
 
 func (r *gardenRepository) PlantInviteReward(ctx context.Context, inviteeID, orderID int64, amount float64, ripenAfter time.Duration) (int64, error) {
