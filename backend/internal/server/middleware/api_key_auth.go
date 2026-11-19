@@ -122,20 +122,6 @@ func apiKeyAuthWithSubscription(apiKeyService *service.APIKeyService, subscripti
 			return
 		}
 
-		// 仅限 app 的线路：没带本人 app 凭证的请求改用普通价分组，没有配置则拒绝。
-		apiKey, err = apiKeyService.ResolveAppLine(c.Request.Context(), apiKey, c.GetHeader(service.AppTokenHeader))
-		if err != nil {
-			if errors.Is(err, service.ErrAppOnlyLine) {
-				AbortWithError(c, http.StatusForbidden, "APP_ONLY_LINE", "This API key only works through the YESCHOY app")
-				return
-			}
-			if abortIfAPIKeyLookupClientGone(c, err) {
-				return
-			}
-			AbortWithError(c, 500, "INTERNAL_ERROR", "Failed to validate API key")
-			return
-		}
-
 		// apiKey 已加载（含 User/Group）。即便后续因分组停用/Key 停用/用户停用/
 		// IP 限制等早退中断，也让 Ops 错误日志能回退取到 user/group/platform。
 		SetOpsFallbackAPIKey(c, apiKey)
@@ -184,6 +170,30 @@ func apiKeyAuthWithSubscription(apiKeyService *service.APIKeyService, subscripti
 		}
 		if abortIfAPIKeyGroupNotAllowed(c, apiKey) {
 			return
+		}
+		// 仅限 app 的线路：Key 自己的分组先通过上面的校验，没带本人 app 凭证的请求再改用
+		// 普通价分组（没有配置则拒绝），换入的分组同样要可用且允许该用户使用。
+		resolvedKey, err := apiKeyService.ResolveAppLine(c.Request.Context(), apiKey, c.GetHeader(service.AppTokenHeader))
+		if err != nil {
+			if errors.Is(err, service.ErrAppOnlyLine) {
+				AbortWithError(c, http.StatusForbidden, "APP_ONLY_LINE", "This API key only works through the YESCHOY app")
+				return
+			}
+			if abortIfAPIKeyLookupClientGone(c, err) {
+				return
+			}
+			AbortWithError(c, 500, "INTERNAL_ERROR", "Failed to validate API key")
+			return
+		}
+		if resolvedKey != apiKey {
+			apiKey = resolvedKey
+			SetOpsFallbackAPIKey(c, apiKey)
+			if abortIfAPIKeyGroupUnavailable(c, apiKey) {
+				return
+			}
+			if abortIfAPIKeyGroupNotAllowed(c, apiKey) {
+				return
+			}
 		}
 		ctx := context.WithValue(c.Request.Context(), ctxkey.UserID, apiKey.User.ID)
 		c.Request = c.Request.WithContext(ctx)

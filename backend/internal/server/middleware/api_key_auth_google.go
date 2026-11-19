@@ -78,20 +78,6 @@ func APIKeyAuthWithSubscriptionGoogle(apiKeyService *service.APIKeyService, subs
 			return
 		}
 
-		// 同 api_key_auth.go：仅限 app 的线路，没带本人 app 凭证的请求改用普通价分组或被拒绝。
-		apiKey, err = apiKeyService.ResolveAppLine(c.Request.Context(), apiKey, c.GetHeader(service.AppTokenHeader))
-		if err != nil {
-			if errors.Is(err, service.ErrAppOnlyLine) {
-				abortWithGoogleError(c, 403, "This API key only works through the YESCHOY app")
-				return
-			}
-			if abortIfAPIKeyLookupClientGone(c, err) {
-				return
-			}
-			abortWithGoogleError(c, 500, "Failed to validate API key")
-			return
-		}
-
 		// 同 api_key_auth.go：早退中断前也写入 Ops 回退 key，便于错误日志展示
 		// user/group/platform。
 		SetOpsFallbackAPIKey(c, apiKey)
@@ -146,6 +132,32 @@ func APIKeyAuthWithSubscriptionGoogle(apiKeyService *service.APIKeyService, subs
 			MarkIngressRejected(c, IngressRejectGroupNotAllowed)
 			abortWithGoogleError(c, 403, "API Key 所属专属分组不再允许当前用户使用")
 			return
+		}
+		// 同 api_key_auth.go：Key 自己的分组通过校验后，没带本人 app 凭证的请求再改用普通价分组
+		// （没有配置则拒绝），换入的分组同样要可用且允许该用户使用。
+		resolvedKey, err := apiKeyService.ResolveAppLine(c.Request.Context(), apiKey, c.GetHeader(service.AppTokenHeader))
+		if err != nil {
+			if errors.Is(err, service.ErrAppOnlyLine) {
+				abortWithGoogleError(c, 403, "This API key only works through the YESCHOY app")
+				return
+			}
+			if abortIfAPIKeyLookupClientGone(c, err) {
+				return
+			}
+			abortWithGoogleError(c, 500, "Failed to validate API key")
+			return
+		}
+		if resolvedKey != apiKey {
+			apiKey = resolvedKey
+			SetOpsFallbackAPIKey(c, apiKey)
+			if _, message, ok := validateAPIKeyGroupAvailable(apiKey); !ok {
+				abortWithGoogleError(c, 403, message)
+				return
+			}
+			if !validateAPIKeyGroupAllowed(apiKey) {
+				abortWithGoogleError(c, 403, "API Key 所属专属分组不再允许当前用户使用")
+				return
+			}
 		}
 
 		// 简易模式：跳过余额和订阅检查

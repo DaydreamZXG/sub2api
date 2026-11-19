@@ -516,6 +516,11 @@ func (s *adminServiceImpl) CreateGroup(ctx context.Context, input *CreateGroupIn
 			return nil, err
 		}
 	}
+	// 订阅分组不支持“仅限 app”：改用普通价分组会把订阅用户变成按余额扣费。
+	if subscriptionType == SubscriptionTypeSubscription {
+		input.AppOnly = false
+		input.AppFallbackGroupID = nil
+	}
 	if input.AppFallbackGroupID != nil && *input.AppFallbackGroupID <= 0 {
 		input.AppFallbackGroupID = nil
 	}
@@ -795,6 +800,9 @@ func (s *adminServiceImpl) validateFallbackGroupOnInvalidRequest(ctx context.Con
 	if fallbackGroup.FallbackGroupIDOnInvalidRequest != nil {
 		return fmt.Errorf("fallback group cannot have invalid request fallback configured")
 	}
+	if fallbackGroup.AppOnly {
+		return fmt.Errorf("fallback group cannot be app-only")
+	}
 	return nil
 }
 
@@ -1022,6 +1030,11 @@ func (s *adminServiceImpl) UpdateGroup(ctx context.Context, id int64, input *Upd
 		} else {
 			group.AppFallbackGroupID = nil
 		}
+	}
+	// 订阅分组不支持“仅限 app”（含由普通分组改成订阅分组的情况）。
+	if group.SubscriptionType == SubscriptionTypeSubscription {
+		group.AppOnly = false
+		group.AppFallbackGroupID = nil
 	}
 	fallbackOnInvalidRequest := group.FallbackGroupIDOnInvalidRequest
 	if input.FallbackGroupIDOnInvalidRequest != nil {

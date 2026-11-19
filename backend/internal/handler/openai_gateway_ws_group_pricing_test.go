@@ -291,3 +291,49 @@ func TestOpenAIWSTurnBillingAPIKeysKeepPreviousTurnUntilItIsRecorded(t *testing.
 	require.Same(t, conn, keys.forTurn(2, conn), "only the current and previous turn are kept")
 	require.Len(t, keys.keys, 2)
 }
+
+type wsTurnAppLineLookup struct {
+	persisted *service.APIKey
+	fallback  *service.Group
+}
+
+func (l wsTurnAppLineLookup) GetByKey(context.Context, string) (*service.APIKey, error) {
+	return l.persisted, nil
+}
+
+func (l wsTurnAppLineLookup) ResolveAppLine(_ context.Context, apiKey *service.APIKey, appToken string) (*service.APIKey, error) {
+	if appToken != "" || apiKey.Group == nil || !apiKey.Group.AppOnly || l.fallback == nil {
+		return apiKey, nil
+	}
+	resolved := *apiKey
+	resolved.GroupID = &l.fallback.ID
+	resolved.Group = l.fallback
+	return &resolved, nil
+}
+
+// A connection that was moved to the normal-price line by an app-only line must still pick up
+// that line's current price on later turns.
+func TestRefreshOpenAIWSTurnBillingAPIKey_AppLineFallback(t *testing.T) {
+	appLineID, normalID := int64(1), int64(2)
+	appLine := &service.Group{ID: appLineID, Platform: service.PlatformOpenAI, SubscriptionType: service.SubscriptionTypeStandard, RateMultiplier: 0.8, AppOnly: true, AppFallbackGroupID: &normalID}
+	persisted := &service.APIKey{ID: 5, Key: "sk-conn", GroupID: &appLineID, Group: appLine}
+	connGroup := &service.Group{ID: normalID, Platform: service.PlatformOpenAI, SubscriptionType: service.SubscriptionTypeStandard, RateMultiplier: 1}
+	conn := &service.APIKey{ID: 5, Key: "sk-conn", GroupID: &normalID, Group: connGroup}
+
+	t.Run("adopts the fallback line's current price", func(t *testing.T) {
+		repriced := &service.Group{ID: normalID, Platform: service.PlatformOpenAI, SubscriptionType: service.SubscriptionTypeStandard, RateMultiplier: 1.5}
+		got := refreshOpenAIWSTurnBillingAPIKey(context.Background(), wsTurnAppLineLookup{persisted: persisted, fallback: repriced}, conn)
+		require.InDelta(t, 1.5, got.Group.RateMultiplier, 1e-12)
+		require.Equal(t, normalID, *got.GroupID)
+		require.InDelta(t, 1.0, conn.Group.RateMultiplier, 1e-12, "the connection snapshot is never mutated")
+	})
+
+	t.Run("keeps the connection snapshot when the fallback now points elsewhere", func(t *testing.T) {
+		other := &service.Group{ID: 3, Platform: service.PlatformOpenAI, SubscriptionType: service.SubscriptionTypeStandard, RateMultiplier: 2}
+		require.Same(t, conn, refreshOpenAIWSTurnBillingAPIKey(context.Background(), wsTurnAppLineLookup{persisted: persisted, fallback: other}, conn))
+	})
+
+	t.Run("never moves a fallback connection onto the app line", func(t *testing.T) {
+		require.Same(t, conn, refreshOpenAIWSTurnBillingAPIKey(context.Background(), wsTurnAppLineLookup{persisted: persisted}, conn))
+	})
+}

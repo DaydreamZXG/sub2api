@@ -1022,8 +1022,10 @@ func (h *GatewayHandler) Messages(c *gin.Context) {
 							_ = h.antigravityGatewayService.WriteMappedClaudeError(c, account, promptTooLongErr.StatusCode, promptTooLongErr.RequestID, promptTooLongErr.Body)
 							return
 						}
+						// 仅限 app 的分组不能当兜底：这里无法确认请求来自 app，换过去会按 app 价计费。
 						if fallbackGroup.Platform != service.PlatformAnthropic ||
 							fallbackGroup.SubscriptionType == service.SubscriptionTypeSubscription ||
+							fallbackGroup.AppOnly ||
 							fallbackGroup.FallbackGroupIDOnInvalidRequest != nil {
 							reqLog.Warn("gateway.fallback_group_invalid",
 								zap.Int64("fallback_group_id", fallbackGroup.ID),
