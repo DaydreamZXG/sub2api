@@ -965,17 +965,23 @@ func (r *userRepository) AdjustBalanceAsRecharge(ctx context.Context, id int64, 
 	const updateSQL = `
 		UPDATE users
 		SET balance = balance + $1, total_recharged = total_recharged + $1, updated_at = NOW()
-		WHERE id = $2 AND deleted_at IS NULL
+		WHERE id = $2 AND deleted_at IS NULL AND balance + $1 >= 0
 		RETURNING balance - $1, balance
 	`
 	change, ok, err := scanBalanceChange(ctx, clientFromContext(ctx, r.client), updateSQL, amount, id)
 	if err != nil {
 		return service.BalanceChange{}, err
 	}
-	if !ok {
-		return service.BalanceChange{}, service.ErrUserNotFound
+	if ok {
+		return change, nil
 	}
-	return change, nil
+
+	// 与 AdjustBalance 一致：加完仍为负数时拒绝，并区分用户不存在。
+	current, err := r.currentBalance(ctx, id)
+	if err != nil {
+		return service.BalanceChange{}, err
+	}
+	return service.BalanceChange{Old: current, New: current + amount}, service.ErrBalanceNegative
 }
 
 func (r *userRepository) AdjustBalance(ctx context.Context, id int64, delta float64) (service.BalanceChange, error) {
