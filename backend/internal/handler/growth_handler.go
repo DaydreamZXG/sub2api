@@ -12,12 +12,13 @@ import (
 
 // GrowthHandler serves the growth-level ladder: the signed-in user's own level, and the ladder itself to admins.
 type GrowthHandler struct {
-	growthLevels *service.GrowthLevelsService
-	userService  *service.UserService
+	growthLevels  *service.GrowthLevelsService
+	userService   *service.UserService
+	apiKeyService *service.APIKeyService
 }
 
-func NewGrowthHandler(growthLevels *service.GrowthLevelsService, userService *service.UserService) *GrowthHandler {
-	return &GrowthHandler{growthLevels: growthLevels, userService: userService}
+func NewGrowthHandler(growthLevels *service.GrowthLevelsService, userService *service.UserService, apiKeyService *service.APIKeyService) *GrowthHandler {
+	return &GrowthHandler{growthLevels: growthLevels, userService: userService, apiKeyService: apiKeyService}
 }
 
 type userGrowthResponse struct {
@@ -25,6 +26,8 @@ type userGrowthResponse struct {
 	Levels         []service.GrowthLevel `json:"levels"`
 	LevelIndex     int                   `json:"level_index"`
 	TotalRecharged float64               `json:"total_recharged"`
+	// ManualPrice: an admin set this user's own price on an app line, which replaces the level discount there.
+	ManualPrice bool `json:"manual_price"`
 }
 
 // Get handles GET /api/v1/user/growth
@@ -49,6 +52,7 @@ func (h *GrowthHandler) Get(c *gin.Context) {
 		Levels:         ladder.Levels,
 		LevelIndex:     ladder.LevelFor(user.TotalRecharged),
 		TotalRecharged: user.TotalRecharged,
+		ManualPrice:    h.apiKeyService.HasManualAppLinePrice(c.Request.Context(), subject.UserID),
 	})
 }
 

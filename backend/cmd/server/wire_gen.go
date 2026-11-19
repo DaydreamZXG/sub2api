@@ -187,7 +187,7 @@ func initializeApplication(buildInfo handler.BuildInfo) (*Application, error) {
 	ticketRepository := repository.NewTicketRepository(client)
 	ticketService := service.NewTicketService(ticketRepository)
 	ticketHandler := handler.NewTicketHandler(ticketService)
-	growthHandler := handler.NewGrowthHandler(growthLevelsService, userService)
+	growthHandler := handler.NewGrowthHandler(growthLevelsService, userService, apiKeyService)
 	desktopConnectCodeStore := repository.NewDesktopConnectCodeStore(redisClient)
 	desktopConnectService := service.NewDesktopConnectService(desktopConnectCodeStore, appDeviceTokenRepository, userRepository, authService)
 	desktopHandler := handler.NewDesktopHandler(desktopConnectService)

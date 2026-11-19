@@ -61,6 +61,25 @@ func (s *APIKeyService) AppLineGroupForUser(ctx context.Context, group *Group, u
 	return &discounted
 }
 
+// HasManualAppLinePrice reports whether an admin set this user's own price on an app-only line they can use.
+// Such a price replaces the growth-level discount on that line.
+func (s *APIKeyService) HasManualAppLinePrice(ctx context.Context, userID int64) bool {
+	rates, err := s.GetUserGroupRates(ctx, userID)
+	if err != nil || len(rates) == 0 {
+		return false
+	}
+	groups, err := s.GetAvailableGroups(ctx, userID)
+	if err != nil {
+		return false
+	}
+	for i := range groups {
+		if _, manual := rates[groups[i].ID]; manual && groups[i].AppOnly {
+			return true
+		}
+	}
+	return false
+}
+
 // AppLineRatesForUser returns the growth-level price of each app-only group in groups for this user,
 // keyed by group ID. Groups without a discount are left out. It is for display: billing uses AppLineGroupForUser.
 func (s *APIKeyService) AppLineRatesForUser(ctx context.Context, userID int64, groups []*Group) map[int64]float64 {
