@@ -383,6 +383,21 @@ export default {
       ripenHoursHint: 'Applies to crops planted from now on; crops already planted keep their time.',
       rules: 'Nothing is planted when no top-up bonus is configured. When an order is refunded, a crop not yet harvested goes back to the balance first, then the usual deduction applies. Crops already planted can still be harvested after the garden is turned off. Changes take effect within about a minute.',
       errorHours: 'The ripening time must be above 0 and at most {max} hours',
+      social: 'Neighbours, taking crops and the dog',
+      socialHint: 'Every user is a neighbour of every other: each gets a few at random per day, with their inviter and invitees always first. What a neighbour takes comes out of the owner\'s crop; the site pays nothing extra.',
+      dogHint: 'The dog only guards on a day its owner fed it. Its chance of catching a thief follows the owner\'s growth level: the lowest level gets the minimum, the highest gets the maximum, levels in between are spread evenly; with growth levels off, every dog gets the minimum. A caught thief leaves with nothing and still uses up one try.',
+      errorSocial: 'A number is out of range: percentages are 0 to 100, the share per try cannot exceed the cap, the dog\'s minimum cannot exceed its maximum, and counts must be whole numbers.',
+      fields: {
+        protect_hours: 'Owner-only time after ripening (hours)',
+        steal_percent: 'Share taken per try (%)',
+        max_stolen_percent: 'Most a crop can lose (%)',
+        daily_steal_limit: 'Tries per user per day',
+        water_minutes: 'One watering ripens it sooner by (minutes)',
+        max_waters_per_crop: 'Most waterings per crop',
+        neighbours_per_day: 'Random neighbours per day',
+        dog_min_percent: 'Dog catch chance, minimum (%)',
+        dog_max_percent: 'Dog catch chance, maximum (%)'
+      },
       saved: 'Saved',
       failedToSave: 'Could not save',
       failedToLoad: 'Could not load the garden settings'

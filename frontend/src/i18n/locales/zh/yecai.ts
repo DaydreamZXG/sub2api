@@ -190,7 +190,7 @@ export default {
   theme: { label: '外观', light: '浅色', dark: '深色', system: '跟随系统' },
   garden: {
     title: '菜园',
-    lead: '充值送的额度会先种成一棵菜，{hours} 小时后成熟，回来收进余额。本金照常立刻到账。',
+    lead: '充值送的额度会先种成一棵菜，{hours} 小时后成熟，回来收进余额。本金照常立刻到账。熟了不收，邻居会来偷。',
     failed: '菜园暂时打不开，稍后再试。',
     ripe: '熟了，可以收',
     growing: '还在长',
@@ -203,7 +203,67 @@ export default {
     emptyTitle: '菜园还空着',
     empty: '充值有赠送时，赠送的那部分会种在这里。',
     off: '菜园现在没有开放。',
-    harvested: '收过的菜'
+    harvested: '收过的菜',
+    stolen: '被偷走 {amount}',
+    water: '浇水',
+    waterDone: '浇好了，这棵菜早熟 {minutes} 分钟',
+    steal: '偷菜',
+    stealDone: '偷到 {amount}，已进余额',
+    stealCaught: '被旺财抓住了，空手而归',
+    size: { small: '小菜', medium: '中菜', large: '大菜' },
+    state: {
+      taken: '你偷过了',
+      caught: '在这里被抓过',
+      protected: '刚熟，主人优先收',
+      open: '主人还没收',
+      pickedClean: '已经被偷得差不多了'
+    },
+    dog: {
+      name: '旺财',
+      fed: '今天喂过了，正在看门。有人来偷菜时有 {percent}% 的机会抓住他，等级越高越凶。',
+      hungry: '旺财今天还没吃饭，饿着不看门。喂一下，它才会抓来偷菜的人。',
+      feed: '喂旺财',
+      feedDone: '旺财吃饱了，开始看门',
+      onGuard: '看门中'
+    },
+    neighbours: {
+      title: '今天的邻居',
+      triesLeft: '今天还能偷 {left} 次（每天 {limit} 次）',
+      rules: '邻居每天换一批，你邀请的人和邀请你的人一直都在。没熟的菜可以帮忙浇水，浇一次早熟 {minutes} 分钟；熟了 {protect} 小时主人还没收，就可以偷，每次 {percent}%。自己菜园里有菜才能偷。',
+      none: '今天还没有邻居在种菜。',
+      pinned: '固定邻居',
+      crops: '{count} 棵菜',
+      loading: '正在翻墙…',
+      noCrops: '他的菜已经收完了。'
+    },
+    feed: {
+      title: '动态',
+      mine: {
+        water: '你给 {name} 的菜浇了水',
+        steal: '你从 {name} 的菜园偷到 {amount}',
+        caught: '你去 {name} 的菜园偷菜，被旺财抓住了'
+      },
+      theirs: {
+        water: '{name} 给你的菜浇了水',
+        steal: '{name} 偷走了你 {amount}',
+        caught: '旺财抓住了来偷菜的 {name}'
+      }
+    },
+    errors: {
+      GARDEN_CLOSED: '菜园现在没有开放。',
+      GARDEN_NOT_NEIGHBOUR: '他不是你今天的邻居。',
+      GARDEN_OWN_CROP: '这是你自己的菜。',
+      GARDEN_CROP_PROTECTED: '这棵菜现在只有主人能收。',
+      GARDEN_NEED_CROP: '自己菜园里有菜才能偷别人的。',
+      GARDEN_STEAL_LIMIT: '今天的次数用完了，明天再来。',
+      GARDEN_ALREADY_TRIED: '这棵菜你已经来过一次了。',
+      GARDEN_PICKED_CLEAN: '这棵菜已经被偷得差不多了。',
+      GARDEN_CROP_RIPE: '这棵菜已经熟了，不用浇水。',
+      GARDEN_WATER_FULL: '这棵菜已经浇够了。',
+      GARDEN_ALREADY_WATERED: '今天已经给这棵菜浇过水了。',
+      GARDEN_CROP_NOT_FOUND: '这棵菜已经不在了。',
+      other: '没成功，刷新后再试。'
+    }
   },
   prices: {
     title: '价目表',

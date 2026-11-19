@@ -5,7 +5,7 @@
         <YcBrand />
       </router-link>
       <nav ref="nav" class="yc-side-nav" :aria-label="t('yc.nav.aria')">
-        <router-link v-for="l in links" :key="l.to" :to="l.to" :class="{ 'is-on': isOn(l) }">{{ l.text }}</router-link>
+        <router-link v-for="l in links" :key="l.to" :to="l.to" :class="{ 'is-on': isOn(l), 'has-dot': l.dot }">{{ l.text }}</router-link>
         <p class="yc-side-more">{{ t('yc.shell.more') }}</p>
         <router-link v-for="l in more" :key="l.to" :to="l.to" class="is-minor" :class="{ 'is-on': isOn(l) }">{{ l.text }}</router-link>
         <YcThemeSwitch class="yc-side-narrow" />
@@ -51,6 +51,8 @@ interface NavLink {
   text: string
   /** Other path prefixes that belong to this entry. */
   also?: string[]
+  /** Show a dot: something here is waiting for the user. */
+  dot?: boolean
 }
 
 const { t, locale } = useI18n()
@@ -65,6 +67,8 @@ const { canUseBatchImage, refreshBatchImageAccess } = useBatchImageAccess()
 const settings = computed(() => appStore.cachedPublicSettings)
 // The garden is listed once it is open, or while the user still has crops in it.
 const hasGarden = ref(false)
+// A crop is ripe, or a neighbour did something in the garden since the user last looked.
+const gardenNews = ref(false)
 const initial = computed(() => (authStore.user?.username || authStore.user?.email || '?').charAt(0).toUpperCase())
 const on = (show: unknown, item: NavLink): NavLink[] => (show ? [item] : [])
 const flag = isFeatureFlagEnabled
@@ -76,7 +80,7 @@ const links = computed<NavLink[]>(() => {
     ...on(full && flag(FeatureFlags.modelPlaza), { to: '/prices', text: t('yc.shell.prices'), also: ['/model-plaza'] }),
     ...on(full, { to: '/bills', text: t('yc.shell.bills'), also: ['/usage'] }),
     ...on(full, { to: '/topup', text: t('yc.shell.topUp'), also: ['/purchase', '/orders', '/redeem', '/payment'] }),
-    ...on(full && hasGarden.value, { to: '/garden', text: t('yc.shell.garden') }),
+    ...on(full && hasGarden.value, { to: '/garden', text: t('yc.shell.garden'), dot: gardenNews.value }),
     { to: '/help', text: t('yc.shell.help') }
   ]
 })
@@ -122,7 +126,13 @@ const nav = ref<HTMLElement | null>(null)
 onMounted(() => {
   if (!authStore.isSimpleMode) {
     getMyGarden()
-      .then((garden) => (hasGarden.value = garden.enabled || garden.crops.some((crop) => crop.status === 'growing')))
+      .then((garden) => {
+        const growing = garden.crops.filter((crop) => crop.status === 'growing')
+        hasGarden.value = garden.enabled || growing.length > 0
+        const now = new Date(garden.now).getTime()
+        gardenNews.value =
+          route.path !== '/garden' && (garden.unread > 0 || growing.some((crop) => new Date(crop.ripe_at).getTime() <= now))
+      })
       .catch(() => undefined)
   }
   void refreshBatchImageAccess()
@@ -146,6 +156,7 @@ onMounted(() => {
 .yc-side-more { margin: 18px 14px 6px; font-size: 12px; font-weight: 650; letter-spacing: 0.08em; color: var(--yc-dim); }
 .yc-side-nav .is-minor { padding: 8px 14px; font-size: 14px; }
 .yc-side-nav .yc-side-narrow { display: none; }
+.yc-side-nav a.has-dot::after { content: ''; display: inline-block; width: 8px; height: 8px; margin-left: 8px; border-radius: 50%; background: #ff4d4f; vertical-align: 1px; }
 .yc-side-nav a.is-on { background: var(--yc-lime); color: var(--yc-on-lime); font-weight: 650; box-shadow: 0 8px 20px -10px rgb(140 180 0 / 0.9); }
 .yc-side-foot { margin-top: auto; display: flex; flex-direction: column; gap: 4px; font-size: 14px; color: var(--yc-mut); }
 .yc-side-foot a { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 12px; }
