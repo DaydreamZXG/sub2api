@@ -30,7 +30,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { useAuthStore, useAppStore } from '@/stores'
+import { useAdminSettingsStore, useAuthStore, useAppStore } from '@/stores'
 import YcBrand from '@/components/yecai/YcBrand.vue'
 import { FeatureFlags, isFeatureFlagEnabled } from '@/utils/featureFlags'
 import { availableLocales, setLocale } from '@/i18n'
@@ -54,6 +54,7 @@ const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 const appStore = useAppStore()
+const adminSettingsStore = useAdminSettingsStore()
 const { yuan } = useYcMoney()
 const { canUseBatchImage, refreshBatchImageAccess } = useBatchImageAccess()
 
@@ -113,6 +114,8 @@ async function logout() {
 const nav = ref<HTMLElement | null>(null)
 onMounted(() => {
   void refreshBatchImageAccess()
+  // Admin-only custom pages are resolved from these settings; the old sidebar used to load them.
+  if (authStore.isAdmin) void adminSettingsStore.fetch()
   // On narrow screens the menu scrolls sideways; bring the current entry into view.
   const current = nav.value?.querySelector<HTMLElement>('.is-on')
   if (nav.value && current) {
