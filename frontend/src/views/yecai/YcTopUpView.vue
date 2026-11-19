@@ -66,7 +66,8 @@ const facts = computed(() => {
   return [
     {
       title: t('yc.topUp.minTitle'),
-      text: info && currency && info.global_min > 0 ? t('yc.topUp.minText', { min: paid(info.global_min) }) : t('yc.topUp.minAny')
+      // The site can set its own minimum above the providers', and this page cannot read it, so no figure is quoted.
+      text: t('yc.topUp.minAny')
     },
     ...tiers.map((tier) => ({
       title: t('yc.topUp.bonusTitle', { pct: tier.bonus_percent }),
