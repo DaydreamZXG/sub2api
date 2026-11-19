@@ -756,17 +756,17 @@ func (s *adminServiceImpl) validateFallbackGroup(ctx context.Context, currentGro
 // 且自身不是仅限 app 的分组，这样一次请求最多只换一次分组。
 func (s *adminServiceImpl) validateAppFallbackGroup(ctx context.Context, currentGroupID int64, platform string, fallbackGroupID int64) error {
 	if currentGroupID > 0 && currentGroupID == fallbackGroupID {
-		return fmt.Errorf("cannot set self as app fallback group")
+		return infraerrors.BadRequest("INVALID_APP_FALLBACK_GROUP", "cannot set self as app fallback group")
 	}
 	fallback, err := s.groupRepo.GetByIDLite(ctx, fallbackGroupID)
 	if err != nil {
-		return fmt.Errorf("app fallback group not found: %w", err)
+		return infraerrors.BadRequest("INVALID_APP_FALLBACK_GROUP", "app fallback group not found")
 	}
 	if !AppFallbackGroupUsable(fallback) {
-		return fmt.Errorf("app fallback group must be an active standard group that is not app-only")
+		return infraerrors.BadRequest("INVALID_APP_FALLBACK_GROUP", "app fallback group must be an active standard group that is not app-only")
 	}
 	if fallback.Platform != platform {
-		return fmt.Errorf("app fallback group must be on the same platform")
+		return infraerrors.BadRequest("INVALID_APP_FALLBACK_GROUP", "app fallback group must be on the same platform")
 	}
 	return nil
 }
