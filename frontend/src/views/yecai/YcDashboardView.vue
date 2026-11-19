@@ -30,7 +30,7 @@
     <section class="yc-surface yc-recent">
       <header>
         <h2>{{ t('yc.dash.recent') }}</h2>
-        <router-link to="/usage">{{ t('yc.dash.allBills') }} →</router-link>
+        <router-link to="/bills">{{ t('yc.dash.allBills') }} →</router-link>
       </header>
       <p v-if="!loading && recent.length === 0" class="yc-empty">{{ t('yc.dash.empty') }}</p>
       <template v-for="log in recent" :key="log.id">

@@ -125,6 +125,15 @@ export default {
     keyOf: 'Key ({name})',
     manageKeys: 'Manage all keys: limits, expiry, IP rules'
   },
+  bills: {
+    title: 'Bills',
+    lead: 'Every request, the model it used and what it cost, is listed here.',
+    range: 'Time range', today: 'Today', week: 'Last 7 days', month: 'Last 30 days',
+    spent: 'Spent in this period', requests: 'Requests', tokens: 'Total tokens',
+    empty: 'No usage in this period.',
+    more: 'Show {n} more',
+    advanced: 'Need filters, charts and export? Open the advanced view'
+  },
   prices: {
     title: 'Prices',
     lead: 'One price per model, in yuan. Prices are per million tokens; you pay for what you use.',

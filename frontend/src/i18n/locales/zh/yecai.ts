@@ -125,6 +125,15 @@ export default {
     keyOf: '密钥（{name}）',
     manageKeys: '管理全部密钥：限额、有效期、IP 限制'
   },
+  bills: {
+    title: '账单',
+    lead: '每一笔请求用了什么模型、扣了多少钱，都在这里。',
+    range: '时间范围', today: '今天', week: '近 7 天', month: '近 30 天',
+    spent: '这段时间花了', requests: '请求次数', tokens: 'Token 总量',
+    empty: '这段时间没有使用记录。',
+    more: '再看 {n} 条',
+    advanced: '需要筛选、图表和导出？打开高级视图'
+  },
   prices: {
     title: '价目表',
     lead: '每个模型一个价，直接写人民币。单位是每百万 Token，用多少扣多少。',

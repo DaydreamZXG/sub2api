@@ -210,6 +210,12 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true, requiresAdmin: false, title: 'Connect a tool', titleKey: 'yc.connect.title' }
   },
   {
+    path: '/bills',
+    name: 'Bills',
+    component: () => import('@/views/yecai/YcBillsView.vue'),
+    meta: { requiresAuth: true, requiresAdmin: false, title: 'Bills', titleKey: 'yc.bills.title' }
+  },
+  {
     path: '/prices',
     name: 'Prices',
     component: () => import('@/views/yecai/YcPricesView.vue'),
