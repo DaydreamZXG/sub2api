@@ -1,12 +1,12 @@
 export default {
   nav: { aria: 'Page navigation', pains: 'What we fix', prices: 'Prices', faq: 'FAQ', docs: 'Docs' },
-  cta: { start: 'Get started', login: 'Sign in', console: 'Open console', how: 'See what we fix' },
+  cta: { start: 'Get started', login: 'Sign in', console: 'Open console' },
   flow: { aria: 'Your tools reach every model through one key', key: 'Your key' },
   hero: {
     eyebrow: 'AI model access',
     titleA: 'Connect to AI',
     titleB: 'without the setup',
-    lead: 'Pick Claude Code, Codex or another tool and connect it. Prices are in yuan, every request is on record, and unused balance is refundable.'
+    lead: 'Install the desktop app and connect Claude or Codex in one click. Prices are in yuan, every request is on record, and unused balance is refundable.'
   },
   pain: {
     before: 'Before',
@@ -14,13 +14,13 @@ export default {
     setup: {
       tag: 'Setup',
       titleA: 'Before, you edited config files.',
-      titleB: 'Now, you copy once.',
+      titleB: 'Now, one click in the app.',
       b1: 'Search the docs for the endpoint',
       b2: 'Open a config file and fill it in line by line',
       b3: 'Repeat for every tool',
-      a1: 'Choose the tool you use',
-      a2: 'Copy what the page gives you',
-      a3: 'Paste it in and start'
+      a1: 'Download the app and sign in',
+      a2: 'It finds Claude and Codex on your computer',
+      a3: 'Select Connect, and you are done'
     },
     price: {
       tag: 'Prices',
@@ -57,20 +57,30 @@ export default {
       a3: 'Connection, cache and network issues are all covered'
     }
   },
+  client: {
+    download: 'Download the app',
+    windows: 'Download for Windows',
+    macos: 'Download for macOS',
+    manual: 'For Windows and macOS. Prefer not to install it? Sign in and copy the settings from the web page.',
+    window: 'Desktop app · My apps',
+    shotAlt: 'My apps in the desktop app: Claude and Codex found on this computer, ready to connect in one click'
+  },
   price: {
     eyebrow: 'Prices',
     title: 'And now, the price.',
     official: 'Official',
     perMillionIn: 'per million input tokens',
     off: '{pct}% below official',
-    note: 'Prices shown are per million input tokens. See the full list for output prices and other models. Official prices are converted at about ¥{rate} to $1, for comparison only.',
+    note: 'See the full list for other models. Official prices are converted at about ¥{rate} to $1, for comparison only.',
+    output: 'Output: ¥{price} per million tokens',
+    pick: 'Select a model to see its price',
     all: 'All models and prices'
   },
   faq: {
     eyebrow: 'FAQ',
     title: 'Before you start',
     q1: 'Do I need to know how to code?',
-    a1: 'No. If you can use a tool like Claude Code or Codex, you copy and paste once as the page shows.',
+    a1: 'No. Install the app and connect in one click, or copy and paste once as the page shows.',
     q2: 'What is a key?',
     a2: 'A password that starts with sk-. Your tool uses it to spend your balance. It is yours alone, so do not share it.',
     q3: 'What is a token?',

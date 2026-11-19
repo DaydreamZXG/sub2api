@@ -1,12 +1,12 @@
 export default {
   nav: { aria: '页面导航', pains: '解决什么', prices: '价格', faq: '常见问题', docs: '文档' },
-  cta: { start: '开始使用', login: '登录', console: '进入控制台', how: '看看解决了什么' },
+  cta: { start: '开始使用', login: '登录', console: '进入控制台' },
   flow: { aria: '你的工具通过一把密钥连到各家模型', key: '你的密钥' },
   hero: {
     eyebrow: 'AI 模型接入服务',
     titleA: '接入 AI',
     titleB: '不用再折腾配置',
-    lead: 'Claude Code、Codex 这些工具，选好就能接上。价格直接写人民币，每一笔都查得到，没用完的可以退。'
+    lead: '装个客户端，点一下就把 Claude、Codex 接上。价格直接写人民币，每一笔都查得到，没用完的可以退。'
   },
   pain: {
     before: '以前',
@@ -14,13 +14,13 @@ export default {
     setup: {
       tag: '接入',
       titleA: '以前，要自己改配置文件。',
-      titleB: '现在，复制一次就接上。',
+      titleB: '现在，装个客户端点一下。',
       b1: '翻文档找接口地址',
       b2: '打开配置文件，一项一项填',
       b3: '换一个工具，再来一遍',
-      a1: '选你在用的工具',
-      a2: '复制页面给出的内容',
-      a3: '粘贴进去，就能用'
+      a1: '下载客户端，登录账号',
+      a2: '它自动找到你电脑上的 Claude、Codex',
+      a3: '点“一键接入”，完成'
     },
     price: {
       tag: '价格',
@@ -57,20 +57,30 @@ export default {
       a3: '接不上、缓存、网络问题都可以找我们'
     }
   },
+  client: {
+    download: '下载客户端',
+    windows: '下载 Windows 版',
+    macos: '下载 macOS 版',
+    manual: '支持 Windows 和 macOS。不想装客户端？登录后也可以在网页上复制配置。',
+    window: '客户端 · 我的应用',
+    shotAlt: '客户端里的“我的应用”：自动发现电脑上的 Claude 和 Codex，可以一键接入'
+  },
   price: {
     eyebrow: '价格',
     title: '最后，说价格。',
     official: '官方价',
     perMillionIn: '每百万 Token 输入',
     off: '约 {zhe} 折',
-    note: '以上为每百万 Token 的输入价，输出价和其他模型见完整价目表。官方价按 1 美元 ≈ {rate} 元折算，仅供对比。',
+    note: '其他模型见完整价目表。官方价按 1 美元 ≈ {rate} 元折算，仅供对比。',
+    output: '输出每百万 Token ¥{price}',
+    pick: '点一个模型，看它的价格',
     all: '全部模型和价格'
   },
   faq: {
     eyebrow: '常见问题',
     title: '开始之前',
     q1: '我需要会写代码吗？',
-    a1: '不需要。你只要会用 Claude Code 或 Codex 这类工具，按页面提示复制粘贴一次就行。',
+    a1: '不需要。装上客户端点一下就行；不想装客户端，也可以按页面提示复制粘贴一次。',
     q2: '密钥是什么？',
     a2: '一串以 sk- 开头的密码，工具靠它来使用你的余额。它只属于你，不要发给别人。',
     q3: 'Token 是什么？',

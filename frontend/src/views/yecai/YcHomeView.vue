@@ -36,7 +36,7 @@
             {{ isAuthenticated ? t('yc.cta.console') : t('yc.cta.start') }}
             <span aria-hidden="true">→</span>
           </router-link>
-          <a href="#pains" class="yc-btn yc-btn-ghost">{{ t('yc.cta.how') }}</a>
+          <a :href="clientUrl || '#pains'" class="yc-btn yc-btn-ghost">{{ t(clientLabel) }}</a>
         </div>
         <YcFlowDiagram class="yc-hero-flow" />
       </section>
@@ -70,6 +70,20 @@
               <ul>
                 <li v-for="k in ITEMS" :key="k">{{ t(`yc.pain.${p.id}.a${k}`) }}</li>
               </ul>
+              <template v-if="p.id === 'setup'">
+                <div class="yc-client-get">
+                  <a v-if="clientUrl" :href="clientUrl" class="yc-btn yc-btn-lime yc-btn-sm">{{ t(clientLabel) }} ↓</a>
+                  <span class="yc-client-alt">
+                    <a :href="YC_CLIENT_DOWNLOADS.windows">Windows</a> · <a :href="YC_CLIENT_DOWNLOADS.macos">macOS</a>
+                  </span>
+                </div>
+                <p class="yc-client-note">{{ t('yc.client.manual') }}</p>
+                <figure class="yc-shot">
+                  <figcaption aria-hidden="true"><i></i><i></i><i></i><span>{{ t('yc.client.window') }}</span></figcaption>
+                  <img class="yc-shot-light" :src="shotLight" :alt="t('yc.client.shotAlt')" width="1820" height="880" loading="lazy" />
+                  <img class="yc-shot-dark" :src="shotDark" :alt="t('yc.client.shotAlt')" width="1826" height="873" loading="lazy" />
+                </figure>
+              </template>
               <p v-if="p.id === 'help' && contactInfo" class="yc-vs-contact">{{ contactInfo }}</p>
             </div>
           </div>
@@ -79,22 +93,32 @@
       <section v-if="top" id="price" v-reveal class="yc-sec yc-wrap yc-price yc-reveal">
         <p class="yc-eyebrow">{{ t('yc.price.eyebrow') }}</p>
         <h2 class="yc-h2">{{ t('yc.price.title') }}</h2>
-        <div class="yc-price-top">
+        <div class="yc-price-top" aria-live="polite">
           <p class="yc-price-name">{{ top.name }}</p>
           <p v-if="top.officialInput && top.share" class="yc-price-was">{{ t('yc.price.official') }} ¥{{ price(top.officialInput) }}</p>
-          <p class="yc-price-now yc-num"><span class="yc-mark">¥{{ price(top.input) }}</span></p>
+          <p :key="top.name" class="yc-price-now yc-num"><span class="yc-mark">¥{{ price(top.input) }}</span></p>
           <p class="yc-price-unit">
             {{ t('yc.price.perMillionIn') }}
             <span v-if="top.share" class="yc-chip">{{ off(top.share) }}</span>
           </p>
+          <p class="yc-price-out">{{ t('yc.price.output', { price: price(top.output) }) }}</p>
         </div>
-        <div v-if="rest.length" class="yc-price-list yc-surface">
-          <div v-for="m in rest" :key="m.name" class="yc-price-row">
+        <div v-if="choices.length > 1" class="yc-price-list yc-surface" role="group" :aria-label="t('yc.price.pick')">
+          <p class="yc-price-pick">{{ t('yc.price.pick') }}</p>
+          <button
+            v-for="m in choices"
+            :key="m.name"
+            type="button"
+            class="yc-price-row"
+            :class="{ 'is-on': m.name === top.name }"
+            :aria-pressed="m.name === top.name"
+            @click="picked = m.name"
+          >
             <span class="yc-price-row-name">{{ m.name }}</span>
             <s v-if="m.officialInput && m.share">¥{{ price(m.officialInput) }}</s><s v-else></s>
             <b class="yc-num">¥{{ price(m.input) }}</b>
             <span v-if="m.share" class="yc-chip">{{ off(m.share) }}</span><span v-else></span>
-          </div>
+          </button>
         </div>
         <p class="yc-price-note">{{ t('yc.price.note', { rate: cnyPerUsd }) }}</p>
         <router-link v-if="showModelPlaza" to="/model-plaza" class="yc-price-all">{{ t('yc.price.all') }} →</router-link>
@@ -132,7 +156,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore, useAppStore } from '@/stores'
 import LocaleSwitcher from '@/components/common/LocaleSwitcher.vue'
@@ -140,7 +164,10 @@ import UpstreamHome from '@/views/HomeView.vue'
 import YcFlowDiagram from '@/components/yecai/YcFlowDiagram.vue'
 import { useYcPrices } from '@/composables/useYcPrices'
 import { sanitizeUrl } from '@/utils/url'
+import { YC_CLIENT_DOWNLOADS, detectYcClientPlatform } from '@/utils/ycClient'
 import { FeatureFlags, isFeatureFlagEnabled } from '@/utils/featureFlags'
+import shotLight from '@/assets/yecai/yecai-client-apps-light-showcase.webp'
+import shotDark from '@/assets/yecai/yecai-client-apps-dark-showcase.webp'
 import '@/styles/yecai.css'
 
 const { t } = useI18n()
@@ -180,8 +207,14 @@ const CONFIG_SAMPLE = `~/.claude/settings.json
   }
 }`
 
-const top = computed(() => prices.value[0] ?? null)
-const rest = computed(() => prices.value.slice(1, 6))
+const clientPlatform = detectYcClientPlatform()
+const clientUrl = clientPlatform ? YC_CLIENT_DOWNLOADS[clientPlatform] : ''
+const clientLabel =
+  clientPlatform === 'windows' ? 'yc.client.windows' : clientPlatform === 'macos' ? 'yc.client.macos' : 'yc.client.download'
+
+const picked = ref('')
+const choices = computed(() => prices.value.slice(0, 6))
+const top = computed(() => choices.value.find((m) => m.name === picked.value) ?? choices.value[0] ?? null)
 
 function price(value: number): string {
   if (value >= 100) return value.toFixed(0)
@@ -262,6 +295,19 @@ onMounted(async () => {
 .yc-vs-price span { width: 100%; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13.5px; color: var(--yc-mut); }
 .yc-vs-price b { font-size: clamp(44px, 6vw, 68px); line-height: 1; }
 .yc-vs-price small { font-size: 14px; color: var(--yc-mut); }
+.yc-client-get { margin-top: 22px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; }
+.yc-client-alt { font-size: 13.5px; color: var(--yc-mut); }
+.yc-client-alt a { text-decoration: underline; text-underline-offset: 3px; }
+.yc-client-alt a:hover { color: var(--yc-ink); }
+.yc-client-note { margin-top: 12px; font-size: 13.5px; color: var(--yc-mut); }
+.yc-shot { margin: 24px -30px -30px; border-top: 1px solid var(--yc-line); border-radius: 0 0 23px 23px; overflow: hidden; background: var(--yc-fill); }
+.yc-shot figcaption { display: flex; align-items: center; gap: 6px; height: 34px; padding: 0 14px; border-bottom: 1px solid var(--yc-line); font-size: 12px; color: var(--yc-mut); }
+.yc-shot figcaption i { width: 9px; height: 9px; border-radius: 50%; background: var(--yc-line); }
+.yc-shot figcaption span { margin-left: 8px; }
+.yc-shot img { display: block; width: 100%; height: auto; }
+.yc-shot-dark { display: none !important; }
+:global(.dark .yc .yc-shot-light) { display: none; }
+:global(.dark .yc .yc-shot-dark) { display: block !important; }
 .yc-vs-contact { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--yc-line); font-size: 15px; color: var(--yc-mut); white-space: pre-line; }
 
 .yc-sec { padding-top: clamp(96px, 14vw, 184px); }
@@ -274,9 +320,14 @@ onMounted(async () => {
 .yc-price-now { margin-top: 4px; font-size: clamp(88px, 19vw, 240px); line-height: 1; }
 .yc-price-unit { margin-top: 20px; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 12px; font-size: 16px; color: var(--yc-mut); }
 .yc-chip { display: inline-block; padding: 4px 12px; border-radius: 999px; background: var(--yc-ink); color: var(--yc-bg); font-size: 13px; font-weight: 700; white-space: nowrap; }
-.yc-price-list { margin: clamp(40px, 6vw, 72px) auto 0; max-width: 820px; padding: 8px 28px; text-align: left; }
-.yc-price-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto 96px; gap: 18px; align-items: center; padding: 18px 0; }
-.yc-price-row + .yc-price-row { border-top: 1px solid var(--yc-line); }
+.yc-price-list { margin: clamp(40px, 6vw, 72px) auto 0; max-width: 820px; padding: 6px 14px 14px; text-align: left; }
+.yc-price-out { margin-top: 10px; font-size: 14px; color: var(--yc-dim); }
+.yc-price-pick { padding: 14px 14px 8px; font-size: 13px; color: var(--yc-mut); }
+.yc-price-row { width: 100%; display: grid; grid-template-columns: minmax(0, 1fr) auto auto 96px; gap: 18px; align-items: center; padding: 16px 14px; border-radius: 14px; text-align: left; transition: background-color 0.15s ease; }
+.yc-price-row:hover { background: var(--yc-fill); }
+.yc-price-row.is-on { background: var(--yc-lime); color: var(--yc-on-lime); }
+.yc-price-row.is-on s { color: rgb(11 15 12 / 0.55); }
+.yc-price-row.is-on .yc-chip { background: var(--yc-on-lime); color: var(--yc-lime); }
 .yc-price-row-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 14.5px; }
 .yc-price-row s { color: var(--yc-dim); font-size: 15px; }
 .yc-price-row b { font-size: 26px; }
@@ -303,10 +354,11 @@ onMounted(async () => {
   .yc-top-nav { display: none; }
   .yc-vs, .yc-faq { grid-template-columns: 1fr; }
   .yc-vs-col { padding: 22px 22px 24px; }
+  .yc-shot { margin: 22px -22px -24px; }
   .yc-faq { gap: 32px; }
   .yc-price-row { grid-template-columns: minmax(0, 1fr) auto; }
   .yc-price-row s, .yc-price-row > span:last-child { display: none; }
-  .yc-price-list { padding: 4px 20px; }
+  .yc-price-list { padding: 4px 8px 8px; }
 }
 @media (max-width: 480px) {
   .yc-hide-sm { display: none; }
@@ -317,6 +369,8 @@ onMounted(async () => {
   .yc-lead { animation-delay: 0.08s; }
   .yc-hero-cta { animation-delay: 0.16s; }
   .yc-hero-flow { animation-delay: 0.28s; }
+  .yc-price-now { animation: yc-pop 0.45s cubic-bezier(0.2, 0.9, 0.2, 1.1) both; }
 }
+@keyframes yc-pop { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: none; } }
 @keyframes yc-rise { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
 </style>
