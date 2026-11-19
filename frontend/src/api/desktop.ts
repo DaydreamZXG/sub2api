@@ -4,6 +4,7 @@
  */
 
 import { apiClient } from './client'
+import { buildGatewayUrl } from './url'
 
 export interface ConnectCode {
   code: string
@@ -12,12 +13,20 @@ export interface ConnectCode {
   ttlSeconds: number
 }
 
-export async function issueConnectCode(origin: string): Promise<ConnectCode> {
-  const { data } = await apiClient.post<{ success: boolean; data: ConnectCode }>(
-    '/api/desktop/v2/connect-codes',
-    { origin },
-    { baseURL: '' }
-  )
+const CONNECT_CODES_URL = buildGatewayUrl('/api/desktop/v2/connect-codes')
+
+/**
+ * The origin the desktop assistant will talk to: the backend's, which is not the page's
+ * when the site and its API are served from different hosts.
+ */
+export function stationOrigin(): string {
+  return new URL(CONNECT_CODES_URL, window.location.origin).origin
+}
+
+export async function issueConnectCode(): Promise<ConnectCode> {
+  const { data } = await apiClient.post<{ success: boolean; data: ConnectCode }>(CONNECT_CODES_URL, {
+    origin: stationOrigin()
+  })
   return data.data
 }
 
@@ -31,4 +40,4 @@ export function openDesktopApp(connect: Pick<ConnectCode, 'code' | 'origin'>): v
   window.location.href = connectDeepLink(connect)
 }
 
-export default { issueConnectCode, connectDeepLink, openDesktopApp }
+export default { stationOrigin, issueConnectCode, connectDeepLink, openDesktopApp }

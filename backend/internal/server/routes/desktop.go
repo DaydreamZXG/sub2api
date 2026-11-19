@@ -16,6 +16,7 @@ import (
 func RegisterDesktopRoutes(r *gin.Engine, h *handler.Handlers, jwtAuth servermiddleware.JWTAuthMiddleware, redisClient *redis.Client) {
 	rateLimiter := middleware.NewRateLimiter(redisClient)
 	desktop := r.Group("/api/desktop/v2")
+	desktop.Use(h.Desktop.ProtocolErrors)
 
 	// 换取会话：由桌面助手调用，无登录态，凭一次性连接码。
 	desktop.POST("/connect-codes/exchange", rateLimiter.LimitWithOptions("desktop-connect-exchange", 20, time.Minute, middleware.RateLimitOptions{
@@ -23,7 +24,7 @@ func RegisterDesktopRoutes(r *gin.Engine, h *handler.Handlers, jwtAuth servermid
 	}), h.Desktop.ExchangeConnectCode)
 
 	signedIn := desktop.Group("")
-	signedIn.Use(h.Desktop.RequireSession, gin.HandlerFunc(jwtAuth))
+	signedIn.Use(gin.HandlerFunc(jwtAuth))
 	signedIn.POST("/connect-codes", rateLimiter.LimitWithOptions("desktop-connect-issue", 20, time.Minute, middleware.RateLimitOptions{
 		FailureMode: middleware.RateLimitFailClose,
 	}), h.Desktop.IssueConnectCode)

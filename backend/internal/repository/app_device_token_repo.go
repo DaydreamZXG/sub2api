@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	dbent "github.com/Wei-Shaw/sub2api/ent"
@@ -20,6 +21,12 @@ func NewAppDeviceTokenRepository(client *dbent.Client) service.AppDeviceTokenRep
 
 func (r *appDeviceTokenRepository) Replace(ctx context.Context, userID int64, device service.AppDevice, tokenHash string) error {
 	replace := func(client *dbent.Client) error {
+		// Connects from one device take turns, so each one revokes the token issued just before it.
+		// The partial unique index on live tokens backs this up.
+		lockKey := advisoryLockHash(fmt.Sprintf("app_device_token:%d:%s", userID, device.DeviceID))
+		if _, err := client.ExecContext(ctx, "SELECT pg_advisory_xact_lock($1)", lockKey); err != nil {
+			return err
+		}
 		err := client.AppDeviceToken.Update().
 			Where(appdevicetoken.UserIDEQ(userID), appdevicetoken.DeviceIDEQ(device.DeviceID), appdevicetoken.RevokedAtIsNil()).
 			SetRevokedAt(time.Now()).

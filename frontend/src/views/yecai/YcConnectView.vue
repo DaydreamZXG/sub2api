@@ -110,7 +110,7 @@ import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores'
 import { keysAPI } from '@/api/keys'
 import { userGroupsAPI } from '@/api/groups'
-import { issueConnectCode, openDesktopApp } from '@/api/desktop'
+import { issueConnectCode, openDesktopApp, stationOrigin } from '@/api/desktop'
 import type { ApiKey, Group } from '@/types'
 import { useClipboard } from '@/composables/useClipboard'
 import { YC_CLIENT_DOWNLOADS, detectYcClientPlatform } from '@/utils/ycClient'
@@ -208,13 +208,13 @@ const handingOver = ref(false)
 
 // Hands this signed-in account to the installed desktop assistant with a one-time code.
 async function connectApp() {
-  if (window.location.protocol !== 'https:') {
+  if (!stationOrigin().startsWith('https://')) {
     appStore.showError(t('yc.connect.appConnectNeedsHttps'))
     return
   }
   handingOver.value = true
   try {
-    openDesktopApp(await issueConnectCode(window.location.origin))
+    openDesktopApp(await issueConnectCode())
     appStore.showInfo(t('yc.connect.appConnectHint'))
   } catch {
     appStore.showError(t('yc.connect.appConnectFailed'))

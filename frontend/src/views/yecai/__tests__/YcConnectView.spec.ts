@@ -1,11 +1,12 @@
 import { flushPromises, mount } from '@vue/test-utils'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { connectDeepLink } from '@/api/desktop'
 import YcConnectView from '../YcConnectView.vue'
 
-const { issueConnectCode, openDesktopApp, showError, showInfo } = vi.hoisted(() => ({
+const { issueConnectCode, stationOrigin, openDesktopApp, showError, showInfo } = vi.hoisted(() => ({
   issueConnectCode: vi.fn(),
+  stationOrigin: vi.fn(),
   openDesktopApp: vi.fn(),
   showError: vi.fn(),
   showInfo: vi.fn()
@@ -14,6 +15,7 @@ const { issueConnectCode, openDesktopApp, showError, showInfo } = vi.hoisted(() 
 vi.mock('@/api/desktop', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/api/desktop')>()),
   issueConnectCode,
+  stationOrigin,
   openDesktopApp
 }))
 vi.mock('@/api/keys', () => ({ keysAPI: { list: vi.fn().mockResolvedValue({ items: [] }) } }))
@@ -27,9 +29,6 @@ vi.mock('vue-i18n', async (importOriginal) => ({
   useI18n: () => ({ t: (key: string) => key })
 }))
 
-declare const jsdom: { reconfigure: (options: { url: string }) => void }
-const initialUrl = window.location.href
-
 const clickConnect = async () => {
   const wrapper = mount(YcConnectView, {
     global: { stubs: { YcShell: { template: '<div><slot /></div>' }, UseKeyModal: true } }
@@ -42,24 +41,22 @@ const clickConnect = async () => {
 
 describe('YcConnectView connect to app', () => {
   beforeEach(() => {
-    for (const fn of [issueConnectCode, openDesktopApp, showError, showInfo]) fn.mockReset()
+    for (const fn of [issueConnectCode, stationOrigin, openDesktopApp, showError, showInfo]) fn.mockReset()
+    stationOrigin.mockReturnValue('https://yeschoy.test')
   })
-  afterEach(() => jsdom.reconfigure({ url: initialUrl }))
 
-  it('issues a code for this site and opens the app with it', async () => {
-    jsdom.reconfigure({ url: 'https://yeschoy.test/connect' })
+  it('issues a code and opens the app with it', async () => {
     const connect = { code: 'c'.repeat(43), origin: 'https://yeschoy.test', expiresAt: 0, ttlSeconds: 300 }
     issueConnectCode.mockResolvedValue(connect)
 
     await clickConnect()
 
-    expect(issueConnectCode).toHaveBeenCalledWith('https://yeschoy.test')
+    expect(issueConnectCode).toHaveBeenCalledOnce()
     expect(openDesktopApp).toHaveBeenCalledWith(connect)
     expect(showInfo).toHaveBeenCalledWith('yc.connect.appConnectHint')
   })
 
   it('says so and does not open the app when no code could be issued', async () => {
-    jsdom.reconfigure({ url: 'https://yeschoy.test/connect' })
     issueConnectCode.mockRejectedValue(new Error('offline'))
 
     await clickConnect()
@@ -68,8 +65,8 @@ describe('YcConnectView connect to app', () => {
     expect(showError).toHaveBeenCalledWith('yc.connect.appConnectFailed')
   })
 
-  it('does not ask for a code on a site that is not served over https', async () => {
-    jsdom.reconfigure({ url: 'http://localhost:5173/connect' })
+  it('does not ask for a code when the station is not served over https', async () => {
+    stationOrigin.mockReturnValue('http://localhost:8080')
 
     await clickConnect()
 

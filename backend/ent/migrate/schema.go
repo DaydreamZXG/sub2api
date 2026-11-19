@@ -371,8 +371,11 @@ var (
 		Indexes: []*schema.Index{
 			{
 				Name:    "appdevicetoken_user_id_device_id",
-				Unique:  false,
+				Unique:  true,
 				Columns: []*schema.Column{AppDeviceTokensColumns[1], AppDeviceTokensColumns[2]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "revoked_at IS NULL",
+				},
 			},
 		},
 	}

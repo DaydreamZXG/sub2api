@@ -10,4 +10,6 @@ CREATE TABLE IF NOT EXISTS app_device_tokens (
     revoked_at TIMESTAMPTZ
 );
 
-CREATE INDEX IF NOT EXISTS idx_app_device_tokens_user_device ON app_device_tokens (user_id, device_id);
+-- 一台设备同时只有一个有效凭证。
+CREATE UNIQUE INDEX IF NOT EXISTS idx_app_device_tokens_active_device
+    ON app_device_tokens (user_id, device_id) WHERE revoked_at IS NULL;

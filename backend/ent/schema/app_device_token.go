@@ -38,6 +38,9 @@ func (AppDeviceToken) Fields() []ent.Field {
 
 func (AppDeviceToken) Indexes() []ent.Index {
 	return []ent.Index{
-		index.Fields("user_id", "device_id"),
+		// 一台设备同时只有一个有效凭证，并发重连也不例外。
+		index.Fields("user_id", "device_id").
+			Unique().
+			Annotations(entsql.IndexWhere("revoked_at IS NULL")),
 	}
 }

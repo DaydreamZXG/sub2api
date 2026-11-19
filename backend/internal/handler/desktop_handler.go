@@ -1,8 +1,11 @@
 package handler
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
 	"net/http"
+	"strings"
 
 	middleware2 "github.com/Wei-Shaw/sub2api/internal/server/middleware"
 	"github.com/Wei-Shaw/sub2api/internal/service"
@@ -44,13 +47,53 @@ func desktopOK(c *gin.Context, data gin.H) {
 	c.JSON(http.StatusOK, gin.H{"success": true, "data": data})
 }
 
-// RequireSession answers a missing sign-in with the protocol's error before the JWT middleware runs.
-func (h *DesktopHandler) RequireSession(c *gin.Context) {
-	if c.GetHeader("Authorization") == "" {
-		desktopError(c, http.StatusUnauthorized, "session_required")
-		return
-	}
+// desktopResponseBuffer holds a response back so ProtocolErrors can rewrite it.
+type desktopResponseBuffer struct {
+	gin.ResponseWriter
+	status int
+	body   bytes.Buffer
+}
+
+func (w *desktopResponseBuffer) WriteHeader(status int)         { w.status = status }
+func (w *desktopResponseBuffer) WriteHeaderNow()                {}
+func (w *desktopResponseBuffer) Status() int                    { return w.status }
+func (w *desktopResponseBuffer) Write(data []byte) (int, error) { return w.body.Write(data) }
+func (w *desktopResponseBuffer) WriteString(data string) (int, error) {
+	return w.body.WriteString(data)
+}
+
+// ProtocolErrors makes failures raised by shared middleware (sign-in checks, rate limits) answer in
+// the protocol's envelope too; those middlewares otherwise write this project's own error shapes.
+func (h *DesktopHandler) ProtocolErrors(c *gin.Context) {
+	buffer := &desktopResponseBuffer{ResponseWriter: c.Writer, status: http.StatusOK}
+	c.Writer = buffer
 	c.Next()
+	c.Writer = buffer.ResponseWriter
+
+	body := buffer.body.Bytes()
+	if buffer.status >= http.StatusBadRequest {
+		var parsed map[string]any
+		_ = json.Unmarshal(body, &parsed)
+		if _, isProtocol := parsed["success"]; !isProtocol {
+			code := "request_failed"
+			switch {
+			case buffer.status == http.StatusUnauthorized:
+				code = "session_required"
+			case buffer.status == http.StatusTooManyRequests:
+				code = "rate_limited"
+			case buffer.status >= http.StatusInternalServerError:
+				code = "internal_error"
+			default:
+				if reason, ok := parsed["code"].(string); ok && reason != "" {
+					code = strings.ToLower(reason)
+				}
+			}
+			body, _ = json.Marshal(gin.H{"success": false, "code": code})
+			c.Header("Content-Type", "application/json; charset=utf-8")
+		}
+	}
+	c.Writer.WriteHeader(buffer.status)
+	_, _ = c.Writer.Write(body)
 }
 
 // IssueConnectCode handles POST /api/desktop/v2/connect-codes
