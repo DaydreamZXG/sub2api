@@ -65,9 +65,9 @@ export function useYcPrices() {
           plan: g.subscription_type === 'subscription',
           varies:
             (g.long_context_pricing_enabled && (p.intervals?.length ?? 0) > 1) ||
-            (m.time_pricing?.periods.length ?? 0) > 0 ||
-            (g.peak_rate_enabled && g.peak_rate_multiplier !== 1) ||
-            Object.values(p.reasoning_effort_multipliers ?? {}).some((x) => x !== 1)
+            (m.time_pricing?.periods ?? []).some((period) => period.multiplier > 1) ||
+            (g.peak_rate_enabled && g.peak_rate_multiplier > 1) ||
+            Object.values(p.reasoning_effort_multipliers ?? {}).some((x) => x > 1)
         }
         const known = best.get(m.name)
         if (known) {
