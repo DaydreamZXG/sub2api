@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"math"
 	"testing"
 	"time"
 
@@ -128,4 +129,57 @@ func TestGardenSettings(t *testing.T) {
 
 	unreadable, _ := newTestGarden(`{"enabled":true,"ripen_hours":0}`)
 	require.False(t, unreadable.Settings(ctx).Enabled, "unusable saved rules mean the garden is off")
+}
+
+// A crop the site gives away needs someone to give it to and an amount within the limit.
+func TestGardenGiftCrop(t *testing.T) {
+	ctx := context.Background()
+	repo := &fakeGardenRepo{planted: map[int64]float64{}}
+	garden := NewGardenService(repo, nil, &growthLevelsSettingRepo{}, nil, nil)
+
+	for _, bad := range []struct {
+		email  string
+		amount float64
+	}{{"", 5}, {"a@example.com", 0}, {"a@example.com", -1}, {"a@example.com", GardenMaxGiftAmount + 1}, {"a@example.com", math.NaN()}} {
+		_, err := garden.GiftCrop(ctx, bad.email, bad.amount)
+		require.ErrorIs(t, err, ErrGardenGiftInvalid)
+	}
+	require.Empty(t, repo.gifts)
+
+	userID, err := garden.GiftCrop(ctx, " a@example.com ", 5)
+	require.NoError(t, err, "a gift does not need the garden to be open")
+	require.Equal(t, int64(9), userID)
+	require.Equal(t, [][2]float64{{9, 5}}, repo.gifts)
+}
+
+// The inviter gets one crop per invited user, and only while the garden is open and the reward is set.
+func TestGardenInviteReward(t *testing.T) {
+	ctx := context.Background()
+	newGarden := func(settings string) (*GardenService, *fakeGardenRepo) {
+		repo := &fakeGardenRepo{planted: map[int64]float64{}, inviters: map[int64]int64{2: 1}, rewarded: map[int64]bool{}}
+		return NewGardenService(repo, nil, &growthLevelsSettingRepo{value: settings}, nil, nil), repo
+	}
+
+	for _, off := range []string{
+		`{"enabled":false,"ripen_hours":24,"invite_crop_amount":5}`,
+		`{"enabled":true,"ripen_hours":24}`,
+	} {
+		garden, repo := newGarden(off)
+		planted, err := garden.PlantInviteReward(ctx, 2, 100)
+		require.NoError(t, err)
+		require.False(t, planted)
+		require.Empty(t, repo.gifts)
+	}
+
+	garden, repo := newGarden(`{"enabled":true,"ripen_hours":24,"invite_crop_amount":5}`)
+	planted, err := garden.PlantInviteReward(ctx, 2, 100)
+	require.NoError(t, err)
+	require.True(t, planted)
+	planted, err = garden.PlantInviteReward(ctx, 2, 101)
+	require.NoError(t, err)
+	require.False(t, planted, "a second order of the same invitee earns nothing")
+	planted, err = garden.PlantInviteReward(ctx, 3, 102)
+	require.NoError(t, err)
+	require.False(t, planted, "nobody invited user 3")
+	require.Equal(t, [][2]float64{{1, 5}}, repo.gifts)
 }
