@@ -137,7 +137,7 @@ const shell = ref<Shell>(clientPlatform === 'windows' ? 'powershell' : 'unix')
 
 const baseUrl = computed(() => appStore.cachedPublicSettings?.api_base_url || window.location.origin)
 // Claude Code appends /v1/messages itself, so it needs the address without /v1 (same as the full guide).
-const claudeBaseUrl = computed(() => baseUrl.value.replace(/\/v1\/?$/, '').replace(/\/+$/, ''))
+const claudeBaseUrl = computed(() => baseUrl.value.replace(/([^/])\/v1\/?$/, '$1').replace(/\/+$/, ''))
 const key = computed(() => keys.value.find((k) => k.id === keyId.value) ?? keys.value[0] ?? null)
 
 function mask(secret: string): string {
