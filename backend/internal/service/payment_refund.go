@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/shopspring/decimal"
 	"log/slog"
 	"math"
 	"strconv"
@@ -168,7 +169,7 @@ func (s *PaymentService) RequestRefund(ctx context.Context, oid, uid int64, reas
 	if err != nil {
 		return fmt.Errorf("get garden crop: %w", err)
 	}
-	if u.Balance+growing < o.Amount {
+	if refundFundsAvailable(u.Balance, growing).LessThan(decimal.NewFromFloat(o.Amount)) {
 		return infraerrors.BadRequest("BALANCE_NOT_ENOUGH", "refund amount exceeds balance")
 	}
 	nr := strings.TrimSpace(reason)
@@ -289,12 +290,18 @@ func (s *PaymentService) prepDeduct(ctx context.Context, o *dbent.PaymentOrder, 
 		return nil
 	}
 	p.DeductionType = payment.DeductionTypeBalance
-	available := u.Balance + growing
-	if available < p.RefundAmount && !force {
+	available := refundFundsAvailable(u.Balance, growing)
+	if available.LessThan(decimal.NewFromFloat(p.RefundAmount)) && !force {
 		return &RefundResult{Success: false, Warning: "user balance is insufficient for deduction, use force", RequireForce: true}
 	}
-	p.BalanceToDeduct = math.Max(0, math.Min(p.RefundAmount, available))
+	p.BalanceToDeduct = math.Max(0, math.Min(p.RefundAmount, available.InexactFloat64()))
 	return nil
+}
+
+// refundFundsAvailable adds the balance and the order's growing crop as decimals: the two were split from one
+// credited amount, and their float sum can fall just short of it (10.12 + 0.51 < 10.63).
+func refundFundsAvailable(balance, growing float64) decimal.Decimal {
+	return decimal.NewFromFloat(balance).Add(decimal.NewFromFloat(growing))
 }
 
 type availableBalanceDeductor interface {
@@ -325,17 +332,24 @@ func (s *PaymentService) ExecuteRefund(ctx context.Context, p *RefundPlan) (*Ref
 	if c == 0 {
 		return nil, infraerrors.Conflict("CONFLICT", "order status changed")
 	}
-	if p.DeductionType == payment.DeductionTypeBalance && p.BalanceToDeduct > 0 {
-		// Skip balance deduction on retry if previous attempt already deducted
-		// but failed to roll back (REFUND_ROLLBACK_FAILED in audit log).
-		if !s.hasAuditLog(ctx, p.OrderID, "REFUND_ROLLBACK_FAILED") {
+	rolledBackBefore := false
+	if p.DeductionType == payment.DeductionTypeBalance {
+		rolledBackBefore = s.hasAuditLog(ctx, p.OrderID, "REFUND_ROLLBACK_FAILED")
+		if !rolledBackBefore {
 			// 赠送还种在菜园里时先收回余额再扣；收不回来就不退，否则会少扣而菜还能收。
+			// 即使这次没有可扣的余额（余额为负的强制退款）也要收回，抵掉欠的部分。
 			uprooted, err := s.garden.UprootForOrder(ctx, p.Order.UserID, p.OrderID)
 			if err != nil {
 				s.restoreStatus(ctx, p)
 				return nil, fmt.Errorf("uproot garden crop: %w", err)
 			}
 			p.cropUprooted = uprooted
+		}
+	}
+	if p.DeductionType == payment.DeductionTypeBalance && p.BalanceToDeduct > 0 {
+		// Skip balance deduction on retry if previous attempt already deducted
+		// but failed to roll back (REFUND_ROLLBACK_FAILED in audit log).
+		if !rolledBackBefore {
 			deducted, err := s.deductAvailableBalance(ctx, p.Order.UserID, p.BalanceToDeduct)
 			if err != nil {
 				s.replantRefundedCrop(ctx, p)
@@ -610,7 +624,6 @@ func (s *PaymentService) finalizeRefundFailed(ctx context.Context, p *RefundPlan
 	if returnErr == nil {
 		if p.deductionHeld && p.DeductionType == payment.DeductionTypeBalance && p.BalanceToDeduct > 0 {
 			s.invalidateRefundBalanceCache(ctx, p.Order.UserID)
-			s.replantRefundedCrop(ctx, p)
 		}
 		return &RefundResult{Success: false, Warning: warning}, nil
 	}
@@ -656,6 +669,12 @@ func (s *PaymentService) finalizeRefundFailedTx(ctx context.Context, p *RefundPl
 	if p.deductionHeld && rollbackErr == nil {
 		if err := s.returnHeldRefundDeduction(txCtx, p); err != nil {
 			return err, nil
+		}
+		// 同一事务里把菜种回去：订单一旦变回可重试，重试看到的必须已经是种回去之后的余额和菜。
+		if p.cropUprooted > 0 {
+			if _, err := s.garden.ReplantForOrder(txCtx, p.Order.UserID, p.OrderID); err != nil {
+				return fmt.Errorf("replant garden crop: %w", err), nil
+			}
 		}
 	}
 	if rollbackErr != nil {
@@ -897,8 +916,8 @@ func (s *PaymentService) RollbackRefund(ctx context.Context, p *RefundPlan, gErr
 			return false
 		}
 		s.invalidateRefundBalanceCache(ctx, p.Order.UserID)
-		s.replantRefundedCrop(ctx, p)
 	}
+	s.replantRefundedCrop(ctx, p)
 	if p.DeductionType == payment.DeductionTypeSubscription && p.SubDaysToDeduct > 0 && p.SubscriptionID > 0 {
 		if _, err := s.subscriptionSvc.ExtendSubscription(ctx, p.SubscriptionID, p.SubDaysToDeduct); err != nil {
 			slog.Error("[CRITICAL] subscription rollback failed", "orderID", p.OrderID, "subID", p.SubscriptionID, "days", p.SubDaysToDeduct, "error", err)

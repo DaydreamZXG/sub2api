@@ -6,16 +6,18 @@ import (
 	"errors"
 	"time"
 
+	dbent "github.com/Wei-Shaw/sub2api/ent"
 	"github.com/Wei-Shaw/sub2api/internal/service"
 )
 
 type gardenRepository struct {
-	db *sql.DB
+	client *dbent.Client
+	db     *sql.DB
 }
 
 // NewGardenRepository creates the garden store.
-func NewGardenRepository(db *sql.DB) service.GardenRepository {
-	return &gardenRepository{db: db}
+func NewGardenRepository(client *dbent.Client, db *sql.DB) service.GardenRepository {
+	return &gardenRepository{client: client, db: db}
 }
 
 const gardenCropColumns = `id, user_id, COALESCE(order_id, 0), amount, stolen_amount, status, planted_at, ripe_at, harvested_at, harvested_amount`
@@ -95,42 +97,57 @@ func (r *gardenRepository) GrowingForOrder(ctx context.Context, orderID int64) (
 	return amount, err
 }
 
+// Replant 在 ctx 带着事务时并入该事务（随它提交或回滚），否则自己开一个。
 func (r *gardenRepository) Replant(ctx context.Context, orderID int64) (replanted float64, err error) {
-	tx, err := r.db.BeginTx(ctx, nil)
+	if contextTx := dbent.TxFromContext(ctx); contextTx != nil {
+		return replantCrop(ctx, contextTx.Client(), orderID)
+	}
+	tx, err := r.client.Tx(ctx)
 	if err != nil {
 		return 0, err
 	}
-	defer func() {
-		if err != nil {
-			_ = tx.Rollback()
-		}
-	}()
+	replanted, err = replantCrop(ctx, tx.Client(), orderID)
+	if err != nil {
+		_ = tx.Rollback()
+		return 0, err
+	}
+	return replanted, tx.Commit()
+}
+
+func replantCrop(ctx context.Context, client *dbent.Client, orderID int64) (float64, error) {
+	rows, err := client.QueryContext(ctx, `
+		SELECT id, user_id, amount - stolen_amount FROM garden_crops
+		WHERE order_id = $1 AND status = 'removed' FOR UPDATE`, orderID)
+	if err != nil {
+		return 0, err
+	}
 	var cropID, userID int64
 	var left float64
-	err = tx.QueryRowContext(ctx, `
-		SELECT id, user_id, amount - stolen_amount FROM garden_crops
-		WHERE order_id = $1 AND status = 'removed' FOR UPDATE`, orderID).Scan(&cropID, &userID, &left)
-	if errors.Is(err, sql.ErrNoRows) {
-		return 0, tx.Rollback()
+	found := rows.Next()
+	if found {
+		err = rows.Scan(&cropID, &userID, &left)
 	}
-	if err != nil {
+	if closeErr := rows.Close(); err == nil {
+		err = closeErr
+	}
+	if err != nil || !found {
 		return 0, err
 	}
 	// 余额已经不够盖住这棵菜（用户这段时间花掉了）就不再种回去，不让余额变负。
-	taken, err := tx.ExecContext(ctx, `
+	taken, err := client.ExecContext(ctx, `
 		UPDATE users
 		SET balance = balance - $2, total_recharged = GREATEST(total_recharged - $2, 0), updated_at = NOW()
 		WHERE id = $1 AND balance >= $2`, userID, left)
 	if err != nil {
 		return 0, err
 	}
-	if rows, _ := taken.RowsAffected(); rows == 0 {
-		return 0, tx.Rollback()
+	if affected, _ := taken.RowsAffected(); affected == 0 {
+		return 0, nil
 	}
-	if _, err = tx.ExecContext(ctx, `UPDATE garden_crops SET status = 'growing' WHERE id = $1`, cropID); err != nil {
+	if _, err = client.ExecContext(ctx, `UPDATE garden_crops SET status = 'growing' WHERE id = $1`, cropID); err != nil {
 		return 0, err
 	}
-	return left, tx.Commit()
+	return left, nil
 }
 
 func (r *gardenRepository) Harvest(ctx context.Context, userID, cropID int64) (float64, bool, error) {
