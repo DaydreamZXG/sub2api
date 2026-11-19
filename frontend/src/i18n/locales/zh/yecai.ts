@@ -45,5 +45,18 @@ export default {
     q4: '支持哪些工具？',
     a4: 'Claude Code、Codex、Gemini CLI、OpenCode 等常见工具都可以接。'
   },
+  shell: { start: '开始', keys: '密钥', bills: '账单', topUp: '充值', admin: '管理后台', account: '我的账号' },
+  dash: {
+    night: '夜深了', morning: '早上好', afternoon: '下午好', evening: '晚上好', comma: '，',
+    nextTag: '下一步', nextTopUp: '先充一点余额，用多少扣多少，没用完可以退。',
+    nextKey: '创建你的第一把密钥，工具靠它来使用余额。', nextKeyGo: '去创建',
+    nextConnect: '密钥有了，把它接到你的工具里就能用。', nextConnectGo: '去接入',
+    balance: '余额', balanceHint: '用多少扣多少，没用完可以退', today: '今天花了', total: '累计花了',
+    requests: '{n} 次请求', recent: '最近使用', allBills: '全部账单',
+    empty: '还没有使用记录。接入工具并发出第一次请求后，这里会显示每一笔的明细。',
+    expandTip: '点任意一行可以展开，看这次请求的全部细节。',
+    dModel: '模型', dInput: '输入', dOutput: '输出', dCacheWrite: '缓存写入', dCacheRead: '缓存读取',
+    dTiming: '首字 / 总用时', dListCost: '标准价', dMultiplier: '倍率'
+  },
   final: { title: '现在就把它接上' }
 }

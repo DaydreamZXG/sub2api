@@ -45,5 +45,18 @@ export default {
     q4: 'Which tools are supported?',
     a4: 'Claude Code, Codex, Gemini CLI, OpenCode and other common tools.'
   },
+  shell: { start: 'Home', keys: 'Keys', bills: 'Bills', topUp: 'Top up', admin: 'Admin', account: 'My account' },
+  dash: {
+    night: 'Up late', morning: 'Good morning', afternoon: 'Good afternoon', evening: 'Good evening', comma: ', ',
+    nextTag: 'Next', nextTopUp: 'Add a little balance. You pay for what you use, and the rest is refundable.',
+    nextKey: 'Create your first key. Your tool uses it to spend your balance.', nextKeyGo: 'Create',
+    nextConnect: 'You have a key. Connect it to your tool to start.', nextConnectGo: 'Connect',
+    balance: 'Balance', balanceHint: 'Pay for what you use; the rest is refundable', today: 'Spent today', total: 'Spent in total',
+    requests: '{n} requests', recent: 'Recent usage', allBills: 'All bills',
+    empty: 'No usage yet. After you connect a tool and send a request, each one is listed here.',
+    expandTip: 'Select a row to see every detail of that request.',
+    dModel: 'Model', dInput: 'Input', dOutput: 'Output', dCacheWrite: 'Cache write', dCacheRead: 'Cache read',
+    dTiming: 'First token / total', dListCost: 'List price', dMultiplier: 'Multiplier'
+  },
   final: { title: 'Connect it now' }
 }
