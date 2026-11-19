@@ -93,7 +93,7 @@ export default {
   },
   shell: {
     start: 'Home', connect: 'Connect a tool', prices: 'Prices', keys: 'Manage keys', bills: 'Bills', topUp: 'Top up',
-    more: 'More', plans: 'Monthly plans', invite: 'Invite & earn', admin: 'Admin', account: 'My account'
+    help: 'Help', more: 'More', plans: 'Monthly plans', invite: 'Invite & earn', admin: 'Admin', account: 'My account'
   },
   connect: {
     title: 'Connect a tool',
@@ -142,6 +142,12 @@ export default {
     bonusTitle: '{pct}% extra on larger top-ups', bonusText: 'Top up ¥{min} or more in one payment and get {pct}% extra.',
     refundTitle: 'Unused balance is refundable', refundText: 'You can ask for a refund of balance you have not used. Contact support to arrange it.',
     clearTitle: 'Every charge is on record', clearText: 'What each request cost is listed in your bills, any time.'
+  },
+  help: {
+    title: 'Help',
+    lead: 'Stuck? Do not struggle alone, reach out to us.',
+    contactTitle: 'Get help from a person', noContact: 'The site owner has not added contact details yet.', docs: 'Read the docs',
+    newsTitle: 'Announcements'
   },
   prices: {
     title: 'Prices',

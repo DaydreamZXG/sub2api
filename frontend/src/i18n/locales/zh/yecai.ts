@@ -93,7 +93,7 @@ export default {
   },
   shell: {
     start: '开始', connect: '接入工具', prices: '价目表', keys: '密钥管理', bills: '账单', topUp: '充值',
-    more: '更多', plans: '包月套餐', invite: '邀请返利', admin: '管理后台', account: '我的账号'
+    help: '帮助', more: '更多', plans: '包月套餐', invite: '邀请返利', admin: '管理后台', account: '我的账号'
   },
   connect: {
     title: '接入工具',
@@ -142,6 +142,12 @@ export default {
     bonusTitle: '多充送 {pct}%', bonusText: '单笔充值满 ¥{min}，额外赠送 {pct}%。',
     refundTitle: '没用完可以退', refundText: '余额没用完可以申请退款，联系客服办理。',
     clearTitle: '每一笔都查得到', clearText: '每次请求扣了多少，都记在账单里，随时能看。'
+  },
+  help: {
+    title: '帮助',
+    lead: '卡住了别自己硬扛，直接找我们。',
+    contactTitle: '找人帮忙', noContact: '站长还没有填写联系方式。', docs: '查看使用文档',
+    newsTitle: '公告'
   },
   prices: {
     title: '价目表',
