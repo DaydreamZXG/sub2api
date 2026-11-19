@@ -1,32 +1,28 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
-  <title id="title">Sub2API</title>
-  <desc id="desc">An interlocking S symbol representing subscription routing into APIs.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="15 14 226 226" role="img" aria-labelledby="title desc">
+  <title id="title">野菜API 白菜标志</title>
+  <desc id="desc">一颗由绿叶和浅色菜梗组成的简洁矢量白菜</desc>
   <defs>
-    <linearGradient id="s2a-bg" x1="72" y1="44" x2="442" y2="478" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#142B56"/>
-      <stop offset=".52" stop-color="#0A1A39"/>
-      <stop offset="1" stop-color="#061127"/>
+    <linearGradient id="leaf-center" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#a8df67"/>
+      <stop offset="1" stop-color="#68bd4b"/>
     </linearGradient>
-    <radialGradient id="s2a-ambient" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(168 92) rotate(51) scale(342 382)">
-      <stop stop-color="#3E68B0" stop-opacity=".28"/>
-      <stop offset="1" stop-color="#3E68B0" stop-opacity="0"/>
-    </radialGradient>
-    <linearGradient id="s2a-brand" x1="4" y1="4" x2="20" y2="20" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#79F4BD"/>
-      <stop offset=".48" stop-color="#39D9E7"/>
-      <stop offset="1" stop-color="#3875F6"/>
+    <linearGradient id="leaf-side" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7fce56"/>
+      <stop offset="1" stop-color="#43a34d"/>
     </linearGradient>
-    <filter id="s2a-shadow" x="-25%" y="-25%" width="150%" height="165%" color-interpolation-filters="sRGB">
-      <feDropShadow dx="0" dy=".55" stdDeviation=".65" flood-color="#020817" flood-opacity=".34"/>
-    </filter>
+    <linearGradient id="stem" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f8ffe9"/>
+      <stop offset="1" stop-color="#dff1bf"/>
+    </linearGradient>
   </defs>
 
-  <rect x="16" y="16" width="480" height="480" rx="120" fill="url(#s2a-bg)"/>
-  <rect x="16" y="16" width="480" height="480" rx="120" fill="url(#s2a-ambient)"/>
-  <rect x="16.75" y="16.75" width="478.5" height="478.5" rx="119.25" fill="none" stroke="#A5BFFF" stroke-opacity=".16" stroke-width="1.5"/>
+  <path d="M91 70C66 52 37 68 32 94c-5 27 10 45 30 52-13 19-5 46 18 55 16 6 32-1 43-15L91 70Z" fill="url(#leaf-side)" stroke="#337c42" stroke-width="7" stroke-linejoin="round"/>
+  <path d="M165 69c25-18 54-2 59 24 5 27-10 46-30 53 13 19 5 45-18 54-16 6-32 0-43-14l32-117Z" fill="url(#leaf-side)" stroke="#337c42" stroke-width="7" stroke-linejoin="round"/>
+  <path d="M128 20c-31 0-55 21-55 51 0 10-9 15-11 28-3 19 8 31 23 40 1 14 6 24 16 33h54c10-9 15-19 16-33 15-9 26-21 23-40-2-13-11-18-11-28 0-30-24-51-55-51Z" fill="url(#leaf-center)" stroke="#337c42" stroke-width="7" stroke-linejoin="round"/>
 
-  <g transform="translate(52 52) scale(17)" fill="none" stroke="url(#s2a-brand)" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.7" filter="url(#s2a-shadow)">
-    <path d="m19.25 7.65-2.55-3.2a1.33 1.33 0 0 0-1.03-.5H8.58c-.34 0-.67.13-.91.37L4.15 7.65c-.93.88-.6 1.52.65 2.3l9.55 5.97"/>
-    <path d="m4.75 16.35 2.55 3.2c.25.31.63.5 1.03.5h7.09c.34 0 .67-.13.91-.37l3.52-3.33c.93-.88.6-1.52-.65-2.3L9.65 8.08"/>
-  </g>
+  <path d="M78 116c9 19 13 36 11 56-1 12-7 25-3 37 5 16 20 24 42 24V135c-25-6-37-12-50-19Z" fill="url(#stem)" stroke="#337c42" stroke-width="7" stroke-linejoin="round"/>
+  <path d="M178 116c-9 19-13 36-11 56 1 12 7 25 3 37-5 16-20 24-42 24v-98c25-6 37-12 50-19Z" fill="url(#stem)" stroke="#337c42" stroke-width="7" stroke-linejoin="round"/>
+  <path d="M128 61v173M101 73c4 20 14 31 27 39m27-39c-4 20-14 31-27 39M54 101c9 10 19 17 31 21m117-21c-9 10-19 17-31 21" fill="none" stroke="#439d49" stroke-width="6" stroke-linecap="round"/>
+  <path d="M94 155c10 21 18 41 34 78m34-78c-10 21-18 41-34 78" fill="none" stroke="#cce8a7" stroke-width="6" stroke-linecap="round"/>
+  <path d="M95 45c8-10 18-15 29-16" fill="none" stroke="#d0ee91" stroke-width="7" stroke-linecap="round" opacity=".8"/>
 </svg>
