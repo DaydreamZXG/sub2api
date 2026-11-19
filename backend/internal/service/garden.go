@@ -27,6 +27,7 @@ const (
 
 var (
 	ErrGardenSettingsInvalid = infraerrors.BadRequest("GARDEN_SETTINGS_INVALID", "invalid garden settings")
+	ErrGardenGiftInvalid     = infraerrors.BadRequest("GARDEN_GIFT_INVALID", "the crop must be above 0 and within the limit")
 	ErrGardenCropNotFound    = infraerrors.NotFound("GARDEN_CROP_NOT_FOUND", "crop not found")
 	ErrGardenCropNotRipe     = infraerrors.Conflict("GARDEN_CROP_NOT_RIPE", "crop is not ripe yet")
 )
@@ -227,6 +228,39 @@ func (s *GardenService) UprootForOrder(ctx context.Context, userID, orderID int6
 }
 
 // GrowingForOrder reports what the order's growing crop still holds: balance a refund of the order can count on.
+// GiftCrop plants a crop the site gives the user, for a post, a promotion or any other campaign.
+// It works while the garden is closed too: crops already planted can always be harvested.
+func (s *GardenService) GiftCrop(ctx context.Context, userID int64, amount float64) error {
+	if math.IsNaN(amount) || amount <= 0 || amount > GardenMaxGiftAmount {
+		return ErrGardenGiftInvalid
+	}
+	settings := s.Settings(ctx)
+	return s.repo.PlantGift(ctx, userID, amount, time.Duration(settings.RipenHours*float64(time.Hour)))
+}
+
+// PlantInviteReward gives the inviter of the user who paid the order a crop, once per invited user and only for
+// that user's first paid order. It reports whether a crop was planted.
+func (s *GardenService) PlantInviteReward(ctx context.Context, inviteeID, orderID int64) (bool, error) {
+	if s == nil || s.repo == nil {
+		return false, nil
+	}
+	settings := s.Settings(ctx)
+	if !settings.Enabled || settings.InviteCropAmount <= 0 {
+		return false, nil
+	}
+	inviterID, err := s.repo.PlantInviteReward(ctx, inviteeID, orderID, settings.InviteCropAmount,
+		time.Duration(settings.RipenHours*float64(time.Hour)))
+	return inviterID > 0, err
+}
+
+// RemoveInviteRewardForOrder takes back the invite crop a refunded order earned, while it is still growing.
+func (s *GardenService) RemoveInviteRewardForOrder(ctx context.Context, orderID int64) error {
+	if s == nil || s.repo == nil {
+		return nil
+	}
+	return s.repo.RemoveInviteReward(ctx, orderID)
+}
+
 func (s *GardenService) GrowingForOrder(ctx context.Context, orderID int64) (float64, error) {
 	if s == nil || s.repo == nil {
 		return 0, nil

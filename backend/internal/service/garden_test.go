@@ -14,8 +14,28 @@ type fakeGardenRepo struct {
 	ripenAfter time.Duration
 	crop       *GardenCrop
 	growing    float64
+	// gifts are {user, amount} of crops the site gave; inviters maps an invitee to their inviter.
+	gifts      [][2]float64
+	inviters   map[int64]int64
+	rewarded   map[int64]bool
 	growingErr error
 }
+
+func (r *fakeGardenRepo) PlantGift(_ context.Context, userID int64, amount float64, _ time.Duration) error {
+	r.gifts = append(r.gifts, [2]float64{float64(userID), amount})
+	return nil
+}
+
+func (r *fakeGardenRepo) PlantInviteReward(_ context.Context, inviteeID, _ int64, amount float64, _ time.Duration) (int64, error) {
+	if r.inviters[inviteeID] == 0 || r.rewarded[inviteeID] {
+		return 0, nil
+	}
+	r.rewarded[inviteeID] = true
+	r.gifts = append(r.gifts, [2]float64{float64(r.inviters[inviteeID]), amount})
+	return r.inviters[inviteeID], nil
+}
+
+func (r *fakeGardenRepo) RemoveInviteReward(context.Context, int64) error { return nil }
 
 func (r *fakeGardenRepo) GrowingForOrder(context.Context, int64) (float64, error) {
 	return r.growing, r.growingErr
