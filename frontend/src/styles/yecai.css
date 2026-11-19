@@ -1,0 +1,44 @@
+/* Design tokens for the redesigned user-facing pages: ink + lime, follows the `dark` class. */
+.yc {
+  --yc-bg: #fafaf7;
+  --yc-paper: #ffffff;
+  --yc-ink: #0b0f0c;
+  --yc-mut: #565d58;
+  --yc-dim: #8b918c;
+  --yc-line: rgb(11 15 12 / 0.1);
+  --yc-fill: rgb(11 15 12 / 0.045);
+  --yc-lime: #c8ff00;
+  --yc-on-lime: #0b0f0c;
+  --yc-ok: #0f8043;
+  background: var(--yc-bg);
+  color: var(--yc-ink);
+  font-feature-settings: 'tnum';
+  -webkit-font-smoothing: antialiased;
+}
+.dark .yc {
+  --yc-bg: #06090a;
+  --yc-paper: #0c1113;
+  --yc-ink: #f4f6f1;
+  --yc-mut: rgb(244 246 241 / 0.68);
+  --yc-dim: rgb(244 246 241 / 0.42);
+  --yc-line: rgb(244 246 241 / 0.11);
+  --yc-fill: rgb(244 246 241 / 0.055);
+  --yc-ok: #7dffb0;
+}
+.yc-wrap { width: 100%; max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+.yc-mark { background: linear-gradient(transparent 58%, var(--yc-lime) 58%, var(--yc-lime) 94%, transparent 94%); padding: 0 0.08em; }
+.dark .yc .yc-mark { background: none; color: var(--yc-lime); padding: 0; }
+.yc-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 46px; padding: 0 24px; border-radius: 999px; font-weight: 650; font-size: 15px; white-space: nowrap; transition: transform 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease; }
+.yc-btn:active { transform: scale(0.97); }
+.yc-btn-lime { background: var(--yc-lime); color: var(--yc-on-lime); box-shadow: inset 0 0 0 1px rgb(11 15 12 / 0.9); }
+.dark .yc .yc-btn-lime { box-shadow: none; }
+.yc-btn-lime:hover { box-shadow: inset 0 0 0 1px rgb(11 15 12 / 0.9), 0 6px 0 -1px var(--yc-ink); transform: translateY(-3px); }
+.dark .yc .yc-btn-lime:hover { box-shadow: 0 0 32px rgb(200 255 0 / 0.35); }
+.yc-btn-ghost { color: var(--yc-ink); box-shadow: inset 0 0 0 1px var(--yc-line); }
+.yc-btn-ghost:hover { background: var(--yc-fill); }
+.yc-btn-sm { height: 36px; padding: 0 16px; font-size: 14px; }
+.yc-eyebrow { font-size: 12.5px; font-weight: 650; letter-spacing: 0.14em; text-transform: uppercase; color: var(--yc-mut); }
+.yc-h2 { font-size: clamp(28px, 4vw, 44px); line-height: 1.12; letter-spacing: -0.03em; font-weight: 750; text-wrap: balance; }
+.yc-card { background: var(--yc-paper); border: 1px solid var(--yc-line); border-radius: 20px; }
+.yc :focus-visible { outline: 2px solid var(--yc-ink); outline-offset: 3px; border-radius: 6px; }
+.dark .yc :focus-visible { outline-color: var(--yc-lime); }
