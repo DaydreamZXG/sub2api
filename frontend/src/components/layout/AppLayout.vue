@@ -1,5 +1,5 @@
 <template>
-  <!-- User-facing pages share the redesigned sidebar; the admin console keeps the original layout. -->
+  <!-- User-facing pages share the redesigned sidebar; the admin console keeps its own layout. -->
   <YcLegacyPage v-if="!isAdminPage"><slot /></YcLegacyPage>
   <div v-else class="min-h-screen bg-gray-50 dark:bg-dark-950">
     <!-- Background Decoration -->

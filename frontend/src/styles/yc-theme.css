@@ -1,24 +1,21 @@
 /*
- * The accent palette behind Tailwind's `primary-*` utilities.
- * The admin console keeps the original teal; every other page carries `yc-theme` on <html>
- * (set in the router) and gets ink with lime, matching the redesigned pages.
+ * The palette behind Tailwind's `primary-*` and `dark-*` utilities: ink with highlighter lime
+ * on neutral near-black surfaces. <html> carries `yc-theme` (see index.html), so every page,
+ * the admin console included, shares it.
  */
-:root {
-  --primary-50: 240 253 250;
-  --primary-100: 204 251 241;
-  --primary-200: 153 246 228;
-  --primary-300: 94 234 212;
-  --primary-400: 45 212 191;
-  --primary-500: 20 184 166;
-  --primary-600: 13 148 136;
-  --primary-700: 15 118 110;
-  --primary-800: 17 94 89;
-  --primary-900: 19 78 74;
-  --primary-950: 4 47 46;
-}
-
 /* Light: tints are highlighter lime, solid fills and text are ink. */
 .yc-theme {
+  --dark-50: 248 249 245;
+  --dark-100: 240 242 237;
+  --dark-200: 225 228 223;
+  --dark-300: 196 201 197;
+  --dark-400: 148 155 152;
+  --dark-500: 100 108 106;
+  --dark-600: 58 66 68;
+  --dark-700: 36 43 45;
+  --dark-800: 22 28 30;
+  --dark-900: 12 17 19;
+  --dark-950: 6 9 10;
   --primary-50: 248 255 219;
   --primary-100: 240 255 179;
   --primary-200: 225 250 130;
@@ -60,3 +57,15 @@
 }
 .yc-theme.dark .btn-primary { box-shadow: none; }
 .yc-theme.dark .btn-primary:hover:not(:disabled) { box-shadow: 0 0 28px rgb(200 255 0 / 0.35); }
+
+/* The YESCHOY wordmark that sits with the default site name. */
+.yc-wordmark {
+  font-style: normal;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  background: linear-gradient(90deg, #5f9e00, #14a37f 55%, #1787c2);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.dark .yc-wordmark { background-image: linear-gradient(90deg, #d2ff3a, #6cf59a 55%, #22d3ee); }

@@ -3,7 +3,7 @@
     <img :src="logo || '/logo.svg'" alt="" />
     <span class="yc-lockup-text">
       <b>{{ name }}</b>
-      <i v-if="wordmark">{{ wordmark }}</i>
+      <i v-if="wordmark" class="yc-wordmark">{{ wordmark }}</i>
     </span>
   </span>
 </template>
@@ -36,16 +36,8 @@ const logo = computed(() =>
 .yc-lockup b { font-size: 17px; font-weight: 800; letter-spacing: 0.02em; color: var(--yc-ink); }
 .yc-lockup i {
   margin-top: 3px;
-  font-style: normal;
   font-size: 9.5px;
-  font-weight: 800;
-  letter-spacing: 0.2em;
-  background: linear-gradient(90deg, #5f9e00, #14a37f 55%, #1787c2);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
 }
-:global(.dark) .yc-lockup i { background-image: linear-gradient(90deg, #d2ff3a, #6cf59a 55%, #22d3ee); }
 
 .yc-lockup.is-stacked { flex-direction: column; gap: 14px; }
 .yc-lockup.is-stacked img { width: 64px; height: 64px; border-radius: 18px; }
