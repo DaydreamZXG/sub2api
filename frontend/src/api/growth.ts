@@ -21,6 +21,8 @@ export interface MyGrowth extends GrowthLevels {
   /** Index into `levels`, or -1 when growth levels are off. */
   level_index: number
   total_recharged: number
+  /** An admin set this user's own price on an app line; it replaces the level discount there. */
+  manual_price?: boolean
 }
 
 export async function getMyGrowth(): Promise<MyGrowth> {

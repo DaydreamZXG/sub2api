@@ -35,7 +35,7 @@
         </template>
         <template v-else>{{ t('yc.growth.top') }}</template>
       </p>
-      <p class="yc-growth-note">{{ t('yc.growth.note') }}</p>
+      <p class="yc-growth-note">{{ t(growth.manual_price ? 'yc.growth.manual' : 'yc.growth.note') }}</p>
     </div>
   </section>
 </template>

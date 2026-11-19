@@ -383,7 +383,7 @@ export default {
       threshold: 'Total top-ups reached (balance)',
       discount: 'Extra off the app price (%)',
       add: 'Add a level',
-      rules: 'The first level starts at 0. Levels follow total top-ups, so they never drop. A price you set for one user on a line still wins. Changes take effect within about a minute.',
+      rules: 'The first level starts at 0. Total top-ups include paid orders, redeem codes, affiliate transfers and balance you add by hand; refunds are taken back off, so a level can drop after a refund. A user with their own price on a line pays that price and gets no level discount there. Changes take effect within about a minute.',
       errorName: 'Every level needs a name',
       errorThreshold: 'Each level needs a higher total than the one before',
       errorDiscount: 'The discount must be between 0 and 90',

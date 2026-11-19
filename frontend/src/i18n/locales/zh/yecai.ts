@@ -184,7 +184,8 @@ export default {
     off: 'app 价再减 {percent}%',
     next: '再充 {amount} 长到「{name}」，app 价再减 {percent}%',
     top: '已经是最高一级了',
-    note: '按累计充值升级，只升不降；折扣只在用 app 接入时生效。'
+    note: '按累计充值升级，退款的部分不算；折扣只在用 app 接入时生效。',
+    manual: '你的 app 价是单独定的，不再叠加等级折扣。'
   },
   theme: { label: '外观', light: '浅色', dark: '深色', system: '跟随系统' },
   prices: {
