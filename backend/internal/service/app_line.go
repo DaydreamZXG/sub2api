@@ -61,6 +61,25 @@ func (s *APIKeyService) AppLineGroupForUser(ctx context.Context, group *Group, u
 	return &discounted
 }
 
+// AppLineRatesForUser returns the growth-level price of each app-only group in groups for this user,
+// keyed by group ID. Groups without a discount are left out. It is for display: billing uses AppLineGroupForUser.
+func (s *APIKeyService) AppLineRatesForUser(ctx context.Context, userID int64, groups []*Group) map[int64]float64 {
+	if s.growthLevels == nil || !s.growthLevels.Get(ctx).Enabled {
+		return nil
+	}
+	user, err := s.userRepo.GetByID(ctx, userID)
+	if err != nil {
+		return nil
+	}
+	rates := map[int64]float64{}
+	for _, group := range groups {
+		if discounted := s.AppLineGroupForUser(ctx, group, user); discounted != group {
+			rates[group.ID] = discounted.RateMultiplier
+		}
+	}
+	return rates
+}
+
 // AppFallbackGroupUsable reports whether group can serve requests that an app-only line turns away.
 func AppFallbackGroupUsable(group *Group) bool {
 	return group != nil && group.IsActive() && !group.IsSubscriptionType() && !group.AppOnly

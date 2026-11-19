@@ -152,6 +152,24 @@ func (h *ModelPlazaHandler) Get(c *gin.Context) {
 	}
 
 	visible := filterPlazaVisibleGroups(groups, allowedGroups, restrictPublicGroups)
+	if authed {
+		// 种菜线路按用户的成长等级显示价格；管理员给这个用户单独定的价优先（计费也是这个顺序）。
+		appLines := make([]*service.Group, 0, len(visible))
+		for i := range visible {
+			if visible[i].AppOnly {
+				appLines = append(appLines, &service.Group{ID: visible[i].ID, AppOnly: true, RateMultiplier: visible[i].RateMultiplier})
+			}
+		}
+		for groupID, rate := range h.apiKeyService.AppLineRatesForUser(c.Request.Context(), subject.UserID, appLines) {
+			if _, manual := userRates[groupID]; manual {
+				continue
+			}
+			if userRates == nil {
+				userRates = map[int64]float64{}
+			}
+			userRates[groupID] = rate
+		}
+	}
 
 	// 广场可匿名访问，分组文案随请求语言变化，提示中间缓存按语言区分。
 	// 追加而非覆盖：CORS 中间件已为具体来源写入 Vary: Origin。
