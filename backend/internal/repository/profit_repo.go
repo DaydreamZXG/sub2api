@@ -20,7 +20,9 @@ const profitHourlyUpsertSQL = `
 		-- Only the users charged in these hours: this runs every minute.
 		SELECT DISTINCT user_id FROM usage_logs WHERE created_at >= $1 AND created_at < $2
 	), paid AS (
-		SELECT user_id, SUM(GREATEST(amount - bonus_amount - refund_amount, 0)) AS amount
+		-- refund_amount is filled in when a refund is asked for; the money has left only once it went through.
+		SELECT user_id, SUM(GREATEST(amount - bonus_amount
+			- CASE WHEN status IN ('PARTIALLY_REFUNDED', 'REFUNDED') THEN refund_amount ELSE 0 END, 0)) AS amount
 		FROM payment_orders
 		WHERE order_type = 'balance' AND user_id IN (SELECT user_id FROM active)
 			AND status IN ('COMPLETED', 'REFUND_REQUESTED', 'REFUNDING', 'REFUND_PENDING', 'PARTIALLY_REFUNDED', 'REFUNDED', 'REFUND_FAILED')
