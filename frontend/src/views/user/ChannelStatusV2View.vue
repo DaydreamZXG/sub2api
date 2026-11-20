@@ -1,6 +1,6 @@
 <template>
   <AppLayout>
-    <div class="space-y-6 pb-12">
+    <div class="ycv space-y-5 pb-12">
       <!-- Ops-style elevated shell: title toolbar + filters (mirrors OpsDashboardHeader) -->
       <section
         class="card sticky top-0 z-20 !rounded-3xl !border-0 p-0 shadow-sm ring-1 ring-gray-900/5 backdrop-blur-sm dark:!bg-dark-800 dark:ring-dark-700 supports-[backdrop-filter]:bg-white/95 dark:supports-[backdrop-filter]:bg-dark-800/95"
@@ -961,4 +961,34 @@ onBeforeUnmount(() => {
 details > summary::-webkit-details-marker {
   display: none;
 }
+
+/*
+ * A skin over the shared monitor markup so this page matches the other user pages.
+ * The class names stay as they are: the admin page uses the same components.
+ */
+.ycv :deep(.card),
+.ycv :deep(.stat-card) { border: 1px solid var(--yc-line) !important; border-radius: 22px !important; background: var(--yc-paper) !important; box-shadow: none !important; backdrop-filter: none !important; }
+.ycv :deep(.card-header),
+.ycv :deep(.page-header),
+.ycv :deep(.border-b) { border-color: var(--yc-line) !important; }
+.ycv :deep(.page-title) { color: var(--yc-ink) !important; font-weight: 760; }
+.ycv :deep(.page-title > span) { background: var(--yc-ink) !important; color: var(--yc-lime) !important; }
+.ycv :deep(.stat-label) { font-size: 12px !important; font-weight: 500 !important; letter-spacing: 0 !important; text-transform: none !important; color: var(--yc-mut) !important; }
+.ycv :deep(.tabs) { padding: 3px; border-radius: 999px; background: var(--yc-fill) !important; }
+.ycv :deep(.tab) { border-radius: 999px !important; background: transparent; box-shadow: none !important; color: var(--yc-mut) !important; }
+.ycv :deep(.tab:hover) { color: var(--yc-ink) !important; }
+.ycv :deep(.tab-active),
+.ycv :deep(.tab-active:hover) { background: var(--yc-ink) !important; color: var(--yc-paper) !important; font-weight: 650; }
+.ycv :deep(.btn-secondary),
+.ycv :deep(.btn-ghost) { border: 1px solid var(--yc-line) !important; border-radius: 999px !important; background: transparent !important; box-shadow: none !important; color: var(--yc-ink) !important; }
+.ycv :deep(.btn-secondary:not(:disabled):hover),
+.ycv :deep(.btn-ghost:not(:disabled):hover) { background: var(--yc-fill) !important; }
+.ycv :deep(.badge-primary),
+.ycv :deep(.badge-warning) { border-radius: 999px; }
+/* The toolbar wraps instead of scrolling sideways, so no control is cut off. */
+.ycv .monitor-toolbar { flex-wrap: wrap; overflow: visible; row-gap: 8px; }
+.ycv :deep(.table-container) { border-radius: 16px; }
+.ycv :deep(.table th) { background: var(--yc-fill) !important; color: var(--yc-mut) !important; font-weight: 600; letter-spacing: 0; text-transform: none; }
+.ycv :deep(.table td) { border-color: var(--yc-line) !important; color: var(--yc-ink); }
+.ycv :deep(.table tbody tr:hover) { background: var(--yc-fill) !important; }
 </style>
