@@ -1,12 +1,4 @@
-import { createApp } from 'vue'
-import { createPinia } from 'pinia'
-import App from './App.vue'
-import router from './router'
-import i18n, { initI18n } from './i18n'
-import { useAppStore } from '@/stores/app'
-import { updateFavicon } from '@/utils/branding'
 import { isIOSDevice } from '@/utils/device'
-import { ycSiteName } from '@/utils/ycBrand'
 import './style.css'
 import './styles/yc-theme.css'
 
@@ -38,7 +30,7 @@ async function bootstrap() {
   initIOSViewportZoomFix()
 
   // On the resellers' client domain the server sends its own small config: only the client pages
-  // run there, with none of the main site's routes, stores or API calls.
+  // run there. The site itself is a separate chunk, so none of its code is loaded on that domain.
   const injected = window.__APP_CONFIG__ as unknown as { portal?: boolean } | undefined
   if (injected?.portal === true) {
     const { mountPortal } = await import('./portal/mount')
@@ -46,27 +38,8 @@ async function bootstrap() {
     return
   }
 
-  const app = createApp(App)
-  const pinia = createPinia()
-  app.use(pinia)
-
-  // Initialize settings from injected config BEFORE mounting (prevents flash)
-  // This must happen after pinia is installed but before router and i18n
-  const appStore = useAppStore()
-  appStore.initFromInjectedConfig()
-
-  // Set document title immediately after config is loaded
-  document.title = `${ycSiteName(appStore.siteName)} - AI API Gateway`
-  updateFavicon(appStore.siteLogo)
-
-  await initI18n()
-
-  app.use(router)
-  app.use(i18n)
-
-  // 等待路由器完成初始导航后再挂载，避免竞态条件导致的空白渲染
-  await router.isReady()
-  app.mount('#app')
+  const { bootstrapMainApp } = await import('./mainApp')
+  await bootstrapMainApp()
 }
 
 bootstrap()

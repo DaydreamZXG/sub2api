@@ -264,7 +264,7 @@ onMounted(() => {
 
 <style scoped>
 .pt { --pt-bg: #f6f7f9; --pt-paper: #fff; --pt-ink: #14171c; --pt-mut: #5b6470; --pt-line: rgb(20 23 28 / 0.1); --pt-fill: rgb(20 23 28 / 0.05); --pt-accent: #2f5bea; --pt-on-accent: #fff; --pt-warn: #b45309; min-height: 100vh; background: var(--pt-bg); color: var(--pt-ink); font-family: system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased; }
-:global(.dark) .pt { --pt-bg: #0e1116; --pt-paper: #161a21; --pt-ink: #eef1f5; --pt-mut: rgb(238 241 245 / 0.66); --pt-line: rgb(238 241 245 / 0.12); --pt-fill: rgb(238 241 245 / 0.07); --pt-accent: #7f9cff; --pt-on-accent: #0e1116; --pt-warn: #fbbf24; }
+.dark .pt { --pt-bg: #0e1116; --pt-paper: #161a21; --pt-ink: #eef1f5; --pt-mut: rgb(238 241 245 / 0.66); --pt-line: rgb(238 241 245 / 0.12); --pt-fill: rgb(238 241 245 / 0.07); --pt-accent: #7f9cff; --pt-on-accent: #0e1116; --pt-warn: #fbbf24; }
 .pt-top { display: flex; align-items: center; justify-content: space-between; gap: 16px; max-width: 880px; margin: 0 auto; padding: 20px 20px 0; }
 .pt-brand { display: flex; align-items: center; gap: 10px; min-width: 0; font-size: 18px; }
 .pt-brand img { width: 28px; height: 28px; border-radius: 6px; object-fit: contain; }
@@ -291,7 +291,7 @@ onMounted(() => {
 .pt-mid { margin-top: 2px; font-size: 26px; font-weight: 740; }
 .pt-chip { padding: 3px 12px; border-radius: 999px; background: var(--pt-fill); color: var(--pt-mut); font-size: 13px; font-weight: 600; white-space: nowrap; }
 .pt-chip.is-active { background: color-mix(in srgb, #16a34a 16%, transparent); color: #15803d; }
-:global(.dark) .pt-chip.is-active { color: #86efac; }
+.dark .pt-chip.is-active { color: #86efac; }
 .pt-bar { height: 8px; margin-top: 16px; border-radius: 999px; background: var(--pt-fill); overflow: hidden; }
 .pt-bar i { display: block; height: 100%; border-radius: 999px; background: var(--pt-accent); }
 .pt-two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
