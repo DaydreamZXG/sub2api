@@ -110,6 +110,7 @@ export default {
     appKeyNote: '这把密钥在“仅 app”的线路上：通过桌面助手使用才是 app 价，复制到别的工具里会按普通价扣费，或者不能用。',
     appConnectFailed: '连接失败，请稍后再试。',
     copyTitle: '或者，复制一段命令',
+    toolGuide: '按工具看教程',
     pickKey: '选一把密钥',
     loading: '正在读取你的密钥…',
     newKey: '新建一把密钥',

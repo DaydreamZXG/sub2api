@@ -77,6 +77,7 @@
           </template>
           <p class="yc-note yc-step-more">
             <button type="button" class="yc-link" @click="guide = true">{{ t(snippet ? 'yc.connect.fullGuide' : 'yc.connect.openGuide') }}</button>
+            <router-link to="/help/guide" class="yc-link yc-step-guide">{{ t('yc.connect.toolGuide') }} →</router-link>
           </p>
         </div>
       </template>
@@ -140,7 +141,8 @@ const hasAppLine = computed(() => groups.value.some((g) => g.app_only))
 const manualGroups = computed(() => groups.value.filter((g) => !g.app_only))
 const loading = ref(true)
 const creating = ref(false)
-const keyId = ref<number | null>(null)
+// The keys page links here with ?key=<id> so the visitor lands on the key they clicked.
+const keyId = ref<number | null>(Number(new URLSearchParams(window.location.search).get('key')) || null)
 const guide = ref(false)
 
 const clientPlatform = detectYcClientPlatform()
@@ -250,6 +252,7 @@ async function connectApp() {
 .yc-opt small { font-size: 12px; font-weight: 500; opacity: 0.7; }
 .yc-opt-new { box-shadow: inset 0 0 0 1px var(--yc-dim); border-style: dashed; }
 .yc-step-more { margin-top: 14px; }
+.yc-step-guide { margin-left: 16px; }
 .yc-manual summary { cursor: pointer; font-size: 16px; font-weight: 650; list-style: none; }
 .yc-manual summary::after { content: '+'; float: right; color: var(--yc-dim); font-weight: 400; }
 .yc-manual[open] summary::after { content: '−'; }

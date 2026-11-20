@@ -227,6 +227,8 @@ const mountView = async () => {
   const wrapper = mount(KeysView, {
     global: {
       stubs: {
+        teleport: true,
+        RouterLink: { props: ['to'], template: '<a :data-to="JSON.stringify(to)"><slot /></a>' },
         AppLayout: AppLayoutStub,
         TablePageLayout: TablePageLayoutStub,
         DataTable: DataTableStub,
@@ -312,6 +314,7 @@ describe('user KeysView column settings', () => {
     listKeys.mockResolvedValueOnce({ items: [key], total: 1, page: 1, page_size: 20, pages: 1 })
     updateKey.mockResolvedValue({ ...key, status, quota_used: 0 })
     const wrapper = await mountView()
+    await wrapper.get('[data-test="key-more"]').trigger('click')
     await getButtonByText(wrapper, 'common.edit').trigger('click')
     await wrapper.get('[data-tour="key-form-name"]').setValue('Unsaved name')
     const statusSelect = wrapper.findAllComponents({ name: 'Select' })
@@ -334,6 +337,48 @@ describe('user KeysView column settings', () => {
     await wrapper.get('#key-form').trigger('submit')
     await flushPromises()
     expect(updateKey).toHaveBeenNthCalledWith(2, key.id, expect.objectContaining({ name: 'Unsaved name', status: formStatus }))
+    wrapper.unmount()
+  })
+
+  it('sends an active key to the connect page and offers nothing to connect for a disabled one', async () => {
+    const wrapper = await mountView()
+    expect(JSON.parse(wrapper.get('[data-test="key-connect"]').attributes('data-to')!))
+      .toEqual({ path: '/connect', query: { key: '1' } })
+    wrapper.unmount()
+
+    listKeys.mockResolvedValueOnce({ items: [{ ...createApiKey(), status: 'inactive' }], total: 1, page: 1, page_size: 20, pages: 1 })
+    const disabled = await mountView()
+    expect(disabled.get('[data-test="key-connect"]').attributes('disabled')).toBeDefined()
+    disabled.unmount()
+  })
+
+  it('keeps command-line setup, disable, edit and delete in the more menu and closes it once one is chosen', async () => {
+    const wrapper = await mountView()
+    expect(wrapper.find('[data-test="key-delete"]').exists()).toBe(false)
+
+    await wrapper.get('[data-test="key-more"]').trigger('click')
+    expect(wrapper.get('[role="menu"]').findAll('[role="menuitem"]').map((item) => item.attributes('data-test')))
+      .toEqual(['key-manual', 'key-toggle', 'key-edit', 'key-delete'])
+
+    await wrapper.get('[data-test="key-delete"]').trigger('click')
+    expect(wrapper.find('[role="menu"]').exists()).toBe(false)
+    expect(wrapper.findAllComponents({ name: 'ConfirmDialog' }).some((dialog) => dialog.props('show'))).toBe(true)
+    wrapper.unmount()
+  })
+
+  it('closes the more menu on Escape and on a click elsewhere', async () => {
+    const wrapper = await mountView()
+    const more = wrapper.get('[data-test="key-more"]')
+
+    await more.trigger('click')
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
+    await flushPromises()
+    expect(wrapper.find('[role="menu"]').exists()).toBe(false)
+
+    await more.trigger('click')
+    document.body.click()
+    await flushPromises()
+    expect(wrapper.find('[role="menu"]').exists()).toBe(false)
     wrapper.unmount()
   })
 
@@ -652,6 +697,7 @@ describe('user KeysView column settings', () => {
       expect(optionIds(wrapper)).toEqual([1])
       expect(groupSelect(wrapper).props('modelValue')).toBeNull()
       await wrapper.get('[data-test="close-dialog"]').trigger('click')
+      await wrapper.get('[data-test="key-more"]').trigger('click')
       await getButtonByText(wrapper, 'common.edit').trigger('click')
       expect(wrapper.find('[data-tour="key-form-provider"]').exists()).toBe(false)
       expect(optionIds(wrapper)).toHaveLength(12)

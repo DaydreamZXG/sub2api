@@ -110,6 +110,7 @@ export default {
     appKeyNote: 'This key is on an app-only line: it gets the app price through the desktop assistant. Pasted into another tool it pays the normal price, or does not work.',
     appConnectFailed: 'Could not connect. Please try again later.',
     copyTitle: 'Or copy one command',
+    toolGuide: 'Step-by-step guide for your tool',
     pickKey: 'Pick a key',
     loading: 'Loading your keys…',
     newKey: 'Create a key',

@@ -2,6 +2,8 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { connectDeepLink } from '@/api/desktop'
+import { keysAPI } from '@/api/keys'
+import type { ApiKey } from '@/types'
 import YcConnectView from '../YcConnectView.vue'
 
 const { issueConnectCode, stationOrigin, openDesktopApp, showError, showInfo } = vi.hoisted(() => ({
@@ -78,5 +80,30 @@ describe('YcConnectView connect to app', () => {
     expect(connectDeepLink({ code: 'abc-DEF_123', origin: 'https://yeschoy.test' })).toBe(
       'yeschoy://connect?origin=https%3A%2F%2Fyeschoy.test&code=abc-DEF_123'
     )
+  })
+})
+
+describe('YcConnectView key from the keys page', () => {
+  const keyNamed = (id: number, name: string) => ({ id, name, key: `sk-${name}`, status: 'active', group: null }) as unknown as ApiKey
+  const selected = async (search: string) => {
+    window.history.replaceState({}, '', `/connect${search}`)
+    vi.mocked(keysAPI.list).mockResolvedValueOnce({ items: [keyNamed(1, 'first'), keyNamed(2, 'second')] } as never)
+    const wrapper = mount(YcConnectView, {
+      global: { stubs: { YcShell: { template: '<div><slot /></div>' }, UseKeyModal: true } }
+    })
+    await flushPromises()
+    const name = wrapper.get('.yc-opt.is-on').text()
+    wrapper.unmount()
+    window.history.replaceState({}, '', '/')
+    return name
+  }
+
+  it('starts on the key named in ?key=', async () => {
+    expect(await selected('?key=2')).toBe('second')
+  })
+
+  it('starts on the first key when ?key= is missing or names a key that is not listed', async () => {
+    expect(await selected('')).toBe('first')
+    expect(await selected('?key=99')).toBe('first')
   })
 })

@@ -400,53 +400,44 @@
           </template>
 
           <template #cell-actions="{ row }">
-            <div class="flex items-center gap-1">
-              <!-- Use Key Button -->
-              <button
-                @click="openUseKeyModal(row)"
-                class="flex flex-col items-center gap-0.5 rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-green-50 hover:text-green-600 dark:hover:bg-green-900/20 dark:hover:text-green-400"
+            <div class="flex items-center gap-2">
+              <router-link
+                v-if="row.status === 'active'"
+                data-test="key-connect"
+                class="btn btn-primary btn-sm whitespace-nowrap"
+                :to="{ path: '/connect', query: { key: String(row.id) } }"
               >
-                <Icon name="terminal" size="sm" />
-                <span class="text-xs">{{ t('keys.useKey') }}</span>
+                {{ t('yc.connect.title') }}
+              </router-link>
+              <button
+                v-else
+                data-test="key-connect"
+                class="btn btn-primary btn-sm whitespace-nowrap"
+                disabled
+                :title="t('keys.connectNeedsActive')"
+              >
+                {{ t('yc.connect.title') }}
               </button>
-              <!-- Import to CC Switch Button -->
               <button
                 v-if="!publicSettings?.hide_ccs_import_button"
+                data-test="key-ccs"
+                class="btn btn-secondary btn-sm whitespace-nowrap"
                 @click="importToCcswitch(row)"
-                class="flex flex-col items-center gap-0.5 rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-900/20 dark:hover:text-blue-400"
               >
                 <Icon name="upload" size="sm" />
-                <span class="text-xs">{{ t('keys.importToCcSwitch') }}</span>
+                {{ t('keys.importToCcSwitch') }}
               </button>
-              <!-- Toggle Status Button -->
               <button
-                @click="toggleKeyStatus(row)"
-                :class="[
-                  'flex flex-col items-center gap-0.5 rounded-lg p-1.5 transition-colors',
-                  row.status === 'active'
-                    ? 'text-gray-500 hover:bg-yellow-50 hover:text-yellow-600 dark:hover:bg-yellow-900/20 dark:hover:text-yellow-400'
-                    : 'text-gray-500 hover:bg-green-50 hover:text-green-600 dark:hover:bg-green-900/20 dark:hover:text-green-400'
-                ]"
+                data-test="key-more"
+                class="action-menu-trigger btn btn-ghost btn-sm px-2"
+                :class="{ 'bg-gray-100 dark:bg-dark-800': activeMenuId === row.id }"
+                :aria-label="t('common.more')"
+                :title="t('common.more')"
+                aria-haspopup="menu"
+                :aria-expanded="activeMenuId === row.id"
+                @click="openActionMenu(row, $event)"
               >
-                <Icon v-if="row.status === 'active'" name="ban" size="sm" />
-                <Icon v-else name="checkCircle" size="sm" />
-                <span class="text-xs">{{ row.status === 'active' ? t('keys.disable') : t('keys.enable') }}</span>
-              </button>
-              <!-- Edit Button -->
-              <button
-                @click="editKey(row)"
-                class="flex flex-col items-center gap-0.5 rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-gray-100 hover:text-primary-600 dark:hover:bg-dark-700 dark:hover:text-primary-400"
-              >
-                <Icon name="edit" size="sm" />
-                <span class="text-xs">{{ t('common.edit') }}</span>
-              </button>
-              <!-- Delete Button -->
-              <button
-                @click="confirmDelete(row)"
-                class="flex flex-col items-center gap-0.5 rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-400"
-              >
-                <Icon name="trash" size="sm" />
-                <span class="text-xs">{{ t('common.delete') }}</span>
+                <Icon name="more" size="sm" />
               </button>
             </div>
           </template>
@@ -1088,6 +1079,54 @@
       :allow-messages-dispatch="selectedKey?.group?.allow_messages_dispatch || false"
       @close="closeUseKeyModal"
     />
+
+    <!-- Less used key actions, teleported so the table's scroll area cannot clip them -->
+    <Teleport to="body">
+      <div
+        v-if="menuKey && menuPosition"
+        role="menu"
+        class="action-menu-content fixed z-[9999] w-44 overflow-hidden rounded-xl bg-white py-1 shadow-lg ring-1 ring-black/5 dark:bg-dark-800 dark:ring-white/10"
+        :style="{ top: menuPosition.top + 'px', left: menuPosition.left + 'px' }"
+      >
+        <button
+          role="menuitem"
+          data-test="key-manual"
+          class="flex w-full items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-dark-700"
+          @click="runMenuAction(openUseKeyModal)"
+        >
+          <Icon name="terminal" size="sm" />
+          {{ t('keys.useKeyAdvanced') }}
+        </button>
+        <button
+          role="menuitem"
+          data-test="key-toggle"
+          class="flex w-full items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-dark-700"
+          @click="runMenuAction(toggleKeyStatus)"
+        >
+          <Icon :name="menuKey.status === 'active' ? 'ban' : 'checkCircle'" size="sm" />
+          {{ menuKey.status === 'active' ? t('keys.disable') : t('keys.enable') }}
+        </button>
+        <button
+          role="menuitem"
+          data-test="key-edit"
+          class="flex w-full items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-dark-700"
+          @click="runMenuAction(editKey)"
+        >
+          <Icon name="edit" size="sm" />
+          {{ t('common.edit') }}
+        </button>
+        <div class="my-1 border-t border-gray-100 dark:border-dark-700"></div>
+        <button
+          role="menuitem"
+          data-test="key-delete"
+          class="flex w-full items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
+          @click="runMenuAction(confirmDelete)"
+        >
+          <Icon name="trash" size="sm" />
+          {{ t('common.delete') }}
+        </button>
+      </div>
+    </Teleport>
 
     <!-- CCS Client Selection Dialog for Antigravity -->
     <BaseDialog
@@ -2030,6 +2069,47 @@ const resetRateLimitUsage = async () => {
   }
 }
 
+const activeMenuId = ref<number | null>(null)
+const menuPosition = ref<{ top: number; left: number } | null>(null)
+const menuKey = computed(() => apiKeys.value.find((key) => key.id === activeMenuId.value) ?? null)
+
+const closeActionMenu = () => {
+  activeMenuId.value = null
+  menuPosition.value = null
+}
+
+const openActionMenu = (key: ApiKey, event: MouseEvent) => {
+  if (activeMenuId.value === key.id) {
+    closeActionMenu()
+    return
+  }
+  const rect = (event.currentTarget as HTMLElement).getBoundingClientRect()
+  const menuWidth = 176
+  const menuHeight = 168
+  const padding = 8
+  const below = rect.bottom + 4
+  menuPosition.value = {
+    left: Math.max(padding, Math.min(rect.right - menuWidth, window.innerWidth - menuWidth - padding)),
+    top: below + menuHeight > window.innerHeight - padding ? Math.max(padding, rect.top - menuHeight - 4) : below
+  }
+  activeMenuId.value = key.id
+}
+
+const runMenuAction = (action: (key: ApiKey) => void | Promise<void>) => {
+  const key = menuKey.value
+  closeActionMenu()
+  if (key) void action(key)
+}
+
+const closeActionMenuOnOutsideClick = (event: MouseEvent) => {
+  const target = event.target as HTMLElement
+  if (!target.closest('.action-menu-trigger') && !target.closest('.action-menu-content')) closeActionMenu()
+}
+
+const closeActionMenuOnEscape = (event: KeyboardEvent) => {
+  if (event.key === 'Escape') closeActionMenu()
+}
+
 const importToCcswitch = (row: ApiKey) => {
   const platform = row.group?.platform || 'anthropic'
 
@@ -2106,11 +2186,17 @@ onMounted(() => {
   loadUserGroupRates()
   loadPublicSettings()
   document.addEventListener('click', closeGroupSelector)
+  document.addEventListener('click', closeActionMenuOnOutsideClick)
+  document.addEventListener('keydown', closeActionMenuOnEscape)
+  window.addEventListener('scroll', closeActionMenu, true)
   resetTimer = setInterval(() => { now.value = new Date() }, 60000)
 })
 
 onUnmounted(() => {
   document.removeEventListener('click', closeGroupSelector)
+  document.removeEventListener('click', closeActionMenuOnOutsideClick)
+  document.removeEventListener('keydown', closeActionMenuOnEscape)
+  window.removeEventListener('scroll', closeActionMenu, true)
   if (resetTimer) clearInterval(resetTimer)
 })
 </script>

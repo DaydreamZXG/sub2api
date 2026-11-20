@@ -110,7 +110,7 @@ export default {
     created: 'Created',
     copyToClipboard: 'Copy to clipboard',
     copied: 'Copied!',
-    importToCcSwitch: 'Import to CCS',
+    importToCcSwitch: 'Import to CC Switch',
     enable: 'Enable',
     disable: 'Disable',
     nameLabel: 'Name',
@@ -155,6 +155,8 @@ export default {
     lastUsedAt: 'Last Used',
     lastUsedIP: 'Last Used IP',
     useKey: 'Use Key',
+    useKeyAdvanced: 'Command-line setup',
+    connectNeedsActive: 'This key is disabled. Enable it to connect a tool.',
     useKeyModal: {
       title: 'Use API Key',
       description:
