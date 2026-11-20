@@ -80,6 +80,25 @@ func TestCanonicalDesktopOrigin(t *testing.T) {
 	}
 }
 
+type fakeDesktopUserRepo struct {
+	UserRepository
+	users map[int64]*User
+}
+
+func (r *fakeDesktopUserRepo) GetByID(_ context.Context, id int64) (*User, error) {
+	user, ok := r.users[id]
+	if !ok {
+		return nil, ErrUserNotFound
+	}
+	return user, nil
+}
+
+func newFakeDesktopUserRepo() *fakeDesktopUserRepo {
+	return &fakeDesktopUserRepo{users: map[int64]*User{
+		7: {ID: 7, Email: "u7@example.com", PasswordHash: "hash-before", Status: StatusActive},
+	}}
+}
+
 func TestDesktopConnectIssueCodeRejectsInvalidOrigin(t *testing.T) {
 	svc := NewDesktopConnectService(newFakeDesktopCodeStore(), newFakeAppDeviceTokenRepo(), nil, nil)
 	if _, err := svc.IssueCode(context.Background(), 1, "http://yeschoy.com"); !errors.Is(err, ErrDesktopOriginInvalid) {
@@ -87,8 +106,23 @@ func TestDesktopConnectIssueCodeRejectsInvalidOrigin(t *testing.T) {
 	}
 }
 
+// A code asked for before a password change must not sign anyone in after it.
+func TestDesktopConnectExchangeRejectsCodeIssuedBeforePasswordChange(t *testing.T) {
+	users := newFakeDesktopUserRepo()
+	svc := NewDesktopConnectService(newFakeDesktopCodeStore(), newFakeAppDeviceTokenRepo(), users, nil)
+	ctx := context.Background()
+	issued, err := svc.IssueCode(ctx, 7, "https://yeschoy.com")
+	if err != nil {
+		t.Fatalf("IssueCode: %v", err)
+	}
+	users.users[7].PasswordHash = "hash-after"
+	if _, err := svc.Exchange(ctx, issued.Code, "yeschoy.com"); !errors.Is(err, ErrDesktopCodeExpired) {
+		t.Fatalf("Exchange after a password change error = %v; want ErrDesktopCodeExpired", err)
+	}
+}
+
 func TestDesktopConnectExchangeRejectsWrongHostAndBurnsTheCode(t *testing.T) {
-	svc := NewDesktopConnectService(newFakeDesktopCodeStore(), newFakeAppDeviceTokenRepo(), nil, nil)
+	svc := NewDesktopConnectService(newFakeDesktopCodeStore(), newFakeAppDeviceTokenRepo(), newFakeDesktopUserRepo(), nil)
 	ctx := context.Background()
 	issued, err := svc.IssueCode(ctx, 7, "https://yeschoy.com")
 	if err != nil {
