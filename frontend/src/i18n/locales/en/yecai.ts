@@ -171,6 +171,44 @@ export default {
     zhOnly: 'This guide is only available in Chinese for now.',
     loadFailed: 'The guide did not load. Refresh the page and try again.'
   },
+  agentGuide: {
+    title: 'Becoming an agent',
+    lead: 'Bring customers in, and a part of what they spend is yours for as long as they stay.',
+    card: 'Bring customers in and earn a share of what they spend. Rules and an example.',
+    termsTitle: 'What you earn',
+    terms: {
+      rate: { name: 'Share', text: 'Agreed with each agent; what counts is the share set on your account. It can rise in tiers: the more your customers spend in a month, the higher the share on what comes after.' },
+      basis: { name: 'Counted on', text: 'Money your customers topped up themselves and then spent. Spending gifted balance, or using a monthly plan, does not count.' },
+      start: { name: 'From when', text: 'What a customer spends after they are under you. Nothing is added for earlier spending.' },
+      duration: { name: 'For how long', text: 'For as long as the customer keeps using the service and you are an agent.' }
+    },
+    example: 'For example: at a share of 5%, a customer you brought in spends ¥10,000 of their own top-ups this month, and you earn ¥500. If they spend ¥10,000 again next month, you earn another ¥500. If "8% from ¥5,000 in the month" was agreed, the first ¥5,000 earns 5% and the next ¥5,000 earns 8%: ¥650 in all.',
+    join: {
+      title: 'How a customer comes under you',
+      i1: 'Send the customer your invite link. If they sign up through it, they are under you from the start.',
+      i2: 'If the customer already has an account, or did not use your link: tell us which account it is, and once confirmed we put them under you.'
+    },
+    rules: {
+      title: 'Rules',
+      i1: 'You cannot count yourself, or another account of yours, as a customer.',
+      i2: 'A customer is under one agent at a time. If several people say they brought the customer in, the one we confirmed first counts.',
+      i3: "As an agent you no longer get the top-up rebate for your customers; you get the share of their spending instead, not both.",
+      i4: 'If a customer is refunded later, what was already credited to you stays.',
+      i5: 'The share is credited about every 10 minutes, into the quota on the invite page.',
+      i6: 'On the first of each month the tiers start again from the lowest one.'
+    },
+    payout: {
+      title: 'How you are paid',
+      i1: 'On the invite page, choose "Request a payout" and fill in the amount and how to pay you.',
+      i2: 'We pay you outside the site and mark the request paid; the amount is then taken from your quota. One request can be open at a time.',
+      i3: 'You can also move the quota to your own balance instead.'
+    },
+    apply: {
+      title: 'Want to be an agent',
+      text: 'Get in touch and tell us what kind of customers you can bring. Once confirmed, we set you up and agree on the share.',
+      toHelp: 'Contact us on the Help page'
+    }
+  },
   tickets: {
     title: 'Tickets',
     lead: 'Tell us what went wrong and we will reply here.',

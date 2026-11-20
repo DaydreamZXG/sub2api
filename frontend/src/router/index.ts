@@ -235,6 +235,12 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true, requiresAdmin: false, title: 'Guide', titleKey: 'yc.guide.title' }
   },
   {
+    path: '/help/agents',
+    name: 'HelpAgents',
+    component: () => import('@/views/yecai/YcAgentGuideView.vue'),
+    meta: { requiresAuth: true, requiresAdmin: false, title: 'Agents', titleKey: 'yc.agentGuide.title' }
+  },
+  {
     path: '/garden',
     name: 'Garden',
     component: () => import('@/views/yecai/YcGardenView.vue'),
