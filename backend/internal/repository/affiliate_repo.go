@@ -967,7 +967,8 @@ SELECT user_id,
        aff_frozen_quota::double precision,
        aff_history_quota::double precision,
        created_at,
-       updated_at
+       updated_at,
+       is_agent
 FROM user_affiliates
 WHERE user_id = $1`, userID)
 	if err != nil {
@@ -996,6 +997,7 @@ WHERE user_id = $1`, userID)
 		&out.AffHistoryQuota,
 		&out.CreatedAt,
 		&out.UpdatedAt,
+		&out.IsAgent,
 	); err != nil {
 		return nil, err
 	}

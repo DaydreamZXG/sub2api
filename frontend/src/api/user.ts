@@ -181,6 +181,48 @@ export async function getAffiliateDetail(): Promise<UserAffiliateDetail> {
   return data
 }
 
+export interface AgentInvitee {
+  user_id: number
+  email: string
+  joined_at: string
+  /** What this user spent that counted towards the share. */
+  spent: number
+  share: number
+}
+
+export interface AgentPayoutRecord {
+  id: number
+  amount: number
+  payee_note: string
+  status: 'pending' | 'paid' | 'rejected'
+  admin_note: string
+  created_at: string
+  handled_at: string | null
+}
+
+/** An agent's own figures, in balance units like the invite quota. */
+export interface AgentOverview {
+  share_percent: number
+  since: string | null
+  available: number
+  shared: number
+  spent: number
+  month_shared: number
+  month_spent: number
+  invitees: AgentInvitee[]
+  payouts: AgentPayoutRecord[]
+}
+
+/** Null for a user who is not an agent. */
+export async function getAgent(): Promise<AgentOverview | null> {
+  const { data } = await apiClient.get<{ agent: AgentOverview | null }>('/user/agent')
+  return data.agent
+}
+
+export async function requestAgentPayout(amount: number, payeeNote: string): Promise<void> {
+  await apiClient.post('/user/agent/payouts', { amount, payee_note: payeeNote })
+}
+
 export async function transferAffiliateQuota(): Promise<AffiliateTransferResponse> {
   const { data } = await apiClient.post<AffiliateTransferResponse>('/user/aff/transfer')
   return data
@@ -209,6 +251,8 @@ export const userAPI = {
   startOAuthBinding,
   getAffiliateDetail,
   transferAffiliateQuota,
+  getAgent,
+  requestAgentPayout,
   getMyPlatformQuotas,
 }
 

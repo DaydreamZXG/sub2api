@@ -15,11 +15,9 @@ import (
 // paid_cost is the part of actual_cost that was real money: each user's charge times the share of their
 // credits that came from paid orders (and, when the settings say so, from manual grants and redeem codes).
 // Paid and gifted balance sit in one column, so they are taken to be spent in proportion.
-const profitHourlyUpsertSQL = `
-	WITH active AS (
-		-- Only the users charged in these hours: this runs every minute.
-		SELECT DISTINCT user_id FROM usage_logs WHERE created_at >= $1 AND created_at < $2
-	), paid AS (
+// profitPaidShareCTEs works out, for the users in a preceding CTE named active(user_id), the share of
+// their credits that was real money. It ends in the CTE share(user_id, paid_share).
+const profitPaidShareCTEs = `paid AS (
 		-- refund_amount is filled in when a refund is asked for; it counts once the balance was taken back,
 		-- which is also when total_recharged went down: refunded, or waiting for the gateway to confirm.
 		SELECT user_id, SUM(GREATEST(amount - bonus_amount
@@ -54,7 +52,13 @@ const profitHourlyUpsertSQL = `
 		LEFT JOIN paid p ON p.user_id = u.id
 		LEFT JOIN granted g ON g.user_id = u.id
 		LEFT JOIN taken t ON t.user_id = u.id
-	)
+	)`
+
+const profitHourlyUpsertSQL = `
+	WITH active AS (
+		-- Only the users charged in these hours: this runs every minute.
+		SELECT DISTINCT user_id FROM usage_logs WHERE created_at >= $1 AND created_at < $2
+	), ` + profitPaidShareCTEs + `
 	INSERT INTO profit_hourly (bucket_start, account_id, group_id, billing_type, requests, standard_cost, actual_cost, account_cost, paid_cost)
 	SELECT
 		date_trunc('hour', l.created_at AT TIME ZONE 'UTC') AT TIME ZONE 'UTC',
@@ -472,4 +476,14 @@ func (r *profitRepository) GroupNames(ctx context.Context, ids []int64) (map[int
 func (r *profitRepository) RebuildSummary(ctx context.Context) error {
 	_, err := r.db.ExecContext(ctx, profitHourlyUpsertSQL, time.Unix(0, 0).UTC(), time.Now().UTC().Add(time.Hour))
 	return err
+}
+
+func (r *profitRepository) AgentShare(ctx context.Context, from, to, tz string) (float64, error) {
+	var total float64
+	err := r.db.QueryRowContext(ctx, `
+		SELECT COALESCE(SUM(amount), 0) FROM user_affiliate_ledger
+		WHERE action = 'agent_share'
+			AND created_at >= ($1::date::timestamp AT TIME ZONE $3)
+			AND created_at < (($2::date + 1)::timestamp AT TIME ZONE $3)`, from, to, tz).Scan(&total)
+	return total, err
 }

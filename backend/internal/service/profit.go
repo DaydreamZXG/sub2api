@@ -134,6 +134,8 @@ type ProfitRepository interface {
 	Usage(ctx context.Context, from, to, tz string) ([]ProfitUsageRow, error)
 	// Received is the money paid orders brought in and the money refunded, in the period, in currency.
 	Received(ctx context.Context, from, to, tz string) (received, refunded float64, err error)
+	// AgentShare sums what agents were credited in the period, in balance units.
+	AgentShare(ctx context.Context, from, to, tz string) (float64, error)
 	PackUsage(ctx context.Context, tz string) (map[int64]ProfitPackUsage, error)
 	AccountInfos(ctx context.Context, ids []int64) (map[int64]ProfitAccountInfo, error)
 	GroupNames(ctx context.Context, ids []int64) (map[int64]string, error)
@@ -197,13 +199,15 @@ type ProfitReport struct {
 	To           string  `json:"to"`
 	UnitsPerYuan float64 `json:"units_per_yuan"`
 	// Received and Refunded are what payment orders brought in and gave back in the period, as paid.
-	Received float64             `json:"received"`
-	Refunded float64             `json:"refunded"`
-	Totals   ProfitFigures       `json:"totals"`
-	Months   []ProfitMonthLine   `json:"months"`
-	Groups   []ProfitGroupLine   `json:"groups"`
-	Packs    []ProfitPackLine    `json:"packs"`
-	Accounts []ProfitAccountLine `json:"accounts"`
+	Received float64 `json:"received"`
+	Refunded float64 `json:"refunded"`
+	// AgentShare is what agents were credited in the period. It is taken off the profit in Totals only.
+	AgentShare float64             `json:"agent_share"`
+	Totals     ProfitFigures       `json:"totals"`
+	Months     []ProfitMonthLine   `json:"months"`
+	Groups     []ProfitGroupLine   `json:"groups"`
+	Packs      []ProfitPackLine    `json:"packs"`
+	Accounts   []ProfitAccountLine `json:"accounts"`
 }
 
 // ProfitService works out what the site earned against what its upstream capacity cost.
@@ -518,6 +522,12 @@ func (s *ProfitService) Report(ctx context.Context, from, to string) (*ProfitRep
 	if report.Received, report.Refunded, err = s.repo.Received(ctx, from, to, timezone.Name()); err != nil {
 		return nil, err
 	}
+	agentShare, err := s.repo.AgentShare(ctx, from, to, timezone.Name())
+	if err != nil {
+		return nil, err
+	}
+	report.AgentShare = agentShare / rate
+	report.Totals.Profit -= report.AgentShare
 
 	accountIDs := make([]int64, 0, len(report.Accounts))
 	for _, a := range report.Accounts {

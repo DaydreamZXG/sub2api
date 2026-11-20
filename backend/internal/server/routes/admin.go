@@ -55,6 +55,7 @@ func RegisterAdminRoutes(
 		registerTicketRoutes(admin, h)
 		registerGrowthRoutes(admin, h)
 		registerProfitRoutes(admin, h)
+		registerAgentRoutes(admin, h)
 
 		// OpenAI OAuth
 		registerOpenAIOAuthRoutes(admin, h)
@@ -454,6 +455,18 @@ func registerGrowthRoutes(admin *gin.RouterGroup, h *handler.Handlers) {
 	admin.GET("/garden-settings", h.Garden.AdminGet)
 	admin.PUT("/garden-settings", h.Garden.AdminUpdate)
 	admin.POST("/garden/crops", h.Garden.AdminGift)
+}
+
+func registerAgentRoutes(admin *gin.RouterGroup, h *handler.Handlers) {
+	agents := admin.Group("/agents")
+	{
+		agents.GET("", h.Agent.List)
+		agents.GET("/payouts", h.Agent.ListPayouts)
+		agents.POST("/payouts/:id/paid", h.Agent.MarkPaid)
+		agents.POST("/payouts/:id/reject", h.Agent.Reject)
+		agents.PUT("/:user_id", h.Agent.Set)
+		agents.DELETE("/:user_id", h.Agent.Remove)
+	}
 }
 
 func registerProfitRoutes(admin *gin.RouterGroup, h *handler.Handlers) {

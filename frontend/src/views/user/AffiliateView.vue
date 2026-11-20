@@ -59,6 +59,8 @@
           </div>
         </div>
 
+        <AgentPanel v-if="agent" :agent="agent" :money="money" @changed="reloadAgent" />
+
         <section class="yaf-panel">
           <h3>{{ t('affiliate.tips.title') }}</h3>
           <ol class="yaf-steps">
@@ -95,7 +97,9 @@ import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppLayout from '@/components/layout/AppLayout.vue'
 import Icon from '@/components/icons/Icon.vue'
+import AgentPanel from '@/components/user/AgentPanel.vue'
 import userAPI from '@/api/user'
+import type { AgentOverview } from '@/api/user'
 import type { UserAffiliateDetail } from '@/types'
 import { useAppStore } from '@/stores/app'
 import { useAuthStore } from '@/stores/auth'
@@ -114,6 +118,20 @@ const { copyToClipboard } = useClipboard()
 const loading = ref(true)
 const transferring = ref(false)
 const detail = ref<UserAffiliateDetail | null>(null)
+const agent = ref<AgentOverview | null>(null)
+
+// Most users are not agents; the page works the same when this fails.
+async function loadAgent(): Promise<void> {
+  try {
+    agent.value = await userAPI.getAgent()
+  } catch {
+    agent.value = null
+  }
+}
+
+async function reloadAgent(): Promise<void> {
+  await Promise.all([loadAgent(), loadAffiliateDetail(true)])
+}
 
 const inviteLink = computed(() => {
   if (!detail.value) return ''
@@ -173,6 +191,7 @@ async function transferQuota(): Promise<void> {
     appStore.showSuccess(t('affiliate.transfer.success', { amount: money(resp.transferred_quota) }))
     await Promise.all([
       loadAffiliateDetail(true),
+      loadAgent(),
       authStore.refreshUser().catch(() => undefined),
     ])
   } catch (error) {
@@ -184,6 +203,7 @@ async function transferQuota(): Promise<void> {
 
 onMounted(() => {
   void loadAffiliateDetail()
+  void loadAgent()
 })
 </script>
 

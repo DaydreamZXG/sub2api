@@ -777,6 +777,36 @@ export default {
       empty: 'No available rebate quota',
       success: '{amount} has been transferred to your balance'
     },
+    agent: {
+      title: 'Agent share',
+      rule: 'You are an agent: when the users you invited spend money they topped up themselves, you get {rate} of it (spending gifted balance does not count). The share goes into the same quota as the rebate.',
+      monthShared: 'Share this month',
+      shared: 'Share so far',
+      fromSpent: 'from {amount} your users spent',
+      available: 'Can be paid out',
+      availableNote: 'You can also move it to your balance with the button above',
+      payout: {
+        open: 'Ask for a payout',
+        pending: 'A payout request for {amount} is waiting. You can ask again once it is handled.',
+        amount: 'Amount',
+        payee: 'How to pay you',
+        payeePlaceholder: 'e.g. Alipay 138****0000 Zhang San',
+        submit: 'Send request',
+        hint: 'The site owner pays you outside the site; the amount is then taken off what can be paid out.',
+        history: 'Payout requests',
+        status: { pending: 'Waiting', paid: 'Paid', rejected: 'Rejected' },
+        amountInvalid: 'The amount must be above 0 and at most {max}',
+        payeeRequired: 'Say how you want to be paid',
+        sent: 'Request sent',
+        failed: 'The request could not be sent'
+      },
+      users: {
+        title: 'Your users',
+        empty: 'Nobody has signed up through your link yet.',
+        spent: 'spending that counts: {amount}',
+        share: 'share {amount}'
+      }
+    },
     invitees: {
       title: 'Invited Users',
       empty: 'No invited users yet',
