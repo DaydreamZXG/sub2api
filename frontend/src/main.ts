@@ -37,6 +37,15 @@ async function bootstrap() {
   initThemeClass()
   initIOSViewportZoomFix()
 
+  // On the resellers' client domain the server sends its own small config: only the client pages
+  // run there, with none of the main site's routes, stores or API calls.
+  const injected = window.__APP_CONFIG__ as unknown as { portal?: boolean } | undefined
+  if (injected?.portal === true) {
+    const { mountPortal } = await import('./portal/mount')
+    mountPortal(injected as unknown as import('./portal/mount').PortalConfig)
+    return
+  }
+
   const app = createApp(App)
   const pinia = createPinia()
   app.use(pinia)
