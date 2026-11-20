@@ -1,139 +1,90 @@
 <template>
   <AppLayout>
-    <div class="space-y-6">
-      <div v-if="loading" class="flex justify-center py-12">
-        <div
-          class="h-8 w-8 animate-spin rounded-full border-2 border-primary-500 border-t-transparent"
-        ></div>
+    <div class="yaf">
+      <div v-if="loading" class="yaf-loading">
+        <span class="yaf-spin"></span>
       </div>
 
       <template v-else-if="detail">
-        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <div class="card p-5">
-            <p class="flex items-center gap-1.5 text-sm text-gray-500 dark:text-dark-400">
-              <Icon name="dollar" size="sm" class="text-primary-500" />
-              {{ t('affiliate.stats.rebateRate') }}
-            </p>
-            <p class="mt-2 text-2xl font-semibold text-primary-600 dark:text-primary-400">
-              {{ formattedRebateRate }}<span class="ml-0.5 text-base font-medium">%</span>
-            </p>
-            <p class="mt-1 text-xs text-gray-400 dark:text-dark-500">
-              {{ t('affiliate.stats.rebateRateHint') }}
-            </p>
+        <section class="yaf-hero">
+          <div class="yaf-hero-text">
+            <h2 data-test="aff-headline">{{ headline }}</h2>
           </div>
-          <div class="card p-5">
-            <p class="text-sm text-gray-500 dark:text-dark-400">{{ t('affiliate.stats.invitedUsers') }}</p>
-            <p class="mt-2 text-2xl font-semibold text-gray-900 dark:text-white">
-              {{ formatCount(detail.aff_count) }}
-            </p>
+          <div class="yaf-share">
+            <div class="yaf-copy">
+              <span class="yaf-copy-label">{{ t('affiliate.inviteLink') }}</span>
+              <code class="yaf-copy-value">{{ inviteLink }}</code>
+              <button type="button" class="yaf-btn yaf-btn-lime" @click="copyInviteLink">
+                <Icon name="copy" size="sm" />
+                <span>{{ t('affiliate.copyLink') }}</span>
+              </button>
+            </div>
+            <div class="yaf-copy">
+              <span class="yaf-copy-label">{{ t('affiliate.yourCode') }}</span>
+              <code class="yaf-copy-value yaf-copy-code">{{ detail.aff_code }}</code>
+              <button type="button" class="yaf-btn yaf-btn-ghost" @click="copyCode">
+                <Icon name="copy" size="sm" />
+                <span>{{ t('affiliate.copyCode') }}</span>
+              </button>
+            </div>
           </div>
-          <div class="card p-5">
-            <p class="text-sm text-gray-500 dark:text-dark-400">{{ t('affiliate.stats.availableQuota') }}</p>
-            <p class="mt-2 text-2xl font-semibold text-emerald-600 dark:text-emerald-400">
-              {{ money(detail.aff_quota) }}
-            </p>
+        </section>
+
+        <div class="yaf-facts">
+          <div class="yaf-fact">
+            <p class="yaf-fact-label">{{ t('affiliate.stats.invitedUsers') }}</p>
+            <p class="yaf-fact-value">{{ formatCount(detail.aff_count) }}</p>
           </div>
-          <div class="card p-5">
-            <p class="text-sm text-gray-500 dark:text-dark-400">{{ t('affiliate.stats.totalQuota') }}</p>
-            <p class="mt-2 text-2xl font-semibold text-gray-900 dark:text-white">
-              {{ money(detail.aff_history_quota) }}
-            </p>
-            <p v-if="detail.aff_frozen_quota > 0" class="mt-1 text-xs text-amber-600 dark:text-amber-400">
+          <div class="yaf-fact yaf-fact-main">
+            <p class="yaf-fact-label">{{ t('affiliate.stats.availableQuota') }}</p>
+            <p class="yaf-fact-value">{{ money(detail.aff_quota) }}</p>
+            <button
+              type="button"
+              data-test="aff-transfer"
+              class="yaf-btn yaf-btn-lime"
+              :disabled="transferring || detail.aff_quota <= 0"
+              @click="transferQuota"
+            >
+              <Icon v-if="transferring" name="refresh" size="sm" class="animate-spin" />
+              <span>{{ transferring ? t('affiliate.transfer.transferring') : t('affiliate.transfer.button') }}</span>
+            </button>
+            <p v-if="detail.aff_quota <= 0" class="yaf-fact-note">{{ t('affiliate.transfer.empty') }}</p>
+          </div>
+          <div class="yaf-fact">
+            <p class="yaf-fact-label">{{ t('affiliate.stats.totalQuota') }}</p>
+            <p class="yaf-fact-value">{{ money(detail.aff_history_quota) }}</p>
+            <p v-if="detail.aff_frozen_quota > 0" data-test="aff-frozen" class="yaf-fact-note yaf-warn">
               {{ t('affiliate.stats.frozenQuota') }}: {{ money(detail.aff_frozen_quota) }}
             </p>
           </div>
         </div>
 
-        <div class="card p-6">
-          <h3 class="text-base font-semibold text-gray-900 dark:text-white">{{ t('affiliate.title') }}</h3>
-          <p class="mt-1 text-sm text-gray-500 dark:text-dark-400">{{ t('affiliate.description') }}</p>
+        <section class="yaf-panel">
+          <h3>{{ t('affiliate.tips.title') }}</h3>
+          <ol class="yaf-steps">
+            <li><span>1</span>{{ t('affiliate.tips.line1') }}</li>
+            <li><span>2</span>{{ t('affiliate.tips.line2', { rate: `${formattedRebateRate}%` }) }}</li>
+            <li><span>3</span>{{ t('affiliate.tips.line3') }}</li>
+          </ol>
+          <p v-if="detail.aff_frozen_quota > 0" class="yaf-steps-note">{{ t('affiliate.tips.line4') }}</p>
+        </section>
 
-          <div class="mt-5 grid gap-4 md:grid-cols-2">
-            <div class="space-y-2">
-              <p class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('affiliate.yourCode') }}</p>
-              <div class="flex flex-col items-stretch gap-2 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 dark:border-dark-700 dark:bg-dark-900 sm:flex-row sm:items-center">
-                <code class="min-w-0 break-all text-sm font-semibold text-gray-900 dark:text-white sm:flex-1 sm:truncate">{{ detail.aff_code }}</code>
-                <button class="btn btn-secondary btn-sm w-full sm:w-auto sm:shrink-0" @click="copyCode">
-                  <Icon name="copy" size="sm" />
-                  <span>{{ t('affiliate.copyCode') }}</span>
-                </button>
+        <section class="yaf-panel">
+          <h3>{{ t('affiliate.invitees.title') }}</h3>
+          <p v-if="detail.invitees.length === 0" class="yaf-empty">{{ t('affiliate.invitees.empty') }}</p>
+          <ul v-else class="yaf-people">
+            <li v-for="item in detail.invitees" :key="item.user_id" data-test="aff-invitee">
+              <div class="yaf-person">
+                <b>{{ item.email || '-' }}</b>
+                <span>{{ item.username || '-' }}</span>
               </div>
-            </div>
-
-            <div class="space-y-2">
-              <p class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('affiliate.inviteLink') }}</p>
-              <div class="flex flex-col items-stretch gap-2 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 dark:border-dark-700 dark:bg-dark-900 sm:flex-row sm:items-center">
-                <code class="min-w-0 break-all text-sm text-gray-700 dark:text-gray-300 sm:flex-1 sm:truncate">{{ inviteLink }}</code>
-                <button class="btn btn-secondary btn-sm w-full sm:w-auto sm:shrink-0" @click="copyInviteLink">
-                  <Icon name="copy" size="sm" />
-                  <span>{{ t('affiliate.copyLink') }}</span>
-                </button>
+              <div class="yaf-person yaf-person-right">
+                <b>{{ t('affiliate.invitees.columns.rebate') }} {{ money(item.total_rebate) }}</b>
+                <span>{{ formatDateTime(item.created_at) || '-' }}</span>
               </div>
-            </div>
-          </div>
-
-          <div class="mt-5 rounded-xl border border-primary-200 bg-primary-50 p-4 dark:border-primary-900/40 dark:bg-primary-900/20">
-            <p class="text-sm font-medium text-primary-800 dark:text-primary-200">{{ t('affiliate.tips.title') }}</p>
-            <ul class="mt-2 space-y-1 text-sm text-primary-700 dark:text-primary-300">
-              <li>1. {{ t('affiliate.tips.line1') }}</li>
-              <li>2. {{ t('affiliate.tips.line2', { rate: `${formattedRebateRate}%` }) }}</li>
-              <li>3. {{ t('affiliate.tips.line3') }}</li>
-              <li v-if="detail.aff_frozen_quota > 0">4. {{ t('affiliate.tips.line4') }}</li>
-            </ul>
-          </div>
-        </div>
-
-        <div class="card p-6">
-          <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h3 class="text-base font-semibold text-gray-900 dark:text-white">{{ t('affiliate.transfer.title') }}</h3>
-              <p class="mt-1 text-sm text-gray-500 dark:text-dark-400">{{ t('affiliate.transfer.description') }}</p>
-            </div>
-            <button
-              class="btn btn-primary"
-              :disabled="transferring || detail.aff_quota <= 0"
-              @click="transferQuota"
-            >
-              <Icon v-if="transferring" name="refresh" size="sm" class="animate-spin" />
-              <Icon v-else name="dollar" size="sm" />
-              <span>{{ transferring ? t('affiliate.transfer.transferring') : t('affiliate.transfer.button') }}</span>
-            </button>
-          </div>
-          <p v-if="detail.aff_quota <= 0" class="mt-3 text-sm text-amber-600 dark:text-amber-400">
-            {{ t('affiliate.transfer.empty') }}
-          </p>
-        </div>
-
-        <div class="card p-6">
-          <h3 class="text-base font-semibold text-gray-900 dark:text-white">{{ t('affiliate.invitees.title') }}</h3>
-          <div v-if="detail.invitees.length === 0" class="mt-4 rounded-xl border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500 dark:border-dark-700 dark:text-dark-400">
-            {{ t('affiliate.invitees.empty') }}
-          </div>
-          <div v-else class="mt-4 overflow-x-auto">
-            <table class="w-full min-w-[560px] text-left text-sm">
-              <thead>
-                <tr class="border-b border-gray-200 text-gray-500 dark:border-dark-700 dark:text-dark-400">
-                  <th class="px-3 py-2 font-medium">{{ t('affiliate.invitees.columns.email') }}</th>
-                  <th class="px-3 py-2 font-medium">{{ t('affiliate.invitees.columns.username') }}</th>
-                  <th class="px-3 py-2 font-medium text-right">{{ t('affiliate.invitees.columns.rebate') }}</th>
-                  <th class="px-3 py-2 font-medium">{{ t('affiliate.invitees.columns.joinedAt') }}</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr
-                  v-for="item in detail.invitees"
-                  :key="item.user_id"
-                  class="border-b border-gray-100 last:border-b-0 dark:border-dark-800"
-                >
-                  <td class="px-3 py-3 text-gray-900 dark:text-white">{{ item.email || '-' }}</td>
-                  <td class="px-3 py-3 text-gray-700 dark:text-gray-300">{{ item.username || '-' }}</td>
-                  <td class="px-3 py-3 text-right font-medium text-emerald-600 dark:text-emerald-400">{{ money(item.total_rebate) }}</td>
-                  <td class="px-3 py-3 text-gray-700 dark:text-gray-300">{{ formatDateTime(item.created_at) || '-' }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
+            </li>
+          </ul>
+        </section>
       </template>
     </div>
   </AppLayout>
@@ -177,6 +128,13 @@ const formattedRebateRate = computed(() => {
   const rounded = Math.round(v * 100) / 100
   return Number.isInteger(rounded) ? String(rounded) : rounded.toString()
 })
+
+// With no rebate set, the banner just carries the page's name.
+const headline = computed(() =>
+  (detail.value?.effective_rebate_rate_percent ?? 0) > 0
+    ? t('affiliate.hero.title', { rate: `${formattedRebateRate.value}%` })
+    : t('affiliate.title')
+)
 
 function formatCount(value: number): string {
   return value.toLocaleString()
@@ -228,3 +186,57 @@ onMounted(() => {
   void loadAffiliateDetail()
 })
 </script>
+
+<style scoped>
+.yaf { display: grid; gap: 20px; max-width: 1040px; }
+.yaf-loading { display: grid; place-items: center; padding: 64px 0; }
+.yaf-spin { width: 28px; height: 28px; border: 2px solid var(--yc-line); border-top-color: var(--yc-ink); border-radius: 50%; animation: yaf-spin 0.8s linear infinite; }
+@keyframes yaf-spin { to { transform: rotate(360deg); } }
+
+.yaf-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 16px; border-radius: 999px; font-size: 14px; font-weight: 650; white-space: nowrap; }
+.yaf-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.yaf-btn-lime { background: var(--yc-lime); color: var(--yc-on-lime); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12); }
+.yaf-btn-lime:not(:disabled):hover { filter: brightness(0.96); }
+.yaf-btn-ghost { border: 1px solid color-mix(in srgb, var(--yc-paper) 32%, transparent); color: var(--yc-paper); }
+.yaf-btn-ghost:hover { background: color-mix(in srgb, var(--yc-paper) 12%, transparent); }
+
+.yaf-hero { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 28px; align-items: center; padding: 28px; border-radius: 22px; background: var(--yc-ink); color: var(--yc-paper); }
+.yaf-hero-text h2 { font-size: 28px; font-weight: 780; line-height: 1.2; letter-spacing: -0.02em; text-wrap: balance; }
+.yaf-share { display: grid; gap: 12px; min-width: 0; }
+.yaf-copy { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 4px 12px; padding: 12px 14px; border-radius: 16px; background: color-mix(in srgb, var(--yc-paper) 10%, transparent); }
+.yaf-copy-label { grid-column: 1 / -1; font-size: 12px; opacity: 0.6; }
+.yaf-copy-value { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; }
+.yaf-copy-code { font-size: 18px; font-weight: 700; letter-spacing: 0.04em; }
+
+.yaf-facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+.yaf-fact, .yaf-panel { padding: 22px 24px; border: 1px solid var(--yc-line); border-radius: 22px; background: var(--yc-paper); }
+.yaf-fact { display: grid; align-content: start; justify-items: start; gap: 6px; }
+.yaf-fact-label { font-size: 13px; color: var(--yc-mut); }
+.yaf-fact-value { font-size: 28px; font-weight: 760; color: var(--yc-ink); font-variant-numeric: tabular-nums; }
+.yaf-fact .yaf-btn { margin-top: 6px; }
+.yaf-fact-note { font-size: 12px; color: var(--yc-mut); }
+.yaf-warn { color: #d97706; }
+
+.yaf-panel h3 { font-size: 18px; font-weight: 720; color: var(--yc-ink); }
+.yaf-steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 16px 0 0; padding: 0; list-style: none; }
+.yaf-steps li { display: grid; gap: 10px; padding: 16px; border-radius: 16px; background: var(--yc-fill); color: var(--yc-ink); font-size: 14px; }
+.yaf-steps li span { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--yc-ink); color: var(--yc-paper); font-size: 13px; font-weight: 700; }
+.yaf-steps-note { margin-top: 12px; font-size: 13px; color: #d97706; }
+
+.yaf-empty { margin-top: 16px; padding: 28px; border: 1px dashed var(--yc-line); border-radius: 16px; color: var(--yc-mut); font-size: 14px; text-align: center; }
+.yaf-people { margin: 12px 0 0; padding: 0; list-style: none; }
+.yaf-people li { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 0; border-top: 1px solid var(--yc-line); }
+.yaf-people li:first-child { border-top: 0; }
+.yaf-person { display: grid; gap: 2px; min-width: 0; font-size: 14px; }
+.yaf-person b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--yc-ink); font-weight: 650; }
+.yaf-person span { color: var(--yc-mut); font-size: 12px; }
+.yaf-person-right { flex-shrink: 0; text-align: right; }
+.yaf-person-right b { font-variant-numeric: tabular-nums; }
+
+@media (max-width: 900px) {
+  .yaf-hero { grid-template-columns: minmax(0, 1fr); padding: 22px 20px; }
+  .yaf-hero-text h2 { font-size: 24px; }
+  .yaf-facts, .yaf-steps { grid-template-columns: minmax(0, 1fr); }
+  .yaf-facts { gap: 12px; }
+}
+</style>

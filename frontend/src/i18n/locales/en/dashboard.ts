@@ -735,6 +735,9 @@ export default {
 
   affiliate: {
     title: 'Affiliate Rebates',
+    hero: {
+      title: 'Earn {rate} each time a friend tops up'
+    },
     description: 'Invite new users and convert your rebate quota into account balance',
     yourCode: 'Your Affiliate Code',
     inviteLink: 'Invite Link',

@@ -61,8 +61,8 @@ describe('AffiliateView', () => {
     })
   })
 
-  it('stacks long values and copy controls on mobile while retaining desktop rows', async () => {
-    const wrapper = mount(AffiliateView, {
+  function mountView() {
+    return mount(AffiliateView, {
       global: {
         stubs: {
           AppLayout: { template: '<main><slot /></main>' },
@@ -70,40 +70,21 @@ describe('AffiliateView', () => {
         },
       },
     })
+  }
 
+  it('keeps the long link and code on one clipped line each and copies them', async () => {
+    const wrapper = mountView()
     await flushPromises()
 
     const values = wrapper.findAll('code')
     expect(values).toHaveLength(2)
     for (const value of values) {
-      expect(value.classes()).toEqual(expect.arrayContaining([
-        'min-w-0',
-        'break-all',
-        'sm:flex-1',
-        'sm:truncate',
-      ]))
-      expect(Array.from(value.element.parentElement?.classList ?? [])).toEqual(expect.arrayContaining([
-        'flex-col',
-        'items-stretch',
-        'sm:flex-row',
-        'sm:items-center',
-      ]))
+      expect(value.classes()).toContain('yaf-copy-value')
     }
 
-    const copyButtons = wrapper.findAll('button').filter((button) =>
-      ['affiliate.copyCode', 'affiliate.copyLink'].includes(button.text()),
-    )
-    expect(copyButtons).toHaveLength(2)
-    for (const button of copyButtons) {
-      expect(button.classes()).toEqual(expect.arrayContaining([
-        'w-full',
-        'sm:w-auto',
-        'sm:shrink-0',
-      ]))
-    }
-
-    await copyButtons[0].trigger('click')
-    await copyButtons[1].trigger('click')
+    const button = (text: string) => wrapper.findAll('button').find((b) => b.text() === text)!
+    await button('affiliate.copyCode').trigger('click')
+    await button('affiliate.copyLink').trigger('click')
     await flushPromises()
 
     expect(copyToClipboard).toHaveBeenNthCalledWith(1, affiliateCode, 'affiliate.codeCopied')
@@ -112,5 +93,54 @@ describe('AffiliateView', () => {
       `${window.location.origin}/register?aff=${encodeURIComponent(affiliateCode)}`,
       'affiliate.linkCopied',
     )
+  })
+
+  it('puts the rebate in the headline, and falls back to the page name when there is none', async () => {
+    const withRate = mountView()
+    await flushPromises()
+    expect(withRate.get('[data-test="aff-headline"]').text()).toBe('affiliate.hero.title')
+
+    getAffiliateDetail.mockResolvedValue({
+      user_id: 1,
+      aff_code: affiliateCode,
+      inviter_id: null,
+      aff_count: 0,
+      aff_quota: 0,
+      aff_frozen_quota: 0,
+      aff_history_quota: 0,
+      effective_rebate_rate_percent: 0,
+      invitees: [],
+    })
+    const withoutRate = mountView()
+    await flushPromises()
+    expect(withoutRate.get('[data-test="aff-headline"]').text()).toBe('affiliate.title')
+  })
+
+  it('disables the transfer when there is nothing to move and lists the invited people', async () => {
+    const empty = mountView()
+    await flushPromises()
+    expect(empty.get('[data-test="aff-transfer"]').attributes('disabled')).toBeDefined()
+    expect(empty.text()).toContain('affiliate.transfer.empty')
+    expect(empty.findAll('[data-test="aff-invitee"]')).toHaveLength(0)
+
+    getAffiliateDetail.mockResolvedValue({
+      user_id: 1,
+      aff_code: affiliateCode,
+      inviter_id: null,
+      aff_count: 1,
+      aff_quota: 12.5,
+      aff_frozen_quota: 3,
+      aff_history_quota: 40,
+      effective_rebate_rate_percent: 10,
+      invitees: [{ user_id: 7, email: 'friend@example.com', username: 'friend', total_rebate: 15.5, created_at: '2026-11-01T00:00:00Z' }],
+    })
+    const filled = mountView()
+    await flushPromises()
+    expect(filled.get('[data-test="aff-transfer"]').attributes('disabled')).toBeUndefined()
+    expect(filled.get('[data-test="aff-frozen"]').text()).toContain('3.00')
+    const rows = filled.findAll('[data-test="aff-invitee"]')
+    expect(rows).toHaveLength(1)
+    expect(rows[0].text()).toContain('friend@example.com')
+    expect(rows[0].text()).toContain('15.50')
   })
 })
