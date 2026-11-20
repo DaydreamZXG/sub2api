@@ -56,8 +56,8 @@
           <p v-if="report.totals.gifted > 0.005" class="text-sm text-gray-500 dark:text-dark-400" data-test="profit-gifted-note">
             {{ t('admin.profit.giftedNote', { amount: money(report.totals.gifted) }) }}
           </p>
-          <p v-if="report.received > 0 || report.refunded > 0" class="text-sm text-gray-500 dark:text-dark-400" data-test="profit-cash-note">
-            {{ t('admin.profit.cashNote', { received: money(report.received), refunded: money(report.refunded) }) }}
+          <p v-if="report.cash?.length" class="text-sm text-gray-500 dark:text-dark-400" data-test="profit-cash-note">
+            {{ t('admin.profit.cashNote', { received: cashList('received'), refunded: cashList('refunded') }) }}
           </p>
           <p v-if="report.agent_share > 0.005" class="text-sm text-gray-500 dark:text-dark-400" data-test="profit-agent-note">
             {{ t('admin.profit.agentNote', { amount: money(report.agent_share) }) }}
@@ -439,6 +439,23 @@ function presetRange(name: Preset): { from: string; to: string } {
 function money(amount: number): string {
   const abs = Math.abs(amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
   return `${amount < -0.005 ? '-' : ''}¥${abs}`
+}
+
+// Money that came in keeps the currency it was paid in; only yuan gets the page's own sign.
+function cashMoney(amount: number, currency: string): string {
+  if (currency === 'CNY') return money(amount)
+  try {
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency, currencyDisplay: 'code' })
+      .format(amount)
+      .replace(/\u00a0/g, ' ')
+  } catch {
+    return `${currency} ${amount.toFixed(2)}`
+  }
+}
+
+function cashList(kind: 'received' | 'refunded'): string {
+  const parts = (report.value?.cash ?? []).filter((c) => c[kind] > 0).map((c) => cashMoney(c[kind], c.currency))
+  return parts.length ? parts.join(' + ') : money(0)
 }
 
 function tone(amount: number): string {

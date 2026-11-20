@@ -69,9 +69,8 @@ export interface ProfitReport {
   from: string
   to: string
   units_per_yuan: number
-  /** What payment orders brought in and gave back in the period, as paid. */
-  received: number
-  refunded: number
+  /** What payment orders brought in and gave back in the period, per currency paid in; never added up across currencies. */
+  cash: { currency: string; received: number; refunded: number }[]
   /** What agents were credited in the period; already taken off totals.profit. */
   agent_share: number
   totals: ProfitFigures
