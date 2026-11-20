@@ -138,11 +138,11 @@
           <p class="mt-1 text-xs text-gray-500 dark:text-dark-400">{{ t('admin.profit.agents.tiers.hint') }}</p>
           <div v-for="(tier, index) in tiers" :key="index" class="mt-2 flex items-center gap-2 text-sm text-gray-600 dark:text-dark-300" data-test="agents-tier-row">
             <span class="shrink-0">{{ t('admin.profit.agents.tiers.from') }}</span>
-            <input v-model.number="tier.from" type="number" min="0.01" step="0.01" class="input w-28" data-test="agents-tier-from" />
+            <input v-model.number="tier.from" type="number" min="0.01" step="0.01" class="input min-w-0 flex-1" data-test="agents-tier-from" />
             <span class="shrink-0">{{ t('admin.profit.agents.tiers.then') }}</span>
-            <input v-model.number="tier.percent" type="number" min="0.01" max="100" step="0.01" class="input w-20" data-test="agents-tier-percent" />
+            <input v-model.number="tier.percent" type="number" min="0.01" max="100" step="0.01" class="input w-16 shrink-0 sm:w-20" data-test="agents-tier-percent" />
             <span class="shrink-0">%</span>
-            <button type="button" class="ml-auto shrink-0 text-xs text-red-600 dark:text-red-400" data-test="agents-tier-remove" @click="tiers.splice(index, 1)">
+            <button type="button" class="shrink-0 text-xs text-red-600 dark:text-red-400" data-test="agents-tier-remove" @click="tiers.splice(index, 1)">
               {{ t('common.delete') }}
             </button>
           </div>
