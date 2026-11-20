@@ -96,4 +96,32 @@ describe('ProfileView', () => {
     expect(wrapper.get('[data-testid="profile-shell"]').html()).toContain('profile-password-form')
     expect(wrapper.get('[data-testid="profile-shell"]').html()).toContain('profile-totp-card')
   })
+
+  it('scrolls to a section from the section list without navigating to its hash', async () => {
+    const wrapper = mount(ProfileView, {
+      attachTo: document.body,
+      global: {
+        stubs: {
+          AppLayout: { template: '<div><slot /></div>' },
+          ProfileInfoCard: true,
+          ProfileBalanceNotifyCard: true,
+          ProfilePasswordForm: true,
+          ProfileTotpCard: true,
+          ProfilePasskeyCard: true,
+          Icon: true
+        }
+      }
+    })
+    await flushPromises()
+
+    const scrollIntoView = vi.fn()
+    document.getElementById('profile-password')!.scrollIntoView = scrollIntoView
+    const link = wrapper.get('a[href="#profile-password"]')
+    const click = new MouseEvent('click', { bubbles: true, cancelable: true })
+    link.element.dispatchEvent(click)
+
+    expect(scrollIntoView).toHaveBeenCalledTimes(1)
+    expect(click.defaultPrevented).toBe(true)
+    wrapper.unmount()
+  })
 })

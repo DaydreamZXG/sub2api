@@ -831,7 +831,7 @@ export default {
 
   // Profile
   profile: {
-    title: '个人设置',
+    title: '我的账号',
     description: '管理您的账户信息和设置',
     accountBalance: '账户余额',
     concurrencyLimit: '并发限制',
@@ -840,6 +840,15 @@ export default {
     memberSince: '注册时间',
     overviewTitle: '账户总览',
     overviewDescription: '快速查看账号状态、资料来源与常用设置。',
+    nav: {
+      label: '账号设置分区',
+      basics: '资料与头像',
+      signIn: '登录方式',
+      password: '修改密码',
+      notify: '余额提醒',
+      twoFactor: '两步验证',
+      passkey: '通行密钥'
+    },
     basicsTitle: '资料与头像',
     basicsDescription: '维护公开展示信息，并保持头像与昵称风格一致。',
     linkedProfileSources: '资料来源',
@@ -872,7 +881,7 @@ export default {
     passwordChangeFailed: '密码修改失败',
     // TOTP 2FA
     totp: {
-      title: '双因素认证 (2FA)',
+      title: '两步验证',
       description: '使用 Google Authenticator 等应用增强账户安全',
       enabled: '已启用',
       enabledAt: '启用时间',
@@ -910,7 +919,7 @@ export default {
       sendCodeFailed: '发送验证码失败'
     },
     passkey: {
-      title: 'Passkey',
+      title: '通行密钥',
       description: '使用面容 ID、触控 ID、Windows Hello 或安全密钥免密码登录。',
       add: '添加 Passkey',
       continue: '创建 Passkey',

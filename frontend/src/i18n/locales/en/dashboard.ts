@@ -836,6 +836,15 @@ export default {
     memberSince: 'Member Since',
     overviewTitle: 'Account Overview',
     overviewDescription: 'Check account status, profile sources, and common actions at a glance.',
+    nav: {
+      label: 'Account sections',
+      basics: 'Profile & avatar',
+      signIn: 'Sign-in methods',
+      password: 'Password',
+      notify: 'Low balance alert',
+      twoFactor: 'Two-step verification',
+      passkey: 'Passkeys'
+    },
     basicsTitle: 'Profile & Avatar',
     basicsDescription: 'Keep your public profile details and avatar aligned.',
     linkedProfileSources: 'Profile Sources',
