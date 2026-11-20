@@ -127,6 +127,7 @@ func RegisterUserRoutes(
 		}
 
 		// 工单（用户自己的）
+		authenticated.GET("/user/growth", h.Growth.Get)
 		tickets := authenticated.Group("/tickets")
 		{
 			tickets.GET("", h.Ticket.List)

@@ -311,6 +311,27 @@ func (l wsTurnAppLineLookup) ResolveAppLine(_ context.Context, apiKey *service.A
 	return &resolved, nil
 }
 
+func (l wsTurnAppLineLookup) AppLineGroupForUser(_ context.Context, group *service.Group, user *service.User) *service.Group {
+	if user == nil || user.TotalRecharged < 100 {
+		return group
+	}
+	discounted := *group
+	discounted.RateMultiplier = group.RateMultiplier * 0.5
+	return &discounted
+}
+
+// A connection admitted on the app line keeps the user's growth-level price on later turns.
+func TestRefreshOpenAIWSTurnBillingAPIKey_AppLineGrowthLevel(t *testing.T) {
+	appLineID := int64(1)
+	appLine := &service.Group{ID: appLineID, Platform: service.PlatformOpenAI, SubscriptionType: service.SubscriptionTypeStandard, RateMultiplier: 0.8, AppOnly: true}
+	conn := &service.APIKey{ID: 5, Key: "sk-conn", GroupID: &appLineID, Group: appLine}
+	persisted := &service.APIKey{ID: 5, Key: "sk-conn", GroupID: &appLineID, Group: appLine, User: &service.User{ID: 9, TotalRecharged: 100}}
+
+	got := refreshOpenAIWSTurnBillingAPIKey(context.Background(), wsTurnAppLineLookup{persisted: persisted}, conn)
+	require.InDelta(t, 0.4, got.Group.RateMultiplier, 1e-12)
+	require.InDelta(t, 0.8, appLine.RateMultiplier, 1e-12, "the shared group is never mutated")
+}
+
 // A connection that was moved to the normal-price line by an app-only line must still pick up
 // that line's current price on later turns.
 func TestRefreshOpenAIWSTurnBillingAPIKey_AppLineFallback(t *testing.T) {

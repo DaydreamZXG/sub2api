@@ -371,6 +371,23 @@ export default {
     },
 
     // Tickets
+    growth: {
+      title: '成长等级',
+      description: '用户累计充值越多，用 app 接入时价格越低',
+      enable: '开启成长等级',
+      enableHint: '开启后，用户通过野菜 app 使用“仅限野菜 app”的线路时，按等级在线路价格上再打折。其他线路和不经过 app 的请求不受影响。',
+      name: '等级名称',
+      threshold: '累计充值达到（余额）',
+      discount: 'app 价再减（%）',
+      add: '加一级',
+      rules: '第一级从 0 开始。累计充值包括付款充值、兑换码、邀请返利转入和后台手动加的余额；退款会减回去，所以退款后可能降级。给某个用户在线路上单独定过价的，按单独定的价，不参与等级折扣。修改后约一分钟内生效。',
+      errorName: '每一级都要有名称',
+      errorThreshold: '累计充值要一级比一级高',
+      errorDiscount: '折扣要在 0 到 90 之间',
+      saved: '成长等级已保存',
+      failedToLoad: '成长等级加载失败',
+      failedToSave: '成长等级保存失败'
+    },
     tickets: {
       title: '工单',
       description: '查看并回复用户提交的工单',

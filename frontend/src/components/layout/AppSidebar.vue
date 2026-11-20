@@ -487,6 +487,21 @@ const MCPIcon = {
   render: () => h(Icon, { name: 'mcp' })
 }
 
+const GrowthIcon = {
+  render: () =>
+    h(
+      'svg',
+      { fill: 'none', viewBox: '0 0 24 24', stroke: 'currentColor', 'stroke-width': '1.5' },
+      [
+        h('path', {
+          'stroke-linecap': 'round',
+          'stroke-linejoin': 'round',
+          d: 'M12 21v-9m0 0c0-3.3-2.2-5.5-6-5.5 0 3.5 2.3 5.5 6 5.5zm0-2c0-3.6 2.4-6 6.5-6 0 3.8-2.5 6-6.5 6zM7 21h10'
+        })
+      ]
+    )
+}
+
 const SupportTicketIcon = {
   render: () =>
     h(
@@ -819,6 +834,7 @@ const adminNavItems = computed((): NavItem[] => {
     { path: '/admin/plugins', label: t('nav.plugins'), icon: PluginIcon, featureFlag: flagPluginManagement },
     { path: '/admin/announcements', label: t('nav.announcements'), icon: BellIcon },
     { path: '/admin/tickets', label: t('nav.tickets'), icon: SupportTicketIcon },
+    { path: '/admin/growth-levels', label: t('nav.growthLevels'), icon: GrowthIcon },
     { path: '/admin/proxies', label: t('nav.proxies'), icon: ServerIcon },
     {
       path: '/admin/security-audit',

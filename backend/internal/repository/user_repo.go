@@ -909,6 +909,8 @@ func (r *userRepository) DeductBalance(ctx context.Context, id int64, amount flo
 // DeductAvailableBalance atomically deducts min(amount, max(balance, 0)).
 // Unlike DeductBalance, this refund-specific operation never increases an
 // existing deficit or permits a concurrent deduction to cause an overdraft.
+// The amount taken back also leaves total_recharged, so a refunded top-up stops
+// counting toward growth levels; returning the deduction goes through UpdateBalance, which adds it back.
 func (r *userRepository) DeductAvailableBalance(ctx context.Context, id int64, amount float64) (deducted float64, err error) {
 	if amount < 0 {
 		return 0, fmt.Errorf("deduction amount must be nonnegative")
@@ -921,7 +923,9 @@ func (r *userRepository) DeductAvailableBalance(ctx context.Context, id int64, a
 			FOR UPDATE
 		), updated AS (
 			UPDATE users AS u
-			SET balance = target.balance - LEAST($1, GREATEST(target.balance, 0)), updated_at = NOW()
+			SET balance = target.balance - LEAST($1, GREATEST(target.balance, 0)),
+				total_recharged = GREATEST(u.total_recharged - LEAST($1, GREATEST(target.balance, 0)), 0),
+				updated_at = NOW()
 			FROM target
 			WHERE u.id = target.id AND u.deleted_at IS NULL
 			RETURNING target.balance - u.balance AS deducted
@@ -952,6 +956,34 @@ func (r *userRepository) DeductAvailableBalance(ctx context.Context, id int64, a
 // AdjustBalance 原子地把 delta 累加到余额上，结果为负时整条语句不生效。
 // 相比"读余额 → 算新值 → 整行写回"，这里把读与写压进同一条 UPDATE，
 // 并发的计费扣款不会被旧快照覆盖。
+// AdjustBalanceAsRecharge adds amount to the balance and counts it as a top-up (total_recharged),
+// for balance an admin grants by hand.
+func (r *userRepository) AdjustBalanceAsRecharge(ctx context.Context, id int64, amount float64) (service.BalanceChange, error) {
+	if amount <= 0 {
+		return service.BalanceChange{}, fmt.Errorf("recharge amount must be positive")
+	}
+	const updateSQL = `
+		UPDATE users
+		SET balance = balance + $1, total_recharged = total_recharged + $1, updated_at = NOW()
+		WHERE id = $2 AND deleted_at IS NULL AND balance + $1 >= 0
+		RETURNING balance - $1, balance
+	`
+	change, ok, err := scanBalanceChange(ctx, clientFromContext(ctx, r.client), updateSQL, amount, id)
+	if err != nil {
+		return service.BalanceChange{}, err
+	}
+	if ok {
+		return change, nil
+	}
+
+	// 与 AdjustBalance 一致：加完仍为负数时拒绝，并区分用户不存在。
+	current, err := r.currentBalance(ctx, id)
+	if err != nil {
+		return service.BalanceChange{}, err
+	}
+	return service.BalanceChange{Old: current, New: current + amount}, service.ErrBalanceNegative
+}
+
 func (r *userRepository) AdjustBalance(ctx context.Context, id int64, delta float64) (service.BalanceChange, error) {
 	const updateSQL = `
 		UPDATE users

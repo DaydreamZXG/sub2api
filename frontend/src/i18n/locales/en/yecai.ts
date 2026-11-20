@@ -179,6 +179,14 @@ export default {
     close: 'Solved, close the ticket',
     more: 'Show more'
   },
+  growth: {
+    title: 'My plant',
+    off: '{percent}% off the app price',
+    next: 'Top up {amount} more to reach "{name}": {percent}% off the app price',
+    top: 'You are at the top level',
+    note: 'Levels follow your total top-ups; refunded amounts do not count. The discount applies when you connect through the app.',
+    manual: 'Your app price was set individually, so the level discount is not added on top.'
+  },
   theme: { label: 'Appearance', light: 'Light', dark: 'Dark', system: 'Follow system' },
   prices: {
     title: 'Prices',

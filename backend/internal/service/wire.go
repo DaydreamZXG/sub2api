@@ -853,9 +853,11 @@ func ProvideAPIKeyService(
 	billingCacheService *BillingCacheService,
 	concurrencyService *ConcurrencyService,
 	appTokens AppDeviceTokenRepository,
+	growthLevels *GrowthLevelsService,
 ) *APIKeyService {
 	svc := NewAPIKeyService(apiKeyRepo, userRepo, groupRepo, userSubRepo, userGroupRateRepo, cache, cfg)
 	svc.SetAppRequestVerifier(NewAppRequestVerifier(appTokens))
+	svc.SetGrowthLevels(growthLevels)
 	svc.SetRateLimitCacheInvalidator(billingCacheService)
 	svc.SetConcurrencyService(concurrencyService)
 	return svc
@@ -885,6 +887,7 @@ var ProviderSet = wire.NewSet(
 	NewAnnouncementService,
 	NewTicketService,
 	NewDesktopConnectService,
+	NewGrowthLevelsService,
 	NewAdminService,
 	NewGatewayService,
 	NewOpenAIGatewayService,

@@ -27,6 +27,8 @@
       </div>
     </section>
 
+    <YcGrowthCard />
+
     <section class="yc-surface yc-recent">
       <header>
         <h2>{{ t('yc.dash.recent') }}</h2>
@@ -58,6 +60,7 @@ import { usageAPI, type UserDashboardStats } from '@/api/usage'
 import type { UsageLog } from '@/types'
 import { formatDateLocalInput, formatRelativeTime } from '@/utils/format'
 import YcShell from '@/components/yecai/YcShell.vue'
+import YcGrowthCard from '@/components/yecai/YcGrowthCard.vue'
 import { useYcMoney } from '@/composables/useYcMoney'
 
 const { t } = useI18n()

@@ -93,3 +93,85 @@ func TestResolveAppLine(t *testing.T) {
 		require.ErrorIs(t, err, ErrAppOnlyLine)
 	})
 }
+
+type growthLevelsSettingRepo struct {
+	SettingRepository
+	value string
+}
+
+func (r *growthLevelsSettingRepo) GetValue(context.Context, string) (string, error) {
+	if r.value == "" {
+		return "", ErrSettingNotFound
+	}
+	return r.value, nil
+}
+
+func (r *growthLevelsSettingRepo) Set(_ context.Context, _ string, value string) error {
+	r.value = value
+	return nil
+}
+
+// The growth level takes its discount off the app line only, and only for requests made through the app.
+func TestResolveAppLine_GrowthLevelDiscount(t *testing.T) {
+	ctx := context.Background()
+	const ownerID = int64(7)
+	normalID := int64(2)
+	normal := &Group{ID: normalID, Status: StatusActive, SubscriptionType: SubscriptionTypeStandard, Platform: PlatformAnthropic, RateMultiplier: 1}
+
+	tokens := newFakeAppDeviceTokenRepo()
+	connect := NewDesktopConnectService(newFakeDesktopCodeStore(), tokens, nil, nil)
+	ownerToken, err := connect.IssueAppToken(ctx, ownerID, AppDevice{DeviceID: "owner-device"})
+	require.NoError(t, err)
+
+	levels := NewGrowthLevelsService(&growthLevelsSettingRepo{})
+	svc := &APIKeyService{groupRepo: appLineGroupRepo{groups: map[int64]*Group{normal.ID: normal}}}
+	svc.SetAppRequestVerifier(NewAppRequestVerifier(tokens))
+	svc.SetGrowthLevels(levels)
+
+	keyFor := func(totalRecharged float64) *APIKey {
+		appLine := &Group{ID: 1, Status: StatusActive, SubscriptionType: SubscriptionTypeStandard, Platform: PlatformAnthropic,
+			RateMultiplier: 0.8, AppOnly: true, AppFallbackGroupID: &normalID}
+		return &APIKey{ID: 11, User: &User{ID: ownerID, TotalRecharged: totalRecharged}, GroupID: &appLine.ID, Group: appLine}
+	}
+
+	t.Run("no discount while the ladder is off", func(t *testing.T) {
+		key := keyFor(5000)
+		resolved, err := svc.ResolveAppLine(ctx, key, ownerToken)
+		require.NoError(t, err)
+		require.Same(t, key, resolved)
+	})
+
+	ladder := DefaultGrowthLevels()
+	ladder.Enabled = true
+	_, err = levels.Set(ctx, ladder)
+	require.NoError(t, err)
+
+	t.Run("the app price drops by the level's discount", func(t *testing.T) {
+		key := keyFor(500) // 长叶: 5% off
+		resolved, err := svc.ResolveAppLine(ctx, key, ownerToken)
+		require.NoError(t, err)
+		require.InDelta(t, 0.76, resolved.Group.RateMultiplier, 1e-9)
+		require.Equal(t, int64(1), *resolved.GroupID)
+		require.InDelta(t, 0.8, key.Group.RateMultiplier, 1e-12, "the cached key and its group are never modified")
+	})
+
+	t.Run("the first level changes nothing", func(t *testing.T) {
+		key := keyFor(50)
+		resolved, err := svc.ResolveAppLine(ctx, key, ownerToken)
+		require.NoError(t, err)
+		require.Same(t, key, resolved)
+	})
+
+	t.Run("requests outside the app pay the normal line's price, whatever the level", func(t *testing.T) {
+		resolved, err := svc.ResolveAppLine(ctx, keyFor(10000), "")
+		require.NoError(t, err)
+		require.Same(t, normal, resolved.Group)
+		require.InDelta(t, 1.0, resolved.Group.RateMultiplier, 1e-12)
+	})
+
+	t.Run("an invalid ladder is refused and the saved one stays", func(t *testing.T) {
+		_, err := levels.Set(ctx, GrowthLevels{Enabled: true})
+		require.ErrorIs(t, err, ErrGrowthLevelsInvalid)
+		require.InDelta(t, 0.05, levels.Get(ctx).DiscountFor(500), 1e-12)
+	})
+}
