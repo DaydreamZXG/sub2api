@@ -2080,7 +2080,7 @@ onUnmounted(() => {
 .yk-address-label { display: inline-flex; align-items: center; height: 24px; padding: 0 10px; border-radius: 999px; font-size: 12.5px; font-weight: 650; background: var(--yc-lime); color: var(--yc-on-lime); }
 .yk-address-url { font-size: 15px; word-break: break-all; }
 .yk-address .yk-btn-ghost { height: 30px; padding: 0 12px; font-size: 13px; background: transparent; color: inherit; box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.28); }
-:global(.dark) .yk-address .yk-btn-ghost { box-shadow: inset 0 0 0 1px rgb(11 15 12 / 0.28); }
+.dark .yk-address .yk-btn-ghost { box-shadow: inset 0 0 0 1px rgb(11 15 12 / 0.28); }
 .yk-address .yk-btn-ghost:hover { background: rgb(128 128 128 / 0.22); }
 .yk-address-hint { flex: 1 1 100%; font-size: 13.5px; opacity: 0.78; }
 

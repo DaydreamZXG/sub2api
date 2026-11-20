@@ -361,7 +361,7 @@ onMounted(() => {
   font-size: 12px;
 }
 .ysb-chips .ysb-chip-peak { border-color: color-mix(in srgb, #f59e0b 50%, transparent); color: #b45309; }
-:global(.dark) .ysb-chips .ysb-chip-peak { color: #fbbf24; }
+.dark .ysb-chips .ysb-chip-peak { color: #fbbf24; }
 
 .ysb-expiry { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 0; padding: 12px 16px; border-radius: 14px; background: var(--yc-fill); font-size: 14px; }
 .ysb-expiry dt { color: var(--yc-mut); white-space: nowrap; }

@@ -1029,7 +1029,7 @@ watch(endpointDistributionSource, () => {
 .yus-fact-note { font-size: 12px; color: var(--yc-mut); }
 .yus-fact-main .yus-fact-label, .yus-fact-main .yus-fact-note { color: color-mix(in srgb, var(--yc-paper) 65%, transparent); }
 .yus-fact-main .yus-fact-value { color: var(--yc-lime); }
-:global(.dark) .yus-fact-main .yus-fact-value { color: var(--yc-paper); }
+.dark .yus-fact-main .yus-fact-value { color: var(--yc-paper); }
 
 .yus-panel { display: grid; gap: 18px; padding: 20px 22px; border: 1px solid var(--yc-line); border-radius: 22px; background: var(--yc-paper); }
 .yus-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; }
