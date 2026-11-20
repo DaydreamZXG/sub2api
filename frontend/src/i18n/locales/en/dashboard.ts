@@ -348,6 +348,9 @@ export default {
 
   // Usage
   usage: {
+    moreFilters: 'More filters',
+    fewerFilters: 'Fewer filters',
+    pricing: 'Pricing',
     title: 'Usage Records',
     description: 'View and analyze your API usage history',
     costDetails: 'Cost Breakdown',
@@ -492,6 +495,7 @@ export default {
       detailCoordinates: 'Coordinates',
     },
     tabs: { usage: 'Usage', errors: 'Error Requests', ranking: 'User Ranking' },
+    userTabs: { usage: 'Requests', errors: 'Errors', charts: 'Charts' },
     errors: {
       time: 'Time', model: 'Model', endpoint: 'Endpoint', status: 'Status',
       category: 'Category', platform: 'Platform', message: 'Message',

@@ -1,29 +1,223 @@
 <template>
   <AppLayout>
-    <div class="space-y-6">
-      <UsageStatsCards :stats="usageStats" :show-account-cost="false" :strike-standard-cost="true" />
+    <div class="yus">
+      <div class="yus-facts">
+        <div class="yus-fact yus-fact-main" data-test="usage-fact-cost">
+          <p class="yus-fact-label">{{ t('usage.totalCost') }}</p>
+          <p class="yus-fact-value">{{ money(usageStats?.total_actual_cost) }}</p>
+          <p v-if="hasDiscount" class="yus-fact-note">
+            {{ t('usage.standardCost') }} <s>{{ money(usageStats?.total_cost) }}</s>
+          </p>
+        </div>
+        <div class="yus-fact">
+          <p class="yus-fact-label">{{ t('usage.totalRequests') }}</p>
+          <p class="yus-fact-value">{{ count(usageStats?.total_requests) }}</p>
+          <p class="yus-fact-note">{{ t('usage.inSelectedRange') }}</p>
+        </div>
+        <div class="yus-fact">
+          <p class="yus-fact-label">{{ t('usage.totalTokens') }}</p>
+          <p class="yus-fact-value">{{ count(usageStats?.total_tokens) }}</p>
+          <p class="yus-fact-note">
+            {{ t('usage.in') }} {{ count(usageStats?.total_input_tokens) }} · {{ t('usage.out') }}
+            {{ count(usageStats?.total_output_tokens) }} · {{ t('usage.cacheTotal') }}
+            {{ count(usageStats?.total_cache_tokens) }}
+          </p>
+        </div>
+        <div class="yus-fact">
+          <p class="yus-fact-label">{{ t('usage.avgDuration') }}</p>
+          <p class="yus-fact-value">{{ duration(usageStats?.average_duration_ms) }}</p>
+        </div>
+      </div>
 
-      <div class="space-y-4">
-        <div class="card p-4">
-          <div class="flex flex-wrap items-center gap-4">
-            <div class="flex items-center gap-2">
-              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('admin.dashboard.timeRange') }}:</span>
-              <DateRangePicker
-                v-model:start-date="startDate"
-                v-model:end-date="endDate"
-                @change="onDateRangeChange"
-              />
-            </div>
-            <div class="ml-auto flex items-center gap-2">
-              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('admin.dashboard.granularity') }}:</span>
-              <div class="w-28">
-                <Select v-model="granularity" :options="granularityOptions" @change="loadChartData" />
-              </div>
-            </div>
+      <section class="yus-panel">
+        <div class="yus-bar">
+          <div class="yus-tabs" role="tablist">
+            <button
+              type="button"
+              role="tab"
+              data-test="usage-tab-usage"
+              class="yus-tab"
+              :class="{ 'yus-tab-on': activeTab === 'usage' }"
+              :aria-selected="activeTab === 'usage'"
+              @click="activeTab = 'usage'"
+            >
+              {{ t('usage.userTabs.usage') }}
+            </button>
+            <button
+              v-if="errorViewEnabled"
+              type="button"
+              role="tab"
+              data-test="usage-tab-errors"
+              class="yus-tab"
+              :class="{ 'yus-tab-on': activeTab === 'errors' }"
+              :aria-selected="activeTab === 'errors'"
+              @click="switchToErrors"
+            >
+              {{ t('usage.userTabs.errors') }}
+            </button>
+            <button
+              type="button"
+              role="tab"
+              data-test="usage-tab-charts"
+              class="yus-tab"
+              :class="{ 'yus-tab-on': activeTab === 'charts' }"
+              :aria-selected="activeTab === 'charts'"
+              @click="activeTab = 'charts'"
+            >
+              {{ t('usage.userTabs.charts') }}
+            </button>
+          </div>
+          <div class="yus-range">
+            <span>{{ t('admin.dashboard.timeRange') }}</span>
+            <DateRangePicker
+              v-model:start-date="startDate"
+              v-model:end-date="endDate"
+              @change="onDateRangeChange"
+            />
           </div>
         </div>
 
-        <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div class="yus-filters">
+          <div v-if="activeTab === 'errors'" class="yus-fields">
+            <div class="yus-field">
+              <label class="input-label">{{ t('usage.errors.keyName') }}</label>
+              <Select v-model="errorFilter.api_key_id" :options="errorKeyOptions" @change="applyErrorFilters" />
+            </div>
+            <div class="yus-field">
+              <label class="input-label">{{ t('usage.errors.model') }}</label>
+              <Select
+                v-model="errorFilter.model"
+                :options="errorModelOptions"
+                searchable
+                creatable
+                clearable
+                :placeholder="t('usage.errors.modelPlaceholder')"
+                @change="applyErrorFilters"
+              />
+            </div>
+            <div class="yus-field">
+              <label class="input-label">{{ t('usage.errors.category') }}</label>
+              <Select v-model="errorFilter.category" :options="errorCategoryOptions" @change="applyErrorFilters" />
+            </div>
+            <div class="yus-field">
+              <label class="input-label">{{ t('usage.errors.status') }}</label>
+              <Select v-model="errorFilter.status_code" :options="errorStatusOptions" @change="applyErrorFilters" />
+            </div>
+          </div>
+          <div v-else class="yus-fields">
+            <div class="yus-field">
+              <label class="input-label">{{ t('usage.apiKeyFilter') }}</label>
+              <Select v-model="filters.api_key_id" :options="apiKeyOptions" @change="applyFilters" />
+            </div>
+            <div class="yus-field">
+              <label class="input-label">{{ t('usage.model') }}</label>
+              <Select v-model="filters.model" :options="modelOptions" searchable @change="applyFilters" />
+            </div>
+            <div class="yus-field">
+              <label class="input-label">{{ t('admin.usage.group') }}</label>
+              <Select v-model="filters.group_id" :options="groupOptions" searchable @change="applyFilters" />
+            </div>
+            <!-- Kept mounted while folded so a chosen filter still applies. -->
+            <div v-show="moreFilters" class="yus-field">
+              <label class="input-label">{{ t('usage.type') }}</label>
+              <Select v-model="filters.request_type" :options="requestTypeOptions" @change="applyFilters" />
+            </div>
+            <div v-show="moreFilters" class="yus-field">
+              <label class="input-label">{{ t('usage.compactionFilter') }}</label>
+              <Select v-model="filters.native_compaction_v2" :options="compactionOptions" @change="applyFilters" />
+            </div>
+            <div v-if="subscriptionFeatureEnabled" v-show="moreFilters" class="yus-field">
+              <label class="input-label">{{ t('admin.usage.billingType') }}</label>
+              <Select v-model="filters.billing_type" :options="billingTypeOptions" @change="applyFilters" />
+            </div>
+            <div v-show="moreFilters" class="yus-field">
+              <label class="input-label">{{ t('admin.usage.billingMode') }}</label>
+              <Select v-model="filters.billing_mode" :options="billingModeOptions" @change="applyFilters" />
+            </div>
+          </div>
+
+          <div class="yus-actions">
+            <button
+              v-if="activeTab !== 'errors'"
+              type="button"
+              data-test="usage-more-filters"
+              class="yus-btn"
+              :aria-expanded="moreFilters"
+              @click="moreFilters = !moreFilters"
+            >
+              {{ moreFilters ? t('usage.fewerFilters') : t('usage.moreFilters') }}
+              <span v-if="!moreFilters && foldedFilterCount > 0" class="yus-count">{{ foldedFilterCount }}</span>
+            </button>
+            <button type="button" class="yus-btn" :disabled="activeTab === 'errors' ? errorLoading : loading" @click="refreshData">
+              {{ t('common.refresh') }}
+            </button>
+            <button type="button" class="yus-btn" @click="resetFilters">
+              {{ t('common.reset') }}
+            </button>
+            <div v-if="activeTab !== 'charts'" ref="columnDropdownRef" class="relative">
+              <button
+                type="button"
+                data-testid="usage-column-settings"
+                class="yus-btn"
+                :title="t('admin.users.columnSettings')"
+                @click="showColumnDropdown = !showColumnDropdown"
+              >
+                <Icon name="grid" size="sm" />
+                <span class="hidden md:inline">{{ t('admin.users.columnSettings') }}</span>
+              </button>
+              <div v-if="showColumnDropdown" class="yus-menu">
+                <button
+                  v-for="col in currentToggleableColumns"
+                  :key="col.key"
+                  type="button"
+                  :data-testid="`usage-column-toggle-${col.key}`"
+                  @click="toggleCurrentColumn(col.key)"
+                >
+                  <span>{{ col.label }}</span>
+                  <Icon v-if="isCurrentColumnVisible(col.key)" name="check" size="sm" />
+                </button>
+              </div>
+            </div>
+            <button v-if="activeTab !== 'errors'" type="button" class="yus-btn yus-btn-lime" :disabled="exporting" @click="exportToCSV">
+              {{ exporting ? t('usage.exporting') : t('usage.exportCsv') }}
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <template v-if="activeTab === 'usage'">
+        <UsageTable
+          :data="usageLogs"
+          :loading="loading"
+          :columns="visibleColumns"
+          :server-side-sort="true"
+          :show-account-billing="false"
+          :show-upstream-endpoint="false"
+          :currency="sign"
+          :rate-in-words="true"
+          default-sort-key="created_at"
+          default-sort-order="desc"
+          @sort="handleSort"
+          @ipGeoBatchFailed="handleIpGeoBatchFailed"
+        />
+        <Pagination
+          v-if="pagination.total > 0"
+          :page="pagination.page"
+          :total="pagination.total"
+          :page-size="pagination.page_size"
+          @update:page="handlePageChange"
+          @update:pageSize="handlePageSizeChange"
+        />
+      </template>
+
+      <div v-else-if="activeTab === 'charts'" class="yus-charts" data-test="usage-charts">
+        <div class="yus-grain">
+          <span>{{ t('admin.dashboard.granularity') }}</span>
+          <div class="w-28">
+            <Select v-model="granularity" :options="granularityOptions" @change="loadChartData" />
+          </div>
+        </div>
+        <div class="grid grid-cols-1 gap-5 lg:grid-cols-2">
           <ModelDistributionChart
             v-model:metric="modelDistributionMetric"
             :model-stats="requestedModelStats"
@@ -45,9 +239,6 @@
             :start-date="startDate"
             :end-date="endDate"
           />
-        </div>
-
-        <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <EndpointDistributionChart
             v-model:source="endpointDistributionSource"
             v-model:metric="endpointDistributionMetric"
@@ -67,140 +258,6 @@
         </div>
       </div>
 
-      <div class="card p-6">
-        <div class="flex flex-wrap items-end justify-between gap-4">
-          <div v-if="activeTab === 'errors'" class="flex flex-1 flex-wrap items-end gap-4">
-            <div class="w-full sm:w-auto sm:min-w-[220px]">
-              <label class="input-label">{{ t('usage.errors.keyName') }}</label>
-              <Select v-model="errorFilter.api_key_id" :options="errorKeyOptions" @change="applyErrorFilters" />
-            </div>
-            <div class="w-full sm:w-auto sm:min-w-[220px]">
-              <label class="input-label">{{ t('usage.errors.model') }}</label>
-              <Select
-                v-model="errorFilter.model"
-                :options="errorModelOptions"
-                searchable
-                creatable
-                clearable
-                :placeholder="t('usage.errors.modelPlaceholder')"
-                @change="applyErrorFilters"
-              />
-            </div>
-            <div class="w-full sm:w-auto sm:min-w-[200px]">
-              <label class="input-label">{{ t('usage.errors.category') }}</label>
-              <Select v-model="errorFilter.category" :options="errorCategoryOptions" @change="applyErrorFilters" />
-            </div>
-            <div class="w-full sm:w-auto sm:min-w-[180px]">
-              <label class="input-label">{{ t('usage.errors.status') }}</label>
-              <Select v-model="errorFilter.status_code" :options="errorStatusOptions" @change="applyErrorFilters" />
-            </div>
-          </div>
-          <div v-else class="flex flex-1 flex-wrap items-end gap-4">
-            <div class="w-full sm:w-auto sm:min-w-[220px]">
-              <label class="input-label">{{ t('usage.apiKeyFilter') }}</label>
-              <Select v-model="filters.api_key_id" :options="apiKeyOptions" @change="applyFilters" />
-            </div>
-            <div class="w-full sm:w-auto sm:min-w-[220px]">
-              <label class="input-label">{{ t('usage.model') }}</label>
-              <Select v-model="filters.model" :options="modelOptions" searchable @change="applyFilters" />
-            </div>
-            <div class="w-full sm:w-auto sm:min-w-[200px]">
-              <label class="input-label">{{ t('admin.usage.group') }}</label>
-              <Select v-model="filters.group_id" :options="groupOptions" searchable @change="applyFilters" />
-            </div>
-            <div class="w-full sm:w-auto sm:min-w-[180px]">
-              <label class="input-label">{{ t('usage.type') }}</label>
-              <Select v-model="filters.request_type" :options="requestTypeOptions" @change="applyFilters" />
-            </div>
-            <div class="w-full sm:w-auto sm:min-w-[180px]">
-              <label class="input-label">{{ t('usage.compactionFilter') }}</label>
-              <Select v-model="filters.native_compaction_v2" :options="compactionOptions" @change="applyFilters" />
-            </div>
-            <div v-if="subscriptionFeatureEnabled" class="w-full sm:w-auto sm:min-w-[200px]">
-              <label class="input-label">{{ t('admin.usage.billingType') }}</label>
-              <Select v-model="filters.billing_type" :options="billingTypeOptions" @change="applyFilters" />
-            </div>
-            <div class="w-full sm:w-auto sm:min-w-[200px]">
-              <label class="input-label">{{ t('admin.usage.billingMode') }}</label>
-              <Select v-model="filters.billing_mode" :options="billingModeOptions" @change="applyFilters" />
-            </div>
-          </div>
-
-          <div class="flex w-full flex-wrap items-center justify-end gap-3 sm:w-auto">
-            <button type="button" @click="refreshData" :disabled="activeTab === 'errors' ? errorLoading : loading" class="btn btn-secondary">
-              {{ t('common.refresh') }}
-            </button>
-            <button type="button" @click="resetFilters" class="btn btn-secondary">
-              {{ t('common.reset') }}
-            </button>
-            <div class="relative" ref="columnDropdownRef">
-              <button
-                type="button"
-                data-testid="usage-column-settings"
-                @click="showColumnDropdown = !showColumnDropdown"
-                class="btn btn-secondary px-2 md:px-3"
-                :title="t('admin.users.columnSettings')"
-              >
-                <Icon name="grid" size="sm" />
-                <span class="hidden md:inline">{{ t('admin.users.columnSettings') }}</span>
-              </button>
-              <div
-                v-if="showColumnDropdown"
-                class="absolute right-0 top-full z-50 mt-1 max-h-80 w-48 overflow-y-auto rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-dark-600 dark:bg-dark-800"
-              >
-                <button
-                  v-for="col in currentToggleableColumns"
-                  :key="col.key"
-                  type="button"
-                  :data-testid="`usage-column-toggle-${col.key}`"
-                  @click="toggleCurrentColumn(col.key)"
-                  class="flex w-full items-center justify-between px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-dark-700"
-                >
-                  <span>{{ col.label }}</span>
-                  <Icon v-if="isCurrentColumnVisible(col.key)" name="check" size="sm" class="text-primary-500" />
-                </button>
-              </div>
-            </div>
-            <button v-if="activeTab !== 'errors'" type="button" @click="exportToCSV" :disabled="exporting" class="btn btn-primary">
-              {{ exporting ? t('usage.exporting') : t('usage.exportCsv') }}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div v-if="errorViewEnabled" class="flex gap-2 border-b border-gray-200 dark:border-dark-700">
-        <button class="tab" :class="{ 'tab-active': activeTab === 'usage' }" @click="activeTab = 'usage'">
-          {{ t('usage.tabs.usage') }}
-        </button>
-        <button class="tab" :class="{ 'tab-active': activeTab === 'errors' }" @click="switchToErrors">
-          {{ t('usage.tabs.errors') }}
-        </button>
-      </div>
-
-      <template v-if="activeTab === 'usage'">
-        <UsageTable
-          :data="usageLogs"
-          :loading="loading"
-          :columns="visibleColumns"
-          :server-side-sort="true"
-          :show-account-billing="false"
-          :show-upstream-endpoint="false"
-          default-sort-key="created_at"
-          default-sort-order="desc"
-          @sort="handleSort"
-          @ipGeoBatchFailed="handleIpGeoBatchFailed"
-        />
-
-        <Pagination
-          v-if="pagination.total > 0"
-          :page="pagination.page"
-          :total="pagination.total"
-          :page-size="pagination.page_size"
-          @update:page="handlePageChange"
-          @update:pageSize="handlePageSizeChange"
-        />
-      </template>
-
       <UserErrorRequestsTable
         v-else-if="errorViewEnabled"
         :rows="errorRows"
@@ -216,7 +273,6 @@
       />
     </div>
   </AppLayout>
-
 </template>
 
 <script setup lang="ts">
@@ -229,13 +285,13 @@ import AppLayout from '@/components/layout/AppLayout.vue'
 import Pagination from '@/components/common/Pagination.vue'
 import Select, { type SelectOption } from '@/components/common/Select.vue'
 import DateRangePicker from '@/components/common/DateRangePicker.vue'
-import UsageStatsCards from '@/components/admin/usage/UsageStatsCards.vue'
 import UsageTable from '@/components/admin/usage/UsageTable.vue'
 import ModelDistributionChart from '@/components/charts/ModelDistributionChart.vue'
 import GroupDistributionChart from '@/components/charts/GroupDistributionChart.vue'
 import EndpointDistributionChart from '@/components/charts/EndpointDistributionChart.vue'
 import TokenUsageTrend from '@/components/charts/TokenUsageTrend.vue'
 import Icon from '@/components/icons/Icon.vue'
+import { ycSign as sign } from '@/composables/ycMoneyState'
 import UserErrorRequestsTable from '@/components/user/UserErrorRequestsTable.vue'
 import { getPersistedPageSize } from '@/composables/usePersistedPageSize'
 import { formatReasoningEffort } from '@/utils/format'
@@ -263,6 +319,18 @@ type DistributionMetric = 'tokens' | 'actual_cost'
 type EndpointSource = 'inbound' | 'upstream' | 'path'
 
 const usageStats = ref<UsageStatsResponse | null>(null)
+
+const money = (value: number | null | undefined) => `${sign.value}${(value ?? 0).toFixed(4)}`
+const count = (value: number | null | undefined) => (value ?? 0).toLocaleString()
+const duration = (ms: number | null | undefined) => {
+  const value = ms ?? 0
+  return value < 1000 ? `${value.toFixed(0)}ms` : `${(value / 1000).toFixed(2)}s`
+}
+// The standard price is only worth showing when it differs from what was paid.
+const hasDiscount = computed(() => {
+  const stats = usageStats.value
+  return !!stats && stats.total_cost.toFixed(4) !== stats.total_actual_cost.toFixed(4)
+})
 const usageLogs = ref<UsageLog[]>([])
 const trendData = ref<TrendDataPoint[]>([])
 const requestedModelStats = ref<ModelStat[]>([])
@@ -356,7 +424,7 @@ const modelDistributionMetric = ref<DistributionMetric>('tokens')
 const groupDistributionMetric = ref<DistributionMetric>('tokens')
 const endpointDistributionMetric = ref<DistributionMetric>('tokens')
 const endpointDistributionSource = ref<EndpointSource>('inbound')
-const activeTab = ref<'usage' | 'errors'>('usage')
+const activeTab = ref<'usage' | 'errors' | 'charts'>('usage')
 const errorViewEnabled = computed(() => appStore.cachedPublicSettings?.allow_user_view_error_requests ?? false)
 
 const filters = ref<UsageQueryParams>({
@@ -366,6 +434,14 @@ const filters = ref<UsageQueryParams>({
   native_compaction_v2: null,
   billing_type: null,
   billing_mode: null,
+})
+
+const moreFilters = ref(false)
+// How many of the folded filters are in use, shown on the button while they are hidden.
+const foldedFilterCount = computed(() => {
+  const f = filters.value
+  return [f.request_type, f.native_compaction_v2, f.billing_type, f.billing_mode]
+    .filter((value) => value !== undefined && value !== null && value !== '').length
 })
 
 const pagination = reactive({
@@ -936,3 +1012,55 @@ watch(endpointDistributionSource, () => {
   // Endpoint source switching is handled by the chart component using already loaded stats.
 })
 </script>
+
+<style scoped>
+.yus { display: grid; gap: 20px; min-width: 0; }
+.yus > * { min-width: 0; }
+
+.yus-facts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.yus-fact { display: grid; align-content: start; gap: 4px; padding: 20px 22px; border: 1px solid var(--yc-line); border-radius: 22px; background: var(--yc-paper); }
+.yus-fact-main { border-color: var(--yc-ink); background: var(--yc-ink); }
+.yus-fact-label { font-size: 13px; color: var(--yc-mut); }
+.yus-fact-value { font-size: 26px; font-weight: 760; line-height: 1.2; color: var(--yc-ink); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.yus-fact-note { font-size: 12px; color: var(--yc-mut); }
+.yus-fact-main .yus-fact-label, .yus-fact-main .yus-fact-note { color: color-mix(in srgb, var(--yc-paper) 65%, transparent); }
+.yus-fact-main .yus-fact-value { color: var(--yc-lime); }
+:global(.dark) .yus-fact-main .yus-fact-value { color: var(--yc-paper); }
+
+.yus-panel { display: grid; gap: 18px; padding: 20px 22px; border: 1px solid var(--yc-line); border-radius: 22px; background: var(--yc-paper); }
+.yus-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; }
+.yus-tabs { display: inline-flex; max-width: 100%; padding: 3px; border-radius: 999px; background: var(--yc-fill); }
+.yus-tab { padding: 7px 16px; border-radius: 999px; font-size: 14px; color: var(--yc-mut); white-space: nowrap; }
+.yus-tab:hover { color: var(--yc-ink); }
+.yus-tab-on, .yus-tab-on:hover { background: var(--yc-ink); color: var(--yc-paper); font-weight: 650; }
+.yus-range, .yus-grain { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font-size: 13px; color: var(--yc-mut); }
+
+.yus-filters { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px; }
+.yus-fields { display: flex; flex: 1 1 420px; flex-wrap: wrap; align-items: flex-end; gap: 14px; min-width: 0; }
+.yus-field { flex: 1 1 180px; max-width: 260px; min-width: 0; }
+.yus-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; }
+.yus-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border: 1px solid var(--yc-line); border-radius: 999px; font-size: 13px; font-weight: 600; color: var(--yc-ink); white-space: nowrap; }
+.yus-btn:not(:disabled):hover { background: var(--yc-fill); }
+.yus-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.yus-btn-lime { border-color: transparent; background: var(--yc-lime); color: var(--yc-on-lime); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12); }
+.yus-btn-lime:not(:disabled):hover { background: var(--yc-lime); filter: brightness(0.96); }
+.yus-count { display: grid; place-items: center; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; background: var(--yc-ink); color: var(--yc-paper); font-size: 11px; }
+.yus-menu { position: absolute; right: 0; top: 100%; z-index: 50; width: 192px; max-height: 320px; margin-top: 6px; padding: 6px; overflow-y: auto; border: 1px solid var(--yc-line); border-radius: 14px; background: var(--yc-paper); box-shadow: 0 12px 32px rgba(0, 0, 0, 0.14); }
+.yus-menu button { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 8px 10px; border-radius: 8px; font-size: 13px; color: var(--yc-ink); text-align: left; }
+.yus-menu button:hover { background: var(--yc-fill); }
+
+.yus-charts { display: grid; gap: 16px; }
+.yus-grain { justify-content: flex-end; }
+
+@media (max-width: 1100px) {
+  .yus-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+  .yus-facts { gap: 12px; }
+  .yus-fact { padding: 16px; }
+  .yus-fact-value { font-size: 22px; }
+  .yus-panel { padding: 16px; }
+  .yus-field { flex-basis: 100%; max-width: none; }
+  .yus-actions { justify-content: flex-start; }
+}
+</style>

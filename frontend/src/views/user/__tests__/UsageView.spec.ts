@@ -265,7 +265,7 @@ describe('user UsageView', () => {
       expect.anything()
     )
 
-    await wrapper.findAll('button').find((button) => button.text() === 'Error records')!.trigger('click')
+    await wrapper.get('[data-test="usage-tab-errors"]').trigger('click')
     await flushPromises()
 
     const errorKeySelect = wrapper.findAllComponents(Select).find((select) =>
@@ -654,5 +654,30 @@ describe('UsageView subscription feature flag', () => {
     expect(billingTypeSelect(wrapper)).toBeUndefined()
     expect(wrapper.text()).not.toContain('Billing type')
     wrapper.unmount()
+  })
+
+  it('keeps the charts out of the first view and shows them on their own tab', async () => {
+    const wrapper = mountUsageView()
+    await flushPromises()
+
+    expect(wrapper.find('[data-test="usage-charts"]').exists()).toBe(false)
+    expect(wrapper.findComponent(UsageTable).exists()).toBe(true)
+
+    await wrapper.get('[data-test="usage-tab-charts"]').trigger('click')
+    expect(wrapper.find('[data-test="usage-charts"]').exists()).toBe(true)
+    expect(wrapper.findComponent(UsageTable).exists()).toBe(false)
+  })
+
+  it('folds the less common filters without unmounting them', async () => {
+    const wrapper = mountUsageView()
+    await flushPromises()
+
+    const more = wrapper.get('[data-test="usage-more-filters"]')
+    expect(more.attributes('aria-expanded')).toBe('false')
+    const before = wrapper.findAllComponents(Select).length
+
+    await more.trigger('click')
+    expect(more.attributes('aria-expanded')).toBe('true')
+    expect(wrapper.findAllComponents(Select).length).toBe(before)
   })
 })
