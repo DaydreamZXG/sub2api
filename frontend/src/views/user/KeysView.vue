@@ -1270,6 +1270,7 @@
 	import { useOnboardingStore } from '@/stores/onboarding'
 	import { useClipboard } from '@/composables/useClipboard'
 	import { useYcAppConnect } from '@/composables/useYcAppConnect'
+	import { ycSiteName } from '@/utils/ycBrand'
 import { getPersistedPageSize } from '@/composables/usePersistedPageSize'
 
 const { t } = useI18n()
@@ -2151,7 +2152,7 @@ const executeCcsImport = (row: ApiKey, clientType: CcSwitchClientType) => {
   const platform = row.group?.platform || 'anthropic'
 
   const usageScript = CC_SWITCH_USAGE_SCRIPT
-  const providerName = (publicSettings.value?.site_name || 'sub2api').trim() || 'sub2api'
+  const providerName = ycSiteName(publicSettings.value?.site_name)
   const deeplink = buildCcSwitchImportDeeplink({
     baseUrl,
     platform,
