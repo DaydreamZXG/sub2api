@@ -121,6 +121,17 @@ func lockAgentWatermark(ctx context.Context, tx *sql.Tx, firstMark time.Time) (t
 	return time.Parse(time.RFC3339Nano, stored)
 }
 
+// lockAgentMove takes the mark's lock for a change of a user's agent and returns the mark with the moment
+// of the change. The moment is read from the database after the lock is held, so of two changes the one
+// that waited always gets the later moment, whichever server it ran on.
+func lockAgentMove(ctx context.Context, tx *sql.Tx) (from, now time.Time, err error) {
+	if from, err = lockAgentWatermark(ctx, tx, time.Now()); err != nil {
+		return from, now, err
+	}
+	err = tx.QueryRowContext(ctx, `SELECT clock_timestamp()`).Scan(&now)
+	return from, now, err
+}
+
 // settleAgentUser credits the user's agent for what the user spent in (from, now], ahead of the regular
 // run, because the user is about to leave that agent. from is the locked mark, which stays where it is:
 // the regular run skips this usage, as by then the user has another agent from now on, or none.
@@ -348,8 +359,7 @@ func (r *agentRepository) AttachUser(ctx context.Context, agentID, userID int64)
 	defer func() { _ = tx.Rollback() }()
 
 	// Held first by every move and every accrual, so two moves cannot wait on each other's rows.
-	now := time.Now()
-	from, err := lockAgentWatermark(ctx, tx, now)
+	from, now, err := lockAgentMove(ctx, tx)
 	if err != nil {
 		return err
 	}
@@ -413,8 +423,7 @@ func (r *agentRepository) DetachUser(ctx context.Context, agentID, userID int64)
 	}
 	defer func() { _ = tx.Rollback() }()
 
-	now := time.Now()
-	from, err := lockAgentWatermark(ctx, tx, now)
+	from, now, err := lockAgentMove(ctx, tx)
 	if err != nil {
 		return false, err
 	}
