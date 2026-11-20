@@ -151,8 +151,14 @@ func (s *AgentService) SetAgent(ctx context.Context, userID int64, isAgent bool,
 	}
 	if !isAgent {
 		sharePercent = 0
-	} else if math.IsNaN(sharePercent) || sharePercent <= 0 || sharePercent > 100 {
-		return ErrAgentShareInvalid
+	} else {
+		// Checked as it is stored: a share that rounds to nothing would leave the agent with no reward at all.
+		if math.IsNaN(sharePercent) {
+			return ErrAgentShareInvalid
+		}
+		if sharePercent = roundTo(sharePercent, 2); sharePercent <= 0 || sharePercent > 100 {
+			return ErrAgentShareInvalid
+		}
 	}
 	// The agent's figures live on their affiliate profile.
 	if _, err := s.affiliate.EnsureUserAffiliate(ctx, userID); err != nil {
@@ -164,7 +170,7 @@ func (s *AgentService) SetAgent(ctx context.Context, userID int64, isAgent bool,
 			return err
 		}
 	}
-	return s.repo.SetAgent(ctx, userID, isAgent, roundTo(sharePercent, 2))
+	return s.repo.SetAgent(ctx, userID, isAgent, sharePercent)
 }
 
 func (s *AgentService) ListAgents(ctx context.Context) ([]AgentEntry, error) {

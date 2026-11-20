@@ -75,7 +75,7 @@ func newAgentServiceForTest(repo *agentRepoStub, aff *agentAffiliateRepoStub) *A
 
 func TestAgentSetAgent_ChecksTheShareAndSettlesFirst(t *testing.T) {
 	t.Parallel()
-	for _, percent := range []float64{0, -1, 100.01, math.NaN()} {
+	for _, percent := range []float64{0, -1, 0.004, 100.01, math.NaN()} {
 		repo := &agentRepoStub{}
 		err := newAgentServiceForTest(repo, &agentAffiliateRepoStub{}).SetAgent(context.Background(), 7, true, percent)
 		require.ErrorIs(t, err, ErrAgentShareInvalid, "percent %v", percent)
