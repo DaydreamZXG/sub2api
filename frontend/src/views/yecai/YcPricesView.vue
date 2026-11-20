@@ -13,12 +13,14 @@
       <p v-else-if="shown.length === 0" class="yc-prices-empty">{{ t(prices.length ? 'yc.prices.noMatch' : 'yc.prices.none') }}</p>
       <template v-for="m in shown" :key="m.name">
         <button type="button" class="yc-prices-row" :aria-expanded="open === m.name" @click="open = open === m.name ? '' : m.name">
-          <span class="yc-mono yc-prices-name">{{ m.name }}</span>
+          <span class="yc-mono yc-prices-name">{{ m.name }} <span v-if="m.appOnly || m.appHeadline" class="yc-badge">{{ t(m.appOnly ? 'yc.prices.appOnly' : 'yc.prices.appHeadline') }}</span></span>
           <span class="yc-prices-cell" :data-label="t('yc.prices.input')">
             <b class="yc-num">¥{{ price(m.input) }}<small v-if="m.varies">{{ t('yc.prices.from') }}</small></b><s v-if="m.share && m.officialInput">¥{{ price(m.officialInput) }}</s>
+            <em v-if="m.app" class="yc-prices-app">{{ t('yc.prices.appPrice', { price: price(m.app.input) }) }}<template v-if="m.app.varies">{{ t('yc.prices.from') }}</template></em>
           </span>
           <span class="yc-prices-cell" :data-label="t('yc.prices.output')">
             <b class="yc-num">¥{{ price(m.output) }}<small v-if="m.varies">{{ t('yc.prices.from') }}</small></b><s v-if="m.share && m.officialOutput">¥{{ price(m.officialOutput) }}</s>
+            <em v-if="m.app" class="yc-prices-app">{{ t('yc.prices.appPrice', { price: price(m.app.output) }) }}<template v-if="m.app.varies">{{ t('yc.prices.from') }}</template></em>
           </span>
           <span class="yc-prices-off"><span v-if="m.share" class="yc-badge">{{ t('yc.price.off', { zhe: (m.share * 10).toFixed(1), pct: Math.round((1 - m.share) * 100) }) }}</span></span>
         </button>
@@ -32,7 +34,7 @@
             </thead>
             <tbody>
               <tr v-for="l in m.lines" :key="l.name">
-                <td>{{ l.name }} <span v-if="l.plan" class="yc-badge">{{ t('yc.shell.plans') }}</span></td><td>¥{{ price(l.input) }}</td><td>¥{{ price(l.output) }}</td>
+                <td>{{ l.name }} <span v-if="l.plan" class="yc-badge">{{ t('yc.shell.plans') }}</span><span v-if="l.app" class="yc-badge">{{ t('yc.prices.appOnly') }}</span></td><td>¥{{ price(l.input) }}</td><td>¥{{ price(l.output) }}</td>
                 <td>{{ l.cacheRead == null ? '-' : `¥${price(l.cacheRead)}` }}</td><td>×{{ l.multiplier }}</td>
               </tr>
             </tbody>
@@ -44,6 +46,7 @@
         </div>
       </template>
     </section>
+    <p v-if="prices.some((m) => m.app || m.appOnly || m.appHeadline)" class="yc-note yc-prices-foot">{{ t('yc.prices.appNote') }}</p>
     <p class="yc-note yc-prices-foot">{{ t('yc.prices.foot') }}</p>
   </YcShell>
 </template>
@@ -88,6 +91,9 @@ onMounted(async () => {
 .yc-prices-cell b { font-size: 19px; }
 .yc-prices-cell b small { font-size: 12px; font-weight: 500; color: var(--yc-mut); }
 .yc-prices-cell s { font-size: 13px; color: var(--yc-dim); }
+.yc-prices-cell { flex-wrap: wrap; }
+.yc-prices-app { flex-basis: 100%; font-style: normal; font-size: 12.5px; font-weight: 600; color: var(--yc-ink); }
+.yc-prices-app::before { content: ''; display: inline-block; width: 7px; height: 7px; margin-right: 6px; border-radius: 50%; background: var(--yc-lime); }
 .yc-prices-off { text-align: right; }
 .yc-prices-empty { padding: 28px 0; border-top: 1px solid var(--yc-line); color: var(--yc-mut); }
 .yc-prices-detail { margin-bottom: 14px; padding: 14px 18px; border-radius: 14px; background: var(--yc-fill); overflow-x: auto; }
