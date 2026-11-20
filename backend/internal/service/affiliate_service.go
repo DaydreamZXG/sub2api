@@ -63,17 +63,19 @@ func isValidAffiliateCodeFormat(code string) bool {
 }
 
 type AffiliateSummary struct {
-	UserID               int64     `json:"user_id"`
-	AffCode              string    `json:"aff_code"`
-	AffCodeCustom        bool      `json:"aff_code_custom"`
-	AffRebateRatePercent *float64  `json:"aff_rebate_rate_percent,omitempty"`
-	InviterID            *int64    `json:"inviter_id,omitempty"`
-	AffCount             int       `json:"aff_count"`
-	AffQuota             float64   `json:"aff_quota"`
-	AffFrozenQuota       float64   `json:"aff_frozen_quota"`
-	AffHistoryQuota      float64   `json:"aff_history_quota"`
-	CreatedAt            time.Time `json:"created_at"`
-	UpdatedAt            time.Time `json:"updated_at"`
+	UserID               int64    `json:"user_id"`
+	AffCode              string   `json:"aff_code"`
+	AffCodeCustom        bool     `json:"aff_code_custom"`
+	AffRebateRatePercent *float64 `json:"aff_rebate_rate_percent,omitempty"`
+	InviterID            *int64   `json:"inviter_id,omitempty"`
+	// IsAgent: paid a share of what their users spend instead of the rebate on their top-ups.
+	IsAgent         bool      `json:"is_agent"`
+	AffCount        int       `json:"aff_count"`
+	AffQuota        float64   `json:"aff_quota"`
+	AffFrozenQuota  float64   `json:"aff_frozen_quota"`
+	AffHistoryQuota float64   `json:"aff_history_quota"`
+	CreatedAt       time.Time `json:"created_at"`
+	UpdatedAt       time.Time `json:"updated_at"`
 }
 
 type AffiliateInvitee struct {
@@ -363,6 +365,10 @@ func (s *AffiliateService) AccrueInviteRebateForOrder(ctx context.Context, invit
 	inviterSummary, err := s.repo.EnsureUserAffiliate(ctx, *inviteeSummary.InviterID)
 	if err != nil {
 		return 0, err
+	}
+	// 代理按名下用户的消费分润，不再拿他们的充值返利。
+	if inviterSummary.IsAgent {
+		return 0, nil
 	}
 	// 有效期检查：超过返利有效期后不再产生返利
 	if s.settingService != nil {

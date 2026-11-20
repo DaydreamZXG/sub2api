@@ -97,8 +97,6 @@ type AgentRepository interface {
 	GetPayout(ctx context.Context, id int64) (*AgentPayout, error)
 	// FinishPayout moves a pending request to status; false when it was not pending any more.
 	FinishPayout(ctx context.Context, id int64, status, adminNote string) (bool, error)
-	// ShareBetween sums the shares credited in the period, in balance units.
-	ShareBetween(ctx context.Context, from, to, tz string) (float64, error)
 }
 
 type AgentService struct {

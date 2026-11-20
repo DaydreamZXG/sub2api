@@ -262,13 +262,3 @@ func (r *agentRepository) FinishPayout(ctx context.Context, id int64, status, ad
 	n, _ := res.RowsAffected()
 	return n > 0, nil
 }
-
-func (r *agentRepository) ShareBetween(ctx context.Context, from, to, tz string) (float64, error) {
-	var total float64
-	err := r.db.QueryRowContext(ctx, `
-		SELECT COALESCE(SUM(amount), 0) FROM user_affiliate_ledger
-		WHERE action = 'agent_share'
-			AND created_at >= ($1::date::timestamp AT TIME ZONE $3)
-			AND created_at < (($2::date + 1)::timestamp AT TIME ZONE $3)`, from, to, tz).Scan(&total)
-	return total, err
-}

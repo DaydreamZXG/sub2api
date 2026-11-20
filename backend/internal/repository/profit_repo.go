@@ -477,3 +477,13 @@ func (r *profitRepository) RebuildSummary(ctx context.Context) error {
 	_, err := r.db.ExecContext(ctx, profitHourlyUpsertSQL, time.Unix(0, 0).UTC(), time.Now().UTC().Add(time.Hour))
 	return err
 }
+
+func (r *profitRepository) AgentShare(ctx context.Context, from, to, tz string) (float64, error) {
+	var total float64
+	err := r.db.QueryRowContext(ctx, `
+		SELECT COALESCE(SUM(amount), 0) FROM user_affiliate_ledger
+		WHERE action = 'agent_share'
+			AND created_at >= ($1::date::timestamp AT TIME ZONE $3)
+			AND created_at < (($2::date + 1)::timestamp AT TIME ZONE $3)`, from, to, tz).Scan(&total)
+	return total, err
+}
