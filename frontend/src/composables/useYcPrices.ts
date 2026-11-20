@@ -116,7 +116,7 @@ export function useYcPrices() {
       price.appHeadline = headline.app && !price.appOnly
       const appLine = price.lines.find((l) => l.app && !l.plan)
       price.app =
-        appLine && !headline.app && appLine.input < headline.input
+        appLine && !headline.app && (appLine.input < headline.input || appLine.output < headline.output)
           ? { input: appLine.input, output: appLine.output, varies: appLine.varies }
           : null
       price.share = price.officialInput && price.input < price.officialInput ? price.input / price.officialInput : null

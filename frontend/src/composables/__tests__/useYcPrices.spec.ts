@@ -73,6 +73,19 @@ describe('useYcPrices with app-only lines', () => {
     expect(model.appHeadline).toBe(true)
   })
 
+  it('quotes the app price when only the output is cheaper there', async () => {
+    const [model] = await pricesFor([
+      line('app', 1, {
+        app_only: true,
+        models: [{ name: 'claude-sonnet', pricing: { input_price: 1e-6, output_price: 1e-6 } }]
+      } as Partial<ModelPlazaGroup>),
+      line('normal', 1)
+    ])
+
+    expect(model.output).toBe(2)
+    expect(model.app).toEqual({ input: 1, output: 1, varies: false })
+  })
+
   it('does not call a model app-only when a monthly plan also sells it', async () => {
     const [model] = await pricesFor([line('app', 0.75, { app_only: true }), line('plan', 1, { subscription_type: 'subscription' })])
 
