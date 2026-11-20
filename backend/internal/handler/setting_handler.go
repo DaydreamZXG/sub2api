@@ -97,6 +97,8 @@ func (h *SettingHandler) GetPublicSettings(c *gin.Context) {
 		MCPEnabled:                          settings.MCPEnabled,
 		PaymentEnabled:                      settings.PaymentEnabled,
 		PaymentBalanceDisabled:              settings.PaymentBalanceDisabled,
+		BalanceRechargeMultiplier:           settings.BalanceRechargeMultiplier,
+		SubscriptionUSDToCNYRate:            settings.SubscriptionUSDToCNYRate,
 		Version:                             h.version,
 		ServerTimezone:                      timezone.Name(),
 		ServerUTCOffset:                     timezone.UTCOffset(),

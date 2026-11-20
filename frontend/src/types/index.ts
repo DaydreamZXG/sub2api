@@ -281,6 +281,9 @@ export interface PublicSettings {
   subscription_enabled: boolean
   /** Mirrors payment config BALANCE_PAYMENT_DISABLED; true = balance top-up closed (subscription-only site). */
   payment_balance_disabled: boolean
+  /** What ¥1 of top-up buys, and the USD to CNY rate (0 = not set); public so visitors see yuan prices too. */
+  balance_recharge_multiplier?: number
+  subscription_usd_to_cny_rate?: number
   model_plaza_enabled: boolean
   model_plaza_require_auth: boolean
   plugin_management_enabled: boolean

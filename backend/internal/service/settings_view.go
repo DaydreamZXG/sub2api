@@ -378,11 +378,14 @@ type PublicSettings struct {
 	MCPEnabled               bool // 由部署配置 MCP_PUBLIC_URL 决定，不可在后台修改
 	PaymentEnabled           bool
 	PaymentBalanceDisabled   bool
-	OIDCOAuthEnabled         bool
-	OIDCOAuthProviderName    string
-	GitHubOAuthEnabled       bool
-	GoogleOAuthEnabled       bool
-	Version                  string
+	// What ¥1 of top-up buys and the USD to CNY rate, so price pages can show yuan to visitors too.
+	BalanceRechargeMultiplier float64
+	SubscriptionUSDToCNYRate  float64
+	OIDCOAuthEnabled          bool
+	OIDCOAuthProviderName     string
+	GitHubOAuthEnabled        bool
+	GoogleOAuthEnabled        bool
+	Version                   string
 
 	BalanceLowNotifyEnabled     bool
 	AccountQuotaNotifyEnabled   bool
