@@ -76,7 +76,7 @@ func (s *agentAffiliateRepoStub) WithdrawQuota(_ context.Context, userID int64, 
 }
 
 func newAgentServiceForTest(repo *agentRepoStub, aff *agentAffiliateRepoStub) *AgentService {
-	return &AgentService{repo: repo, affiliate: &AffiliateService{repo: aff}, stop: make(chan struct{})}
+	return &AgentService{repo: repo, affiliate: &AffiliateService{repo: aff}, runCtx: context.Background()}
 }
 
 func TestAgentSetAgent_ChecksTheShareAndSettlesFirst(t *testing.T) {
@@ -165,4 +165,35 @@ func TestAgentPayout_HandledRequestsAreNotHandledAgain(t *testing.T) {
 	ok := &agentRepoStub{finishOK: true}
 	require.NoError(t, newAgentServiceForTest(ok, aff).Reject(context.Background(), 3, "no"))
 	require.Equal(t, []string{AgentPayoutRejected}, ok.finished)
+}
+
+// A run that never finishes on its own: it only returns when its context ends.
+type agentBlockingRepoStub struct {
+	agentRepoStub
+	started chan struct{}
+	ended   chan struct{}
+}
+
+func (s *agentBlockingRepoStub) AccrueShares(ctx context.Context, _ time.Time) (int, error) {
+	close(s.started)
+	<-ctx.Done()
+	close(s.ended)
+	return 0, ctx.Err()
+}
+
+func TestAgentServiceStopEndsARunUnderWayAndWaitsForIt(t *testing.T) {
+	repo := &agentBlockingRepoStub{started: make(chan struct{}), ended: make(chan struct{})}
+	svc := NewAgentService(repo, nil)
+	<-repo.started
+
+	svc.Stop()
+	select {
+	case <-repo.ended:
+	default:
+		t.Fatal("Stop returned while the run was still under way")
+	}
+	svc.Stop()
+
+	var none *AgentService
+	none.Stop()
 }

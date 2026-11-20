@@ -104,21 +104,38 @@ type AgentRepository interface {
 type AgentService struct {
 	repo      AgentRepository
 	affiliate *AffiliateService
-	stop      chan struct{}
 	stopOnce  sync.Once
+	wg        sync.WaitGroup
+	// runCtx ends when the service is stopped, which also ends a run that is under way.
+	runCtx context.Context
+	cancel context.CancelFunc
 }
 
 // NewAgentService also starts the job that credits agents their share.
 func NewAgentService(repo AgentRepository, affiliate *AffiliateService) *AgentService {
-	s := &AgentService{repo: repo, affiliate: affiliate, stop: make(chan struct{})}
+	s := &AgentService{repo: repo, affiliate: affiliate}
+	s.runCtx, s.cancel = context.WithCancel(context.Background())
 	if repo != nil {
-		go s.run()
+		s.wg.Add(1)
+		go func() {
+			defer s.wg.Done()
+			s.run()
+		}()
 	}
 	return s
 }
 
+// Stop ends the job and waits for a run under way, so nothing touches the database after it returns.
 func (s *AgentService) Stop() {
-	s.stopOnce.Do(func() { close(s.stop) })
+	if s == nil {
+		return
+	}
+	s.stopOnce.Do(func() {
+		if s.cancel != nil {
+			s.cancel()
+		}
+	})
+	s.wg.Wait()
 }
 
 func (s *AgentService) run() {
@@ -127,7 +144,7 @@ func (s *AgentService) run() {
 	for {
 		s.accrueOnce()
 		select {
-		case <-s.stop:
+		case <-s.runCtx.Done():
 			return
 		case <-ticker.C:
 		}
@@ -135,9 +152,9 @@ func (s *AgentService) run() {
 }
 
 func (s *AgentService) accrueOnce() {
-	ctx, cancel := context.WithTimeout(context.Background(), agentAccrueTimeout)
+	ctx, cancel := context.WithTimeout(s.runCtx, agentAccrueTimeout)
 	defer cancel()
-	if _, err := s.Accrue(ctx); err != nil {
+	if _, err := s.Accrue(ctx); err != nil && s.runCtx.Err() == nil {
 		logger.LegacyPrintf("service.agent", "[Agent] crediting shares failed, the next run takes it up again: %v", err)
 	}
 }
