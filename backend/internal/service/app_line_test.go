@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"math"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -174,4 +175,23 @@ func TestResolveAppLine_GrowthLevelDiscount(t *testing.T) {
 		require.ErrorIs(t, err, ErrGrowthLevelsInvalid)
 		require.InDelta(t, 0.05, levels.Get(ctx).DiscountFor(500), 1e-12)
 	})
+}
+
+func TestDiscountedAppRate(t *testing.T) {
+	cases := []struct {
+		rate, discount, want float64
+	}{
+		{rate: 0.8, discount: 0.1, want: 0.72},
+		{rate: 1, discount: 0.33333, want: 0.6667},
+		{rate: 0, discount: 0.5, want: 0},
+		{rate: 1, discount: 1, want: 0},
+		// 0.0001 with 90% off is 0.00001: it must stay a price, not round down to free.
+		{rate: 0.0001, discount: 0.9, want: 0.00001},
+	}
+	for _, tc := range cases {
+		got := discountedAppRate(tc.rate, tc.discount)
+		if math.Abs(got-tc.want) > 1e-12 {
+			t.Errorf("discountedAppRate(%v, %v) = %v, want %v", tc.rate, tc.discount, got, tc.want)
+		}
+	}
 }
