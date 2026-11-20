@@ -80,6 +80,19 @@ def inline_errors(h):
             found += [{'s': r[0], 'c': r[1], 'f': r[2]} for r in rows if len(r) == 3]
 
 
+def spell_out_ditto(errors):
+    """A cell that says 同上 only reads next to the row above it; spell it out so a search result stands on its own."""
+    out = []
+    for e in errors:
+        e = dict(e)
+        for k in ('c', 'f'):
+            m = re.match(r'同上[，,；;、]?\s*(.*)', e[k], re.S)
+            if m and out:
+                e[k] = out[-1][k] + (f'；{m.group(1)}' if m.group(1) else '')
+        out.append(e)
+    return out
+
+
 def kind_of(t):
     if '报错' in t:
         return 'errors'
@@ -176,7 +189,7 @@ for t in tools:
         'num': t['num'], 'name': t['name'], 'note': t['note'], 'status': t['status'], 'cat': t['cat'], 'new': t['new'], 'updated': t['updated'],
         'lead': plain(render(lead)), 'leadHtml': render(lead),
         'tabs': [{'kind': k, 'label': LABEL[k], 'html': tabs[k]} for k in ('steps', 'notes', 'errors', 'more') if k in tabs],
-        'errors': [{'s': e['s'], 'c': e['c'], 'f': e['f'], 't': plain(e['s'] + ' ' + e['c'] + ' ' + e['f']).lower()} for e in errors],
+        'errors': [{'s': e['s'], 'c': e['c'], 'f': e['f'], 't': plain(e['s'] + ' ' + e['c'] + ' ' + e['f']).lower()} for e in spell_out_ditto(errors)],
         'refs': render('\n\n'.join(t['refs'])) if t['refs'] else '',
     })
 
