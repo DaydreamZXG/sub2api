@@ -2127,13 +2127,13 @@ func contentModerationEmailVariables(log *ContentModerationLog, cfg *ContentMode
 
 func (s *ContentModerationService) siteName(ctx context.Context) string {
 	if s == nil || s.settingRepo == nil {
-		return "Sub2API"
+		return BrandSiteName("")
 	}
 	name, err := s.settingRepo.GetValue(ctx, SettingKeySiteName)
-	if err != nil || strings.TrimSpace(name) == "" {
-		return "Sub2API"
+	if err != nil {
+		return BrandSiteName("")
 	}
-	return strings.TrimSpace(name)
+	return BrandSiteName(name)
 }
 
 func defaultContentModerationConfig() *ContentModerationConfig {

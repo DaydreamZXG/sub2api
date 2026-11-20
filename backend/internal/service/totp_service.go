@@ -93,7 +93,6 @@ const (
 	totpLoginTTL    = 5 * time.Minute
 	totpAttemptsTTL = 15 * time.Minute
 	maxTotpAttempts = 5
-	totpIssuer      = "Sub2API"
 )
 
 // TotpService handles TOTP operations
@@ -190,7 +189,7 @@ func (s *TotpService) InitiateSetup(ctx context.Context, userID int64, emailCode
 
 	// Generate a new TOTP key
 	key, err := totp.Generate(totp.GenerateOpts{
-		Issuer:      totpIssuer,
+		Issuer:      s.issuer(ctx),
 		AccountName: user.Email,
 	})
 	if err != nil {
@@ -558,4 +557,12 @@ func (s *TotpService) SendVerifyCode(ctx context.Context, userID int64, locale .
 
 	// Send verification code via queue
 	return s.emailQueueService.EnqueueVerifyCode(user.Email, siteName, firstEmailLocale(locale))
+}
+
+// issuer is the name an authenticator app shows for this account: the site's own name.
+func (s *TotpService) issuer(ctx context.Context) string {
+	if s.settingService == nil {
+		return BrandSiteName("")
+	}
+	return s.settingService.GetSiteName(ctx)
 }

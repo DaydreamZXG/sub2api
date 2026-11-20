@@ -575,10 +575,10 @@ func (s *NotificationEmailService) siteName(ctx context.Context) string {
 		return defaultSiteName
 	}
 	name, err := s.settingRepo.GetValue(ctx, SettingKeySiteName)
-	if err != nil || strings.TrimSpace(name) == "" {
+	if err != nil {
 		return defaultSiteName
 	}
-	return strings.TrimSpace(name)
+	return BrandSiteName(name)
 }
 
 func (s *NotificationEmailService) baseURL(ctx context.Context) string {

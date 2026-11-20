@@ -292,10 +292,10 @@ func parseAuditLogRetentionDays(value string) int {
 // GetSiteName 获取网站名称
 func (s *SettingService) GetSiteName(ctx context.Context) string {
 	value, err := s.settingRepo.GetValue(ctx, SettingKeySiteName)
-	if err != nil || value == "" {
-		return "野菜"
+	if err != nil {
+		return BrandSiteName("")
 	}
-	return value
+	return BrandSiteName(value)
 }
 
 // GetDefaultConcurrency 获取默认并发量
