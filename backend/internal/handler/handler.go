@@ -60,6 +60,7 @@ type Handlers struct {
 	Ticket           *TicketHandler
 	Growth           *GrowthHandler
 	Garden           *GardenHandler
+	Agent            *AgentHandler
 	Desktop          *DesktopHandler
 	ChannelMonitor   *ChannelMonitorUserHandler
 	ChannelMonitorV2 *ChannelMonitorV2Handler
