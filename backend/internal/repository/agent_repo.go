@@ -90,6 +90,7 @@ const agentAccrueSQL = `
 		WHERE l.created_at > $1 AND l.created_at <= $2
 			AND COALESCE(l.billing_type, 0) = 0
 			AND l.created_at >= ag.agent_since
+			AND (ua.agent_bound_at IS NULL OR l.created_at >= ua.agent_bound_at)
 		GROUP BY ag.user_id, l.user_id, ag.agent_share_percent
 	), credited AS (
 		INSERT INTO user_affiliate_ledger (user_id, action, amount, base_amount, source_user_id, created_at, updated_at)
@@ -291,4 +292,110 @@ func (r *agentRepository) PayPayout(ctx context.Context, id int64, adminNote str
 		return false, fmt.Errorf("commit payout transaction: %w", err)
 	}
 	return true, nil
+}
+
+func (r *agentRepository) AgentUsers(ctx context.Context, agentID int64) ([]service.AgentInvitee, error) {
+	rows, err := r.db.QueryContext(ctx, `
+		SELECT i.user_id, COALESCE(u.email, ''), COALESCE(i.agent_bound_at, i.created_at), i.agent_bound_at IS NOT NULL,
+			COALESCE(SUM(l.base_amount), 0), COALESCE(SUM(l.amount), 0)
+		FROM user_affiliates i
+		LEFT JOIN users u ON u.id = i.user_id
+		LEFT JOIN user_affiliate_ledger l ON l.user_id = $1 AND l.action = 'agent_share' AND l.source_user_id = i.user_id
+		WHERE i.inviter_id = $1
+		GROUP BY i.user_id, u.email, i.created_at, i.agent_bound_at
+		ORDER BY 6 DESC, 3 DESC
+		LIMIT 500`, agentID)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = rows.Close() }()
+	users := []service.AgentInvitee{}
+	for rows.Next() {
+		var u service.AgentInvitee
+		if err := rows.Scan(&u.UserID, &u.Email, &u.JoinedAt, &u.Attached, &u.Spent, &u.Share); err != nil {
+			return nil, err
+		}
+		users = append(users, u)
+	}
+	return users, rows.Err()
+}
+
+// AttachUser expects the user's affiliate row to exist already.
+func (r *agentRepository) AttachUser(ctx context.Context, agentID, userID int64) error {
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = tx.Rollback() }()
+
+	// Both rows are locked in the order of their ids, so two admins cannot deadlock each other.
+	rows, err := tx.QueryContext(ctx, `
+		SELECT user_id, is_agent, inviter_id FROM user_affiliates
+		WHERE user_id IN ($1, $2) ORDER BY user_id FOR UPDATE`, agentID, userID)
+	if err != nil {
+		return err
+	}
+	var agentFound, userFound, isAgent bool
+	var agentInviter, userInviter sql.NullInt64
+	for rows.Next() {
+		var id int64
+		var agent bool
+		var inviter sql.NullInt64
+		if err := rows.Scan(&id, &agent, &inviter); err != nil {
+			_ = rows.Close()
+			return err
+		}
+		if id == agentID {
+			agentFound, isAgent, agentInviter = true, agent, inviter
+		} else {
+			userFound, userInviter = true, inviter
+		}
+	}
+	if err := rows.Close(); err != nil {
+		return err
+	}
+	if !agentFound || !isAgent {
+		return service.ErrAgentNotAgent
+	}
+	// An agent who was brought in by this user cannot have them as their own user in turn.
+	if !userFound || (agentInviter.Valid && agentInviter.Int64 == userID) {
+		return service.ErrAgentUserInvalid
+	}
+	if userInviter.Valid && userInviter.Int64 == agentID {
+		return nil
+	}
+	if userInviter.Valid {
+		if _, err := tx.ExecContext(ctx, `UPDATE user_affiliates SET aff_count = GREATEST(aff_count - 1, 0), updated_at = NOW() WHERE user_id = $1`, userInviter.Int64); err != nil {
+			return err
+		}
+	}
+	if _, err := tx.ExecContext(ctx, `UPDATE user_affiliates SET inviter_id = $1, agent_bound_at = NOW(), updated_at = NOW() WHERE user_id = $2`, agentID, userID); err != nil {
+		return err
+	}
+	if _, err := tx.ExecContext(ctx, `UPDATE user_affiliates SET aff_count = aff_count + 1, updated_at = NOW() WHERE user_id = $1`, agentID); err != nil {
+		return err
+	}
+	return tx.Commit()
+}
+
+func (r *agentRepository) DetachUser(ctx context.Context, agentID, userID int64) (bool, error) {
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return false, err
+	}
+	defer func() { _ = tx.Rollback() }()
+
+	res, err := tx.ExecContext(ctx, `
+		UPDATE user_affiliates SET inviter_id = NULL, agent_bound_at = NULL, updated_at = NOW()
+		WHERE user_id = $2 AND inviter_id = $1`, agentID, userID)
+	if err != nil {
+		return false, err
+	}
+	if n, _ := res.RowsAffected(); n == 0 {
+		return false, nil
+	}
+	if _, err := tx.ExecContext(ctx, `UPDATE user_affiliates SET aff_count = GREATEST(aff_count - 1, 0), updated_at = NOW() WHERE user_id = $1`, agentID); err != nil {
+		return false, err
+	}
+	return true, tx.Commit()
 }

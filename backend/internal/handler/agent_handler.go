@@ -118,6 +118,46 @@ func (h *AgentHandler) Remove(c *gin.Context) {
 	response.Success(c, gin.H{"user_id": userID})
 }
 
+// ListUsers handles GET /api/v1/admin/agents/:user_id/users.
+func (h *AgentHandler) ListUsers(c *gin.Context) {
+	agentID, ok := agentPathID(c, "user_id")
+	if !ok {
+		return
+	}
+	users, err := h.agents.AgentUsers(c.Request.Context(), agentID)
+	if err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+	response.Success(c, users)
+}
+
+// AttachUser handles PUT /api/v1/admin/agents/:user_id/users/:invitee_id: put an existing user under the agent.
+func (h *AgentHandler) AttachUser(c *gin.Context) {
+	h.changeUser(c, h.agents.AttachUser)
+}
+
+// DetachUser handles DELETE /api/v1/admin/agents/:user_id/users/:invitee_id.
+func (h *AgentHandler) DetachUser(c *gin.Context) {
+	h.changeUser(c, h.agents.DetachUser)
+}
+
+func (h *AgentHandler) changeUser(c *gin.Context, apply func(ctx context.Context, agentID, userID int64) error) {
+	agentID, ok := agentPathID(c, "user_id")
+	if !ok {
+		return
+	}
+	userID, ok := agentPathID(c, "invitee_id")
+	if !ok {
+		return
+	}
+	if err := apply(c.Request.Context(), agentID, userID); err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+	response.Success(c, gin.H{"user_id": userID})
+}
+
 // ListPayouts handles GET /api/v1/admin/agents/payouts?status=pending.
 func (h *AgentHandler) ListPayouts(c *gin.Context) {
 	payouts, err := h.agents.ListPayouts(c.Request.Context(), c.Query("status"))

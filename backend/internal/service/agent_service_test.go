@@ -21,6 +21,7 @@ type agentRepoStub struct {
 	payout   *AgentPayout
 	finished []string
 	finishOK bool
+	attached [][2]int64
 }
 
 func (s *agentRepoStub) AccrueShares(context.Context, time.Time) (int, error) {
@@ -56,6 +57,19 @@ func (s *agentRepoStub) PayPayout(ctx context.Context, _ int64, _ string, withdr
 	}
 	s.finished = append(s.finished, AgentPayoutPaid)
 	return true, nil
+}
+
+func (s *agentRepoStub) AgentUsers(context.Context, int64) ([]AgentInvitee, error) {
+	return nil, nil
+}
+
+func (s *agentRepoStub) AttachUser(_ context.Context, agentID, userID int64) error {
+	s.attached = append(s.attached, [2]int64{agentID, userID})
+	return nil
+}
+
+func (s *agentRepoStub) DetachUser(context.Context, int64, int64) (bool, error) {
+	return s.finishOK, nil
 }
 
 func (s *agentRepoStub) FinishPayout(_ context.Context, _ int64, status, _ string) (bool, error) {
@@ -200,4 +214,30 @@ func TestAgentServiceStopEndsARunUnderWayAndWaitsForIt(t *testing.T) {
 
 	var none *AgentService
 	none.Stop()
+}
+
+func TestAgentServiceAttachUserSettlesFirstAndRefusesTheAgentThemselves(t *testing.T) {
+	repo := &agentRepoStub{}
+	svc := newAgentServiceForTest(repo, &agentAffiliateRepoStub{})
+
+	require.ErrorIs(t, svc.AttachUser(context.Background(), 7, 7), ErrAgentUserInvalid)
+	require.ErrorIs(t, svc.AttachUser(context.Background(), 7, 0), ErrAgentUserInvalid)
+	require.Empty(t, repo.attached)
+	require.Zero(t, repo.accrued)
+
+	require.NoError(t, svc.AttachUser(context.Background(), 7, 9))
+	// What the user's spending earned so far goes to whoever had them before the move.
+	require.Equal(t, 1, repo.accrued)
+	require.Equal(t, [][2]int64{{7, 9}}, repo.attached)
+}
+
+func TestAgentServiceDetachUserSaysWhenTheUserIsNotUnderTheAgent(t *testing.T) {
+	missing := &agentRepoStub{}
+	svc := newAgentServiceForTest(missing, &agentAffiliateRepoStub{})
+	require.ErrorIs(t, svc.DetachUser(context.Background(), 7, 9), ErrAgentUserNotFound)
+
+	found := &agentRepoStub{finishOK: true}
+	svc = newAgentServiceForTest(found, &agentAffiliateRepoStub{})
+	require.NoError(t, svc.DetachUser(context.Background(), 7, 9))
+	require.Equal(t, 1, found.accrued)
 }

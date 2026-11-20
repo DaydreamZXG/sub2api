@@ -466,6 +466,9 @@ func registerAgentRoutes(admin *gin.RouterGroup, h *handler.Handlers) {
 		agents.POST("/payouts/:id/reject", h.Agent.Reject)
 		agents.PUT("/:user_id", h.Agent.Set)
 		agents.DELETE("/:user_id", h.Agent.Remove)
+		agents.GET("/:user_id/users", h.Agent.ListUsers)
+		agents.PUT("/:user_id/users/:invitee_id", h.Agent.AttachUser)
+		agents.DELETE("/:user_id/users/:invitee_id", h.Agent.DetachUser)
 	}
 }
 
