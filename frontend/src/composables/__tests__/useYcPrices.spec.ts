@@ -66,6 +66,13 @@ describe('useYcPrices with app-only lines', () => {
     expect(model.app).toBeNull()
   })
 
+  it('does not call a model app-only when its app line also takes other tools through a fallback line', async () => {
+    const [model] = await pricesFor([line('app', 0.75, { app_only: true, app_fallback: true })])
+
+    expect(model.appOnly).toBe(false)
+    expect(model.appHeadline).toBe(true)
+  })
+
   it('does not call a model app-only when a monthly plan also sells it', async () => {
     const [model] = await pricesFor([line('app', 0.75, { app_only: true }), line('plan', 1, { subscription_type: 'subscription' })])
 

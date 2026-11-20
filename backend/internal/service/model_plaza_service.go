@@ -52,6 +52,8 @@ type PlazaGroup struct {
 	IsExclusive        bool
 	// 仅限野菜 app 的线路：价目表把它单独标成“用 app 价”
 	AppOnly bool
+	// The app-only line also takes requests sent without the app, billed on its fallback line.
+	AppFallback bool
 	// 图片按次实付倍率：ImageRateIndependent 为 true 时，图片计费模型的实付
 	// = 档位价 × ImageRateMultiplier，不乘分组/用户专属倍率（与计费口径一致）。
 	ImageRateIndependent bool
@@ -139,6 +141,7 @@ func (s *ModelPlazaService) ListGroups(ctx context.Context) ([]PlazaGroup, error
 			PeakRateMultiplier:        g.PeakRateMultiplier,
 			IsExclusive:               g.IsExclusive,
 			AppOnly:                   g.AppOnly,
+			AppFallback:               g.AppOnly && g.AppFallbackGroupID != nil,
 			ImageRateIndependent:      g.ImageRateIndependent,
 			ImageRateMultiplier:       g.ImageRateMultiplier,
 			VideoRateIndependent:      g.VideoRateIndependent,
