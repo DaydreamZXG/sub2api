@@ -3,7 +3,10 @@ package service
 import (
 	"context"
 	"math"
+	"net"
+	"regexp"
 	"strings"
+	"sync"
 	"time"
 
 	infraerrors "github.com/Wei-Shaw/sub2api/internal/pkg/errors"
@@ -13,12 +16,27 @@ var (
 	ErrResellerOnly       = infraerrors.Forbidden("RESELLER_ONLY", "this account is not a reseller")
 	ErrResellerKeyInvalid = infraerrors.BadRequest("RESELLER_KEY_INVALID", "a client key needs a name, a line, a budget above 0 and a markup from 1 to 100")
 	ErrResellerUserGone   = infraerrors.NotFound("RESELLER_USER_NOT_FOUND", "user not found")
+	ErrResellerPortalBad  = infraerrors.BadRequest("RESELLER_PORTAL_INVALID", "the client domain must be a bare host name like keys.example.com, with a site name; the logo an http(s) address")
 )
 
 const (
 	resellerMinMarkup = 1.0
 	resellerMaxMarkup = 100.0
+	// How long a server keeps the client domain before asking the database again.
+	resellerPortalTTL = 30 * time.Second
 )
+
+var resellerPortalHost = regexp.MustCompile(`^([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$`)
+
+// ResellerPortal is the second domain on which resellers' clients look up their key. Requests that
+// arrive there get the client pages and the gateway, and nothing else of the site. An empty Domain
+// means there is none.
+type ResellerPortal struct {
+	Domain  string `json:"domain"`
+	Name    string `json:"name"`
+	Contact string `json:"contact"`
+	Logo    string `json:"logo"`
+}
 
 // ResellerEntry is one reseller as an admin sees them. Amounts are balance units.
 type ResellerEntry struct {
@@ -79,6 +97,9 @@ type ResellerRepository interface {
 	ListResellers(ctx context.Context) ([]ResellerEntry, error)
 	// ClientKeys returns the user's client keys, newest first, and the user's balance.
 	ClientKeys(ctx context.Context, userID int64) ([]ResellerClientKey, float64, error)
+	// GetPortal returns the zero value when none was saved.
+	GetPortal(ctx context.Context) (ResellerPortal, error)
+	SetPortal(ctx context.Context, portal ResellerPortal) error
 }
 
 // resellerKeyCreator is the part of APIKeyService a reseller needs.
@@ -92,6 +113,10 @@ type resellerKeyCreator interface {
 type ResellerService struct {
 	repo ResellerRepository
 	keys resellerKeyCreator
+
+	portalMu     sync.Mutex
+	portal       ResellerPortal
+	portalLoaded time.Time
 }
 
 func NewResellerService(repo ResellerRepository, keys *APIKeyService) *ResellerService {
@@ -177,4 +202,65 @@ func (s *ResellerService) CreateClientKey(ctx context.Context, userID int64, req
 		ExpiresInDays: req.ExpiresInDays,
 		ClientMarkup:  markup,
 	})
+}
+
+// Portal returns the client domain as saved.
+func (s *ResellerService) Portal(ctx context.Context) (ResellerPortal, error) {
+	return s.repo.GetPortal(ctx)
+}
+
+// SetPortal saves the client domain; an empty domain turns it off.
+func (s *ResellerService) SetPortal(ctx context.Context, portal ResellerPortal) error {
+	portal.Domain = NormalizeResellerHost(portal.Domain)
+	portal.Name = strings.TrimSpace(portal.Name)
+	portal.Contact = strings.TrimSpace(portal.Contact)
+	portal.Logo = strings.TrimSpace(portal.Logo)
+	if portal.Domain != "" && (!resellerPortalHost.MatchString(portal.Domain) || portal.Name == "") {
+		return ErrResellerPortalBad
+	}
+	lower := strings.ToLower(portal.Logo)
+	if len(portal.Name) > 60 || len(portal.Contact) > 300 || len(portal.Logo) > 500 ||
+		(portal.Logo != "" && !strings.HasPrefix(lower, "https://") && !strings.HasPrefix(lower, "http://")) {
+		return ErrResellerPortalBad
+	}
+	if err := s.repo.SetPortal(ctx, portal); err != nil {
+		return err
+	}
+	s.portalMu.Lock()
+	s.portal, s.portalLoaded = portal, time.Now()
+	s.portalMu.Unlock()
+	return nil
+}
+
+// PortalFor returns the client domain's settings when host is that domain, nil otherwise. It runs on
+// every request, so the settings are kept for a short while; a failed reload keeps the last ones.
+func (s *ResellerService) PortalFor(ctx context.Context, host string) *ResellerPortal {
+	s.portalMu.Lock()
+	defer s.portalMu.Unlock()
+	if time.Since(s.portalLoaded) > resellerPortalTTL {
+		if portal, err := s.repo.GetPortal(ctx); err == nil {
+			s.portal = portal
+		}
+		s.portalLoaded = time.Now()
+	}
+	if s.portal.Domain == "" || NormalizeResellerHost(host) != s.portal.Domain {
+		return nil
+	}
+	portal := s.portal
+	return &portal
+}
+
+// NormalizeResellerHost reduces what an admin typed, or a Host header, to a bare lower-case host name.
+func NormalizeResellerHost(host string) string {
+	host = strings.ToLower(strings.TrimSpace(host))
+	if i := strings.Index(host, "://"); i >= 0 {
+		host = host[i+3:]
+	}
+	if i := strings.IndexAny(host, "/?#"); i >= 0 {
+		host = host[:i]
+	}
+	if h, _, err := net.SplitHostPort(host); err == nil {
+		host = h
+	}
+	return strings.TrimSuffix(host, ".")
 }
