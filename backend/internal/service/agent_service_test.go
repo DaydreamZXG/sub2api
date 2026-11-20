@@ -22,14 +22,17 @@ type agentRepoStub struct {
 	finished []string
 	finishOK bool
 	attached [][2]int64
+	tiers    []AgentTier
+	agents   []AgentEntry
 }
 
-func (s *agentRepoStub) AccrueShares(context.Context, time.Time) (int, error) {
+func (s *agentRepoStub) AccrueShares(context.Context, time.Time, time.Time) (int, error) {
 	s.accrued++
 	return 0, nil
 }
 
-func (s *agentRepoStub) SetAgent(_ context.Context, _ int64, isAgent bool, percent float64) error {
+func (s *agentRepoStub) SetAgent(_ context.Context, _ int64, isAgent bool, percent float64, tiers []AgentTier) error {
+	s.tiers = tiers
 	s.isAgent = append(s.isAgent, isAgent)
 	s.set = append(s.set, percent)
 	return nil
@@ -63,12 +66,12 @@ func (s *agentRepoStub) AgentUsers(context.Context, int64) ([]AgentInvitee, erro
 	return nil, nil
 }
 
-func (s *agentRepoStub) AttachUser(_ context.Context, agentID, userID int64) error {
+func (s *agentRepoStub) AttachUser(_ context.Context, agentID, userID int64, _ time.Time) error {
 	s.attached = append(s.attached, [2]int64{agentID, userID})
 	return nil
 }
 
-func (s *agentRepoStub) DetachUser(context.Context, int64, int64) (bool, error) {
+func (s *agentRepoStub) DetachUser(context.Context, int64, int64, time.Time) (bool, error) {
 	return s.finishOK, nil
 }
 
@@ -103,23 +106,23 @@ func TestAgentSetAgent_ChecksTheShareAndSettlesFirst(t *testing.T) {
 	t.Parallel()
 	for _, percent := range []float64{0, -1, 0.004, 100.01, math.NaN()} {
 		repo := &agentRepoStub{}
-		err := newAgentServiceForTest(repo, &agentAffiliateRepoStub{}).SetAgent(context.Background(), 7, true, percent)
+		err := newAgentServiceForTest(repo, &agentAffiliateRepoStub{}).SetAgent(context.Background(), 7, true, percent, nil)
 		require.ErrorIs(t, err, ErrAgentShareInvalid, "percent %v", percent)
 		require.Empty(t, repo.set)
 	}
 
 	repo := &agentRepoStub{}
 	svc := newAgentServiceForTest(repo, &agentAffiliateRepoStub{})
-	require.NoError(t, svc.SetAgent(context.Background(), 7, true, 12.345))
+	require.NoError(t, svc.SetAgent(context.Background(), 7, true, 12.345, nil))
 	// What was spent before is credited at the old terms before the new share applies.
 	require.Equal(t, 1, repo.accrued)
 	require.Equal(t, []float64{12.35}, repo.set)
 
-	require.NoError(t, svc.SetAgent(context.Background(), 7, false, 55))
+	require.NoError(t, svc.SetAgent(context.Background(), 7, false, 55, []AgentTier{{From: 100, Percent: 60}}))
 	require.Equal(t, []bool{true, false}, repo.isAgent)
 	require.Equal(t, 0.0, repo.set[1])
 
-	require.Error(t, svc.SetAgent(context.Background(), 0, true, 10))
+	require.Error(t, svc.SetAgent(context.Background(), 0, true, 10, nil))
 }
 
 func TestAgentRequestPayout_ChecksAmountAndNote(t *testing.T) {
@@ -192,7 +195,7 @@ type agentBlockingRepoStub struct {
 	ended   chan struct{}
 }
 
-func (s *agentBlockingRepoStub) AccrueShares(ctx context.Context, _ time.Time) (int, error) {
+func (s *agentBlockingRepoStub) AccrueShares(ctx context.Context, _ time.Time, _ time.Time) (int, error) {
 	close(s.started)
 	<-ctx.Done()
 	close(s.ended)
@@ -236,4 +239,75 @@ func TestAgentServiceDetachUserSaysWhenTheUserIsNotUnderTheAgent(t *testing.T) {
 	found := &agentRepoStub{finishOK: true}
 	svc = newAgentServiceForTest(found, &agentAffiliateRepoStub{})
 	require.NoError(t, svc.DetachUser(context.Background(), 7, 9))
+}
+
+func (s *agentRepoStub) ListAgents(context.Context, time.Time) ([]AgentEntry, error) {
+	return s.agents, nil
+}
+
+func TestAgentServiceSetAgentChecksTheTiers(t *testing.T) {
+	bad := map[string][]AgentTier{
+		"share not above the base":           {{From: 1000, Percent: 10}},
+		"share not above the tier before":    {{From: 1000, Percent: 12}, {From: 5000, Percent: 12}},
+		"threshold not above the one before": {{From: 5000, Percent: 12}, {From: 5000, Percent: 15}},
+		"threshold of nothing":               {{From: 0, Percent: 12}},
+		"share over 100":                     {{From: 1000, Percent: 101}},
+		"threshold that rounds to nothing":   {{From: 0.004, Percent: 12}},
+		"too many": {
+			{From: 1, Percent: 11}, {From: 2, Percent: 12}, {From: 3, Percent: 13}, {From: 4, Percent: 14},
+			{From: 5, Percent: 15}, {From: 6, Percent: 16}, {From: 7, Percent: 17}, {From: 8, Percent: 18},
+			{From: 9, Percent: 19}, {From: 10, Percent: 20}, {From: 11, Percent: 21},
+		},
+	}
+	for name, tiers := range bad {
+		repo := &agentRepoStub{}
+		err := newAgentServiceForTest(repo, &agentAffiliateRepoStub{}).SetAgent(context.Background(), 7, true, 10, tiers)
+		require.ErrorIs(t, err, ErrAgentTiersInvalid, name)
+		require.Empty(t, repo.set, name)
+	}
+
+	repo := &agentRepoStub{}
+	svc := newAgentServiceForTest(repo, &agentAffiliateRepoStub{})
+	require.NoError(t, svc.SetAgent(context.Background(), 7, true, 5, []AgentTier{{From: 5000.004, Percent: 8}, {From: 20000, Percent: 10.126}}))
+	require.Equal(t, []AgentTier{{From: 5000, Percent: 8}, {From: 20000, Percent: 10.13}}, repo.tiers)
+
+	// Someone who stops being an agent keeps no ladder.
+	require.NoError(t, svc.SetAgent(context.Background(), 7, false, 0, []AgentTier{{From: 100, Percent: 60}}))
+	require.Empty(t, repo.tiers)
+}
+
+func TestAgentRateAtFollowsTheMonthsSpending(t *testing.T) {
+	tiers := []AgentTier{{From: 5000, Percent: 8}, {From: 20000, Percent: 10}}
+
+	current, next := agentRateAt(5, tiers, 0)
+	require.Equal(t, 5.0, current)
+	require.Equal(t, &AgentTier{From: 5000, Percent: 8}, next)
+
+	current, next = agentRateAt(5, tiers, 4999.99)
+	require.Equal(t, 5.0, current)
+	require.Equal(t, 5000.0, next.From)
+
+	// Reaching a threshold exactly puts the next spending in the higher band.
+	current, next = agentRateAt(5, tiers, 5000)
+	require.Equal(t, 8.0, current)
+	require.Equal(t, 20000.0, next.From)
+
+	current, next = agentRateAt(5, tiers, 30000)
+	require.Equal(t, 10.0, current)
+	require.Nil(t, next)
+
+	current, next = agentRateAt(5, nil, 30000)
+	require.Equal(t, 5.0, current)
+	require.Nil(t, next)
+}
+
+func TestAgentServiceListAgentsSaysTheShareInForce(t *testing.T) {
+	repo := &agentRepoStub{agents: []AgentEntry{
+		{UserID: 7, SharePercent: 5, Tiers: []AgentTier{{From: 5000, Percent: 8}}, MonthSpent: 6000},
+		{UserID: 8, SharePercent: 5, Tiers: []AgentTier{}, MonthSpent: 6000},
+	}}
+	agents, err := newAgentServiceForTest(repo, &agentAffiliateRepoStub{}).ListAgents(context.Background())
+	require.NoError(t, err)
+	require.Equal(t, 8.0, agents[0].CurrentPercent)
+	require.Equal(t, 5.0, agents[1].CurrentPercent)
 }

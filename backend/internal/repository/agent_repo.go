@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -24,14 +25,23 @@ func NewAgentRepository(client *dbent.Client, db *sql.DB) service.AgentRepositor
 	return &agentRepository{client: client, db: db}
 }
 
-func (r *agentRepository) SetAgent(ctx context.Context, userID int64, isAgent bool, sharePercent float64) error {
+func (r *agentRepository) SetAgent(ctx context.Context, userID int64, isAgent bool, sharePercent float64, tiers []service.AgentTier) error {
+	var ladder any
+	if isAgent && len(tiers) > 0 {
+		encoded, err := json.Marshal(tiers)
+		if err != nil {
+			return err
+		}
+		ladder = string(encoded)
+	}
 	res, err := r.db.ExecContext(ctx, `
 		UPDATE user_affiliates
 		SET agent_since = CASE WHEN NOT $2 THEN NULL WHEN is_agent THEN agent_since ELSE NOW() END,
 			agent_share_percent = CASE WHEN $2 THEN $3::numeric ELSE NULL END,
+			agent_tiers = $4::jsonb,
 			is_agent = $2,
 			updated_at = NOW()
-		WHERE user_id = $1`, userID, isAgent, sharePercent)
+		WHERE user_id = $1`, userID, isAgent, sharePercent, ladder)
 	if err != nil {
 		return err
 	}
@@ -41,16 +51,29 @@ func (r *agentRepository) SetAgent(ctx context.Context, userID int64, isAgent bo
 	return nil
 }
 
-func (r *agentRepository) ListAgents(ctx context.Context) ([]service.AgentEntry, error) {
+// agentTiersFromJSON reads a stored ladder; an agent without one has a flat share.
+func agentTiersFromJSON(raw sql.NullString) ([]service.AgentTier, error) {
+	tiers := []service.AgentTier{}
+	if !raw.Valid || raw.String == "" {
+		return tiers, nil
+	}
+	if err := json.Unmarshal([]byte(raw.String), &tiers); err != nil {
+		return nil, err
+	}
+	return tiers, nil
+}
+
+func (r *agentRepository) ListAgents(ctx context.Context, monthStart time.Time) ([]service.AgentEntry, error) {
 	rows, err := r.db.QueryContext(ctx, `
 		SELECT ua.user_id, COALESCE(u.email, ''), COALESCE(ua.agent_share_percent, 0), ua.agent_since,
 			(SELECT COUNT(*) FROM user_affiliates i WHERE i.inviter_id = ua.user_id),
 			COALESCE((SELECT SUM(l.amount) FROM user_affiliate_ledger l WHERE l.user_id = ua.user_id AND l.action = 'agent_share'), 0),
-			ua.aff_quota
+			ua.aff_quota, ua.agent_tiers::text,
+			COALESCE((SELECT SUM(l.base_amount) FROM user_affiliate_ledger l WHERE l.user_id = ua.user_id AND l.action = 'agent_share' AND l.created_at >= $1), 0)
 		FROM user_affiliates ua
 		LEFT JOIN users u ON u.id = ua.user_id
 		WHERE ua.is_agent
-		ORDER BY ua.agent_since DESC NULLS LAST, ua.user_id`)
+		ORDER BY ua.agent_since DESC NULLS LAST, ua.user_id`, monthStart)
 	if err != nil {
 		return nil, err
 	}
@@ -59,7 +82,11 @@ func (r *agentRepository) ListAgents(ctx context.Context) ([]service.AgentEntry,
 	for rows.Next() {
 		var e service.AgentEntry
 		var since sql.NullTime
-		if err := rows.Scan(&e.UserID, &e.Email, &e.SharePercent, &since, &e.Invitees, &e.Shared, &e.Available); err != nil {
+		var ladder sql.NullString
+		if err := rows.Scan(&e.UserID, &e.Email, &e.SharePercent, &since, &e.Invitees, &e.Shared, &e.Available, &ladder, &e.MonthSpent); err != nil {
+			return nil, err
+		}
+		if e.Tiers, err = agentTiersFromJSON(ladder); err != nil {
 			return nil, err
 		}
 		if since.Valid {
@@ -72,6 +99,9 @@ func (r *agentRepository) ListAgents(ctx context.Context) ([]service.AgentEntry,
 
 // agentAccrueSQL credits, for the usage in ($1, $2], each agent their share of the real money their
 // users were charged, one ledger row per agent and user. $3 limits it to one user, 0 means all.
+//
+// An agent with tiers earns each part of the spending at the share of the band it falls in: the bands
+// are counted over what was credited since the month began ($4), so nothing credited earlier changes.
 const agentAccrueSQL = `
 	WITH active AS (
 		SELECT DISTINCT l.user_id
@@ -82,8 +112,7 @@ const agentAccrueSQL = `
 			AND ($3::bigint = 0 OR l.user_id = $3)
 	), ` + profitPaidShareCTEs + `, due AS (
 		SELECT ag.user_id AS agent_id, l.user_id AS invitee_id,
-			SUM(l.actual_cost * COALESCE(s.paid_share, 0)) AS base,
-			ROUND(SUM(l.actual_cost * COALESCE(s.paid_share, 0)) * ag.agent_share_percent / 100, 8) AS amount
+			SUM(l.actual_cost * COALESCE(s.paid_share, 0)) AS base
 		FROM usage_logs l
 		JOIN user_affiliates ua ON ua.user_id = l.user_id
 		JOIN user_affiliates ag ON ag.user_id = ua.inviter_id AND ag.is_agent AND ag.agent_share_percent > 0
@@ -93,10 +122,34 @@ const agentAccrueSQL = `
 			AND ($3::bigint = 0 OR l.user_id = $3)
 			AND l.created_at >= ag.agent_since
 			AND (ua.agent_bound_at IS NULL OR l.created_at > ua.agent_bound_at)
-		GROUP BY ag.user_id, l.user_id, ag.agent_share_percent
+		GROUP BY ag.user_id, l.user_id
+	), run AS (
+		SELECT d.agent_id, SUM(d.base) AS base,
+			COALESCE((SELECT SUM(m.base_amount) FROM user_affiliate_ledger m
+				WHERE m.user_id = d.agent_id AND m.action = 'agent_share' AND m.created_at >= $4), 0) AS before
+		FROM due d
+		GROUP BY d.agent_id
+	), band AS (
+		SELECT agent_id, lo, pct, LEAD(lo) OVER (PARTITION BY agent_id ORDER BY lo) AS hi
+		FROM (
+			SELECT ag.user_id AS agent_id, 0::numeric AS lo, ag.agent_share_percent AS pct
+			FROM user_affiliates ag JOIN run r ON r.agent_id = ag.user_id
+			UNION ALL
+			SELECT ag.user_id, (t->>'from')::numeric, (t->>'percent')::numeric
+			FROM user_affiliates ag JOIN run r ON r.agent_id = ag.user_id
+			CROSS JOIN LATERAL jsonb_array_elements(
+				CASE WHEN jsonb_typeof(ag.agent_tiers) = 'array' THEN ag.agent_tiers ELSE '[]'::jsonb END) t
+		) b
+	), earned AS (
+		SELECT r.agent_id, r.base,
+			SUM(GREATEST(LEAST(r.before + r.base, COALESCE(b.hi, r.before + r.base)) - GREATEST(r.before, b.lo), 0) * b.pct / 100) AS amount
+		FROM run r JOIN band b ON b.agent_id = r.agent_id
+		GROUP BY r.agent_id, r.base
 	), credited AS (
 		INSERT INTO user_affiliate_ledger (user_id, action, amount, base_amount, source_user_id, created_at, updated_at)
-		SELECT agent_id, 'agent_share', amount, base, invitee_id, NOW(), NOW() FROM due WHERE amount > 0
+		SELECT d.agent_id, 'agent_share', ROUND(e.amount * d.base / e.base, 8), d.base, d.invitee_id, NOW(), NOW()
+		FROM due d JOIN earned e ON e.agent_id = d.agent_id
+		WHERE e.base > 0 AND ROUND(e.amount * d.base / e.base, 8) > 0
 		RETURNING user_id, amount
 	)
 	UPDATE user_affiliates ua
@@ -135,15 +188,15 @@ func lockAgentMove(ctx context.Context, tx *sql.Tx) (from, now time.Time, err er
 // settleAgentUser credits the user's agent for what the user spent in (from, now], ahead of the regular
 // run, because the user is about to leave that agent. from is the locked mark, which stays where it is:
 // the regular run skips this usage, as by then the user has another agent from now on, or none.
-func settleAgentUser(ctx context.Context, tx *sql.Tx, userID int64, from, now time.Time) error {
+func settleAgentUser(ctx context.Context, tx *sql.Tx, userID int64, from, now, monthStart time.Time) error {
 	if !now.After(from) {
 		return nil
 	}
-	_, err := tx.ExecContext(ctx, agentAccrueSQL, from, now, userID)
+	_, err := tx.ExecContext(ctx, agentAccrueSQL, from, now, userID, monthStart)
 	return err
 }
 
-func (r *agentRepository) AccrueShares(ctx context.Context, upTo time.Time) (int, error) {
+func (r *agentRepository) AccrueShares(ctx context.Context, upTo, monthStart time.Time) (int, error) {
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
 		return 0, err
@@ -157,7 +210,7 @@ func (r *agentRepository) AccrueShares(ctx context.Context, upTo time.Time) (int
 	if !upTo.After(from) {
 		return 0, tx.Commit()
 	}
-	res, err := tx.ExecContext(ctx, agentAccrueSQL, from, upTo, 0)
+	res, err := tx.ExecContext(ctx, agentAccrueSQL, from, upTo, 0, monthStart)
 	if err != nil {
 		return 0, err
 	}
@@ -171,8 +224,9 @@ func (r *agentRepository) AccrueShares(ctx context.Context, upTo time.Time) (int
 func (r *agentRepository) Overview(ctx context.Context, userID int64, monthStart time.Time) (*service.AgentOverview, error) {
 	out := &service.AgentOverview{Invitees: []service.AgentInvitee{}, Payouts: []service.AgentPayout{}}
 	var since sql.NullTime
+	var ladder sql.NullString
 	err := r.db.QueryRowContext(ctx, `
-		SELECT COALESCE(ua.agent_share_percent, 0), ua.agent_since, ua.aff_quota,
+		SELECT COALESCE(ua.agent_share_percent, 0), ua.agent_since, ua.aff_quota, ua.agent_tiers::text,
 			COALESCE(SUM(l.amount), 0), COALESCE(SUM(l.base_amount), 0),
 			COALESCE(SUM(l.amount) FILTER (WHERE l.created_at >= $2), 0),
 			COALESCE(SUM(l.base_amount) FILTER (WHERE l.created_at >= $2), 0)
@@ -180,7 +234,7 @@ func (r *agentRepository) Overview(ctx context.Context, userID int64, monthStart
 		LEFT JOIN user_affiliate_ledger l ON l.user_id = ua.user_id AND l.action = 'agent_share'
 		WHERE ua.user_id = $1 AND ua.is_agent
 		GROUP BY ua.user_id`, userID, monthStart).
-		Scan(&out.SharePercent, &since, &out.Available, &out.Shared, &out.Spent, &out.MonthShared, &out.MonthSpent)
+		Scan(&out.SharePercent, &since, &out.Available, &ladder, &out.Shared, &out.Spent, &out.MonthShared, &out.MonthSpent)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -189,6 +243,9 @@ func (r *agentRepository) Overview(ctx context.Context, userID int64, monthStart
 	}
 	if since.Valid {
 		out.Since = &since.Time
+	}
+	if out.Tiers, err = agentTiersFromJSON(ladder); err != nil {
+		return nil, err
 	}
 
 	rows, err := r.db.QueryContext(ctx, `
@@ -351,7 +408,7 @@ func (r *agentRepository) AgentUsers(ctx context.Context, agentID int64) ([]serv
 
 // AttachUser expects the user's affiliate row to exist already. The agent the user leaves is credited
 // for the user's spending up to this moment; the new one earns on what comes after.
-func (r *agentRepository) AttachUser(ctx context.Context, agentID, userID int64) error {
+func (r *agentRepository) AttachUser(ctx context.Context, agentID, userID int64, monthStart time.Time) error {
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -399,7 +456,7 @@ func (r *agentRepository) AttachUser(ctx context.Context, agentID, userID int64)
 		return nil
 	}
 	if userInviter.Valid {
-		if err := settleAgentUser(ctx, tx, userID, from, now); err != nil {
+		if err := settleAgentUser(ctx, tx, userID, from, now, monthStart); err != nil {
 			return err
 		}
 		if _, err := tx.ExecContext(ctx, `UPDATE user_affiliates SET aff_count = GREATEST(aff_count - 1, 0), updated_at = NOW() WHERE user_id = $1`, userInviter.Int64); err != nil {
@@ -416,7 +473,7 @@ func (r *agentRepository) AttachUser(ctx context.Context, agentID, userID int64)
 }
 
 // DetachUser credits the agent for the user's spending up to this moment, then lets the user go.
-func (r *agentRepository) DetachUser(ctx context.Context, agentID, userID int64) (bool, error) {
+func (r *agentRepository) DetachUser(ctx context.Context, agentID, userID int64, monthStart time.Time) (bool, error) {
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
 		return false, err
@@ -434,7 +491,7 @@ func (r *agentRepository) DetachUser(ctx context.Context, agentID, userID int64)
 		}
 		return false, err
 	}
-	if err := settleAgentUser(ctx, tx, userID, from, now); err != nil {
+	if err := settleAgentUser(ctx, tx, userID, from, now, monthStart); err != nil {
 		return false, err
 	}
 	if _, err := tx.ExecContext(ctx, `
