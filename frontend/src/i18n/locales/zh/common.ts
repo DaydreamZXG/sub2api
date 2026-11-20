@@ -168,6 +168,7 @@ export default {
     tickets: '工单',
     growthLevels: '成长等级',
     garden: '菜园',
+    profit: '利润',
     apiKeys: 'API 密钥',
     batchImage: '批量生图',
     usage: '使用记录',

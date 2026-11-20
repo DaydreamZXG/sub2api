@@ -168,6 +168,7 @@ export default {
     tickets: 'Tickets',
     growthLevels: 'Growth levels',
     garden: 'Garden',
+    profit: 'Profit',
     apiKeys: 'API Keys',
     batchImage: 'Batch Images',
     usage: 'Usage',
