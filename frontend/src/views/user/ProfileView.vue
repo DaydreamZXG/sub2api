@@ -2,7 +2,13 @@
   <AppLayout>
     <div data-testid="profile-shell" class="ypf">
       <nav class="ypf-nav" :aria-label="t('profile.nav.label')">
-        <a v-for="item in sections" :key="item.id" :href="'#' + item.id" class="ypf-nav-link">{{ t(item.label) }}</a>
+        <a
+          v-for="item in sections"
+          :key="item.id"
+          :href="'#' + item.id"
+          class="ypf-nav-link"
+          @click.prevent="showSection(item.id)"
+        >{{ t(item.label) }}</a>
       </nav>
 
       <div class="ypf-main">
@@ -87,6 +93,12 @@ const sections = computed(() => [
   { id: 'profile-2fa', label: 'profile.nav.twoFactor' },
   { id: 'profile-passkey', label: 'profile.nav.passkey' }
 ])
+
+// Scrolls here instead of navigating to the hash: a hash navigation goes through the router,
+// whose scrollBehavior sends new entries to the top of the page.
+function showSection(id: string) {
+  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
 
 onMounted(async () => {
   const profileRefresh = authStore.refreshUser().catch((error) => {
