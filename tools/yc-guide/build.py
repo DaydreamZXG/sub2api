@@ -76,7 +76,7 @@ def inline_errors(h):
         if not t:
             return found
         head, rows, _, h = t
-        if len(head) == 3 and '你看到什么' in head[0]:
+        if len(head) == 3 and any(k in head[0] for k in ('你看到什么', '现象')):
             found += [{'s': r[0], 'c': r[1], 'f': r[2]} for r in rows if len(r) == 3]
 
 

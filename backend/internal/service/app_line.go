@@ -57,8 +57,19 @@ func (s *APIKeyService) AppLineGroupForUser(ctx context.Context, group *Group, u
 		return group
 	}
 	discounted := *group
-	discounted.RateMultiplier = math.Round(group.RateMultiplier*(1-discount)*1e4) / 1e4
+	discounted.RateMultiplier = discountedAppRate(group.RateMultiplier, discount)
 	return &discounted
+}
+
+// discountedAppRate takes the discount off a line's price, rounded to four decimals.
+// A price too small for four decimals is left as it is: rounding it would make the line free.
+func discountedAppRate(rate, discount float64) float64 {
+	exact := rate * (1 - discount)
+	rounded := math.Round(exact*1e4) / 1e4
+	if rounded == 0 && exact > 0 {
+		return exact
+	}
+	return rounded
 }
 
 // HasManualAppLinePrice reports whether an admin set this user's own price on every app-only line they can use,

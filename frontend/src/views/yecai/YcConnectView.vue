@@ -10,7 +10,7 @@
         <p class="yc-note">{{ t('yc.connect.clientText') }}</p>
         <p v-if="hasAppLine" class="yc-note yc-way-app">
           {{ t('yc.connect.appCheaper') }}
-          <router-link to="/prices" class="yc-link">{{ t('yc.connect.appCheaperLink') }}</router-link>
+          <router-link v-if="showPrices" to="/prices" class="yc-link">{{ t('yc.connect.appCheaperLink') }}</router-link>
         </p>
         <div class="yc-way-cta">
           <a v-if="clientUrl" :href="clientUrl" class="yc-btn yc-btn-lime">{{ t(clientLabel) }} ↓</a>
@@ -138,6 +138,7 @@ import type { ApiKey, Group } from '@/types'
 import { useClipboard } from '@/composables/useClipboard'
 import { useYcAppConnect } from '@/composables/useYcAppConnect'
 import { YC_CLIENT_DOWNLOADS, detectYcClientPlatform } from '@/utils/ycClient'
+import { FeatureFlags, isFeatureFlagEnabled } from '@/utils/featureFlags'
 import YcShell from '@/components/yecai/YcShell.vue'
 import UseKeyModal from '@/components/keys/UseKeyModal.vue'
 import shotLight from '@/assets/yecai/yecai-client-apps-light-showcase.webp'
@@ -154,6 +155,8 @@ const keys = ref<ApiKey[]>([])
 const groups = ref<Group[]>([])
 // App-only lines bill their price only through the desktop app, so pasted keys are offered on the other lines.
 const hasAppLine = computed(() => groups.value.some((g) => g.app_only))
+// The price list is the model plaza's data: with the plaza off there is nothing behind the link.
+const showPrices = computed(() => isFeatureFlagEnabled(FeatureFlags.modelPlaza))
 const manualGroups = computed(() => groups.value.filter((g) => !g.app_only))
 const loading = ref(true)
 const creating = ref(false)

@@ -40,6 +40,8 @@ export interface YcPriceLine {
   plan: boolean
   /** Charged only to requests sent through the desktop app. */
   app: boolean
+  /** An app line that also takes requests sent without the app, billed on another line. */
+  appFallback: boolean
   /** The price is the standard tier; long context, time of day or reasoning effort can raise it. */
   varies: boolean
 }
@@ -72,6 +74,7 @@ export function useYcPrices() {
           multiplier: rate,
           plan: g.subscription_type === 'subscription',
           app: g.app_only === true,
+          appFallback: g.app_only === true && g.app_fallback === true,
           varies:
             (g.long_context_pricing_enabled && (p.intervals?.length ?? 0) > 1) ||
             (m.time_pricing?.periods ?? []).some((period) => period.multiplier > 1) ||
@@ -108,11 +111,12 @@ export function useYcPrices() {
       price.input = headline.input
       price.output = headline.output
       price.varies = headline.varies
-      price.appOnly = price.lines.every((l) => l.app)
+      // A fallback line may be hidden from the list, yet it still lets other tools use the model.
+      price.appOnly = price.lines.every((l) => l.app && !l.appFallback)
       price.appHeadline = headline.app && !price.appOnly
       const appLine = price.lines.find((l) => l.app && !l.plan)
       price.app =
-        appLine && !headline.app && appLine.input < headline.input
+        appLine && !headline.app && (appLine.input < headline.input || appLine.output < headline.output)
           ? { input: appLine.input, output: appLine.output, varies: appLine.varies }
           : null
       price.share = price.officialInput && price.input < price.officialInput ? price.input / price.officialInput : null

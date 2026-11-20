@@ -38,6 +38,9 @@ var (
 type DesktopConnectCode struct {
 	UserID int64  `json:"user_id"`
 	Origin string `json:"origin"`
+	// The user's token version when the code was issued: a password change revokes the code
+	// together with the session that asked for it.
+	TokenVersion int64 `json:"token_version"`
 }
 
 // DesktopConnectCodeStore keeps one-time codes; Consume must hand a code to exactly one caller.
@@ -120,11 +123,16 @@ func (s *DesktopConnectService) IssueCode(ctx context.Context, userID int64, ori
 	if err != nil {
 		return nil, err
 	}
+	user, err := s.userRepo.GetByID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
 	code, err := randomURLSafeToken()
 	if err != nil {
 		return nil, err
 	}
-	if err := s.codes.Save(ctx, hashDesktopSecret(code), DesktopConnectCode{UserID: userID, Origin: canonical}, DesktopConnectCodeTTL); err != nil {
+	issued := DesktopConnectCode{UserID: userID, Origin: canonical, TokenVersion: resolvedTokenVersion(user)}
+	if err := s.codes.Save(ctx, hashDesktopSecret(code), issued, DesktopConnectCodeTTL); err != nil {
 		return nil, err
 	}
 	return &DesktopIssuedCode{Code: code, Origin: canonical, ExpiresAt: time.Now().Add(DesktopConnectCodeTTL)}, nil
@@ -150,6 +158,9 @@ func (s *DesktopConnectService) Exchange(ctx context.Context, code, requestHost 
 	}
 	if !user.IsActive() {
 		return nil, ErrUserNotActive
+	}
+	if issued.TokenVersion != resolvedTokenVersion(user) {
+		return nil, ErrDesktopCodeExpired
 	}
 	sessionBytes := make([]byte, 16)
 	if _, err := rand.Read(sessionBytes); err != nil {
