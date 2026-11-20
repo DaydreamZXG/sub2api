@@ -203,6 +203,11 @@ export interface AgentPayoutRecord {
 /** An agent's own figures, in balance units like the invite quota. */
 export interface AgentOverview {
   share_percent: number
+  /** From `from` of the month's spending (balance units) on, the share is `percent`. */
+  tiers: { from: number; percent: number }[]
+  /** The share for what the users spend next, and the tier not reached yet, if any. */
+  current_percent: number
+  next_tier: { from: number; percent: number } | null
   since: string | null
   available: number
   shared: number

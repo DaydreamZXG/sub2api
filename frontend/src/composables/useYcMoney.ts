@@ -50,5 +50,10 @@ export function useYcMoney() {
     return `¥${toYuan(units).toFixed(digits)}`
   }
 
-  return { toYuan, yuan, cnyPerUsd }
+  /** The other way round, for amounts an admin types in yuan. */
+  function toUnits(yuanAmount: number | null | undefined): number {
+    return (yuanAmount ?? 0) * unitsPerYuan.value
+  }
+
+  return { toYuan, toUnits, yuan, cnyPerUsd }
 }
