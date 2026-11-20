@@ -9,11 +9,12 @@ describe('priceChangeLabel', () => {
     [0.85, 'yc.priceWords.cheaper {"zhe":8.5,"pct":15}'],
     [1.2, 'yc.priceWords.dearer {"pct":20}'],
     [2, 'yc.priceWords.dearer {"pct":100}'],
+    [0, 'yc.priceWords.free {}'],
   ])('says a multiplier of %s as a price change', (multiplier, expected) => {
     expect(priceChangeLabel(t, multiplier)).toBe(expected)
   })
 
-  it.each([1, 0, -1, null, undefined, Number.NaN])('says nothing for %s', (multiplier) => {
+  it.each([1, -1, null, undefined, Number.NaN])('says nothing for %s', (multiplier) => {
     expect(priceChangeLabel(t, multiplier)).toBe('')
   })
 })

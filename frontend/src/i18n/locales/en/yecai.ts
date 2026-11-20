@@ -299,7 +299,8 @@ export default {
   },
   priceWords: {
     cheaper: '{pct}% off',
-    dearer: '{pct}% more'
+    dearer: '{pct}% more',
+    free: 'Free'
   },
   prices: {
     title: 'Prices',

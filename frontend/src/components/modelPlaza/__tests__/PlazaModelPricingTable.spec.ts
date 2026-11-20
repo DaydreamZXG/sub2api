@@ -117,6 +117,7 @@ describe('PlazaModelPricingTable', () => {
       expect(wrapper.text()).toContain(`¥${(2 * tc.expected).toFixed(2)}`)
       const rateCell = wrapper.findAll('tbody tr td').at(-1)!
       expect(rateCell.get('[data-rate]').attributes('data-rate')).toBe(String(tc.expected))
+      if (tc.expected === 0) expect(rateCell.text()).toBe('yc.priceWords.free')
     } finally {
       wrapper.unmount()
     }

@@ -299,7 +299,8 @@ export default {
   },
   priceWords: {
     cheaper: '约 {zhe} 折',
-    dearer: '贵 {pct}%'
+    dearer: '贵 {pct}%',
+    free: '免费'
   },
   prices: {
     title: '价目表',
