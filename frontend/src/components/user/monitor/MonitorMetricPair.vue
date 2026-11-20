@@ -1,29 +1,29 @@
 <template>
   <div class="mt-5 grid grid-cols-2 gap-2">
     <div
-      class="rounded-xl p-3 bg-gray-50/80 dark:bg-dark-900/40 border border-gray-100 dark:border-dark-700/50"
+      class="ych-metric"
     >
       <div
-        class="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-gray-400"
+        class="ych-metric-label"
       >
         <Icon :name="primaryIcon" size="xs" />
         <span>{{ primaryLabel }}</span>
       </div>
-      <div class="mt-1.5 text-lg font-bold font-mono tabular-nums text-gray-900 dark:text-gray-100">
-        {{ primaryValue }}<span class="text-xs font-normal text-gray-400 ml-0.5">{{ primaryUnit }}</span>
+      <div class="ych-metric-value">
+        {{ primaryValue }}<span class="ych-metric-unit">{{ primaryUnit }}</span>
       </div>
     </div>
     <div
-      class="rounded-xl p-3 bg-gray-50/80 dark:bg-dark-900/40 border border-gray-100 dark:border-dark-700/50"
+      class="ych-metric"
     >
       <div
-        class="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-gray-400"
+        class="ych-metric-label"
       >
         <Icon :name="secondaryIcon" size="xs" />
         <span>{{ secondaryLabel }}</span>
       </div>
-      <div class="mt-1.5 text-lg font-bold font-mono tabular-nums text-gray-900 dark:text-gray-100">
-        {{ secondaryValue }}<span class="text-xs font-normal text-gray-400 ml-0.5">{{ secondaryUnit }}</span>
+      <div class="ych-metric-value">
+        {{ secondaryValue }}<span class="ych-metric-unit">{{ secondaryUnit }}</span>
       </div>
     </div>
   </div>
@@ -43,3 +43,10 @@ defineProps<{
   secondaryIcon: 'bolt' | 'globe' | 'clock' | 'link'
 }>()
 </script>
+
+<style scoped>
+.ych-metric { padding: 12px; border-radius: 14px; background: var(--yc-fill); }
+.ych-metric-label { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--yc-mut); }
+.ych-metric-value { margin-top: 6px; font-size: 18px; font-weight: 720; color: var(--yc-ink); font-variant-numeric: tabular-nums; }
+.ych-metric-unit { margin-left: 2px; font-size: 12px; font-weight: 400; color: var(--yc-mut); }
+</style>

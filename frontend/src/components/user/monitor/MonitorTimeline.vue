@@ -1,7 +1,7 @@
 <template>
-  <div class="mt-4 pt-3 border-t border-gray-100 dark:border-dark-700/60">
+  <div class="ych-line">
     <div
-      class="flex justify-between text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-2"
+      class="ych-line-caption ych-line-top"
     >
       <span>{{ t('monitorCommon.history60pts', { n: length }) }}</span>
       <span class="tabular-nums">{{ t('monitorCommon.nextUpdateIn', { n: countdownSeconds }) }}</span>
@@ -25,7 +25,7 @@
     </div>
 
     <div
-      class="mt-1 flex justify-between text-[9px] uppercase tracking-widest text-gray-400"
+      class="ych-line-caption ych-line-bottom"
     >
       <span>{{ t('monitorCommon.past') }}</span>
       <span>{{ t('monitorCommon.now') }}</span>
@@ -113,3 +113,10 @@ const displayBars = computed<Bar[]>(() => {
   return bars
 })
 </script>
+
+<style scoped>
+.ych-line { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--yc-line); }
+.ych-line-caption { display: flex; justify-content: space-between; font-size: 11px; color: var(--yc-mut); }
+.ych-line-top { margin-bottom: 8px; }
+.ych-line-bottom { margin-top: 4px; }
+</style>

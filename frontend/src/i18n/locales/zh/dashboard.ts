@@ -571,12 +571,12 @@ export default {
     latencyEmpty: '-',
     availabilityPrefix: '可用性',
     dialogLatency: '对话延迟',
-    endpointPing: '端点 PING',
+    endpointPing: '网络延迟',
     history60pts: '近 {n} 次记录',
-    nextUpdateIn: '{n}s 后刷新',
-    past: 'PAST',
-    now: 'NOW',
-    maintenancePaused: '维护中 · 已暂停时间线采集',
+    nextUpdateIn: '{n} 秒后刷新',
+    past: '更早',
+    now: '现在',
+    maintenancePaused: '维护中，暂时不记录',
     extraModelsCount: '+ {n} 模型',
     pollEvery: '{n}s 轮询',
     updatedAt: '更新于 {time}',
@@ -589,7 +589,15 @@ export default {
   // Channel Status (user-facing read-only view)
   channelStatus: {
     title: '渠道状态',
-    description: '查看渠道可用性、延迟和近期状态',
+    description: '看每条线路现在能不能用、快不快',
+    headline: {
+      operational: '线路都正常',
+      degraded: '有线路不太稳定'
+    },
+    headlineHint: {
+      operational: '下面每条线路最近一次检查都通过了。',
+      degraded: '标着“降级”或“失败”的线路暂时别用，换一条正常的。'
+    },
     searchPlaceholder: '搜索渠道...',
     allProviders: '全部供应商',
     loadError: '加载渠道状态失败',
@@ -624,8 +632,8 @@ export default {
       avgLatency7d: '7 天平均延迟 (ms)'
     },
     empty: {
-      title: '暂无可显示的渠道',
-      description: '管理员尚未配置可监控的渠道。'
+      title: '还没有可以看的线路',
+      description: '管理员还没有添加要检查的线路。'
     }
   },
 

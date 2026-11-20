@@ -1,6 +1,6 @@
 <template>
   <div class="mt-3 flex items-end justify-between">
-    <div class="text-[11px] uppercase tracking-widest text-gray-400">
+    <div class="ych-avail-label">
       {{ windowLabel }}
     </div>
     <div class="flex items-baseline gap-0.5">
@@ -18,7 +18,7 @@
   </div>
   <div
     v-if="samplesLabel"
-    class="mt-1 text-[11px] text-gray-400 text-right"
+    class="ych-avail-note"
   >
     {{ samplesLabel }}
   </div>
@@ -47,3 +47,8 @@ const colorStyle = computed(() => {
   return colour ? { color: colour } : { color: 'rgb(156 163 175)' }
 })
 </script>
+
+<style scoped>
+.ych-avail-label { font-size: 12px; color: var(--yc-mut); }
+.ych-avail-note { margin-top: 4px; font-size: 12px; color: var(--yc-mut); text-align: right; }
+</style>
