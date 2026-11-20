@@ -28,10 +28,12 @@ const profitHourlyUpsertSQL = `
 	), granted AS (
 		-- Net of what was taken back: an admin adding 600 and removing 600 again granted nothing.
 		SELECT used_by AS user_id, GREATEST(SUM(value), 0) AS amount
-		FROM redeem_codes
+		FROM redeem_codes rc
 		WHERE status = 'used' AND used_by IN (SELECT user_id FROM active) AND (
 			(type = 'admin_balance' AND COALESCE((SELECT value FROM settings WHERE key = 'profit_manual_is_paid'), '') = 'true')
-			OR (type = 'balance' AND COALESCE((SELECT value FROM settings WHERE key = 'profit_redeem_is_paid'), '') = 'true'))
+			-- An online top-up is credited through a code of its own; the order already counts it.
+			OR (type = 'balance' AND COALESCE((SELECT value FROM settings WHERE key = 'profit_redeem_is_paid'), '') = 'true'
+				AND NOT EXISTS (SELECT 1 FROM payment_orders po WHERE po.recharge_code = rc.code)))
 		GROUP BY used_by
 	), share AS (
 		SELECT u.id AS user_id,
