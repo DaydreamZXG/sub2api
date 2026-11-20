@@ -138,7 +138,7 @@
           <p class="mt-1 text-xs text-gray-500 dark:text-dark-400">{{ t('admin.profit.agents.tiers.hint') }}</p>
           <div v-for="(tier, index) in tiers" :key="index" class="mt-2 flex items-center gap-2 text-sm text-gray-600 dark:text-dark-300" data-test="agents-tier-row">
             <span class="shrink-0">{{ t('admin.profit.agents.tiers.from') }}</span>
-            <input v-model.number="tier.from" type="number" min="0.01" step="0.01" class="input min-w-0 flex-1" data-test="agents-tier-from" />
+            <input v-model.number="tier.from" type="number" min="0" step="any" class="input min-w-0 flex-1" data-test="agents-tier-from" />
             <span class="shrink-0">{{ t('admin.profit.agents.tiers.then') }}</span>
             <input v-model.number="tier.percent" type="number" min="0.01" max="100" step="0.01" class="input w-16 shrink-0 sm:w-20" data-test="agents-tier-percent" />
             <span class="shrink-0">%</span>
@@ -246,7 +246,10 @@ function openForm(agent: AgentEntry | null) {
   editing.value = agent
   sharePercent.value = agent?.share_percent ?? 10
   tiers.value = (agent?.tiers ?? []).map((tier) => {
-    const shown = Number(toYuan(tier.from).toFixed(2))
+    // To the cent, unless that would show a small stored threshold as 0. The field itself takes any
+    // amount: a stored one need not be a whole number of cents, and saveAgent checks the order.
+    const amount = toYuan(tier.from)
+    const shown = Number(amount.toFixed(2)) || Number(amount.toPrecision(2))
     return { from: shown, percent: tier.percent, kept: { shown, units: tier.from } }
   })
   query.value = ''

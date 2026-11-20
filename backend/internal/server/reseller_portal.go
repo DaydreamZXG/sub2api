@@ -55,12 +55,23 @@ func resellerPortalGuard(lookup resellerPortalLookup) gin.HandlerFunc {
 		}
 		c.Set(resellerPortalContextKey, portal)
 		path := c.Request.URL.Path
-		if strings.HasPrefix(path, "/api/") || path == "/api" || strings.HasPrefix(path, "/setup") || strings.HasPrefix(path, "/.well-known/") {
+		if resellerPortalBlocks(path) {
 			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"code": http.StatusNotFound, "message": "not found"})
 			return
 		}
 		c.Next()
 	}
+}
+
+// resellerPortalBlocks says whether a path belongs to the site rather than to the gateway or the
+// client pages. /api/v3 is not the site's API: it is the Ark-style alias of the gateway's video
+// tasks, answered to an API key like /v1.
+func resellerPortalBlocks(path string) bool {
+	if strings.HasPrefix(path, "/api/v3/") {
+		return false
+	}
+	return strings.HasPrefix(path, "/api/") || path == "/api" ||
+		strings.HasPrefix(path, "/setup") || strings.HasPrefix(path, "/.well-known/")
 }
 
 // resellerPortalPage gives the frontend server the config for the client pages. sign is how amounts

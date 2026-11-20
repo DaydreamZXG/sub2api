@@ -51,7 +51,7 @@ func newPortalTestRouterWith(lookup portalLookupStub) *gin.Engine {
 		c.Header("X-On-Portal", map[bool]string{true: "yes", false: "no"}[onPortal])
 		c.Data(http.StatusOK, "application/json", append([]byte(nil), config...))
 	}
-	for _, path := range []string{"/api/v1/settings/public", "/api/v1/auth/login", "/setup/status", "/.well-known/oauth-authorization-server", "/v1/usage", "/v1/messages", "/", "/assets/app.js", "/health"} {
+	for _, path := range []string{"/api/v1/settings/public", "/api/v1/auth/login", "/setup/status", "/.well-known/oauth-authorization-server", "/v1/usage", "/v1/messages", "/", "/assets/app.js", "/health", "/api/v3/contents/generations/tasks"} {
 		r.Any(path, ok)
 	}
 	return r
@@ -83,12 +83,12 @@ func TestResellerPortalGuardLeavesTheSiteItselfAlone(t *testing.T) {
 
 func TestResellerPortalGuardServesOnlyTheGatewayAndThePagesOnTheClientDomain(t *testing.T) {
 	r := newPortalTestRouter(service.ResellerPortal{Domain: "keys.example.com", Name: "Keys", Contact: "wx: keys"})
-	for _, path := range []string{"/api/v1/settings/public", "/api/v1/auth/login", "/setup/status", "/.well-known/oauth-authorization-server"} {
+	for _, path := range []string{"/api/v1/settings/public", "/api/v1/auth/login", "/api/v3", "/api/v30/x", "/setup/status", "/.well-known/oauth-authorization-server"} {
 		w := portalTestGet(r, "keys.example.com", path, nil)
 		require.Equal(t, http.StatusNotFound, w.Code, path)
 		require.NotContains(t, w.Body.String(), "portal", path)
 	}
-	for _, path := range []string{"/v1/usage", "/v1/messages", "/", "/assets/app.js"} {
+	for _, path := range []string{"/v1/usage", "/v1/messages", "/", "/assets/app.js", "/api/v3/contents/generations/tasks"} {
 		w := portalTestGet(r, "KEYS.example.com:443", path, nil)
 		require.Equal(t, http.StatusOK, w.Code, path)
 		require.Equal(t, "yes", w.Header().Get("X-On-Portal"), path)
