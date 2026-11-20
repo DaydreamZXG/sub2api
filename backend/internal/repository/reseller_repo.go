@@ -24,12 +24,17 @@ func (r *resellerRepository) IsReseller(ctx context.Context, userID int64) (bool
 
 func (r *resellerRepository) SetReseller(ctx context.Context, userID int64, on bool) (bool, error) {
 	if !on {
-		var exists bool
-		if err := r.db.QueryRowContext(ctx, `SELECT EXISTS (SELECT 1 FROM users WHERE id = $1 AND deleted_at IS NULL)`, userID).Scan(&exists); err != nil || !exists {
+		// A reseller whose account was deleted since can still be taken off the list.
+		res, err := r.db.ExecContext(ctx, `DELETE FROM resellers WHERE user_id = $1`, userID)
+		if err != nil {
 			return false, err
 		}
-		_, err := r.db.ExecContext(ctx, `DELETE FROM resellers WHERE user_id = $1`, userID)
-		return true, err
+		if n, _ := res.RowsAffected(); n > 0 {
+			return true, nil
+		}
+		var exists bool
+		err = r.db.QueryRowContext(ctx, `SELECT EXISTS (SELECT 1 FROM users WHERE id = $1 AND deleted_at IS NULL)`, userID).Scan(&exists)
+		return exists, err
 	}
 	var found bool
 	err := r.db.QueryRowContext(ctx, `
@@ -46,7 +51,7 @@ func (r *resellerRepository) ListResellers(ctx context.Context) ([]service.Resel
 		SELECT rs.user_id, COALESCE(u.email, ''), rs.created_at, COALESCE(u.balance, 0),
 			COUNT(k.id), COALESCE(SUM(k.quota_used), 0), COALESCE(SUM(k.quota_used / k.client_markup), 0)
 		FROM resellers rs
-		JOIN users u ON u.id = rs.user_id
+		JOIN users u ON u.id = rs.user_id AND u.deleted_at IS NULL
 		LEFT JOIN api_keys k ON k.user_id = rs.user_id AND k.client_markup > 0 AND k.deleted_at IS NULL
 		GROUP BY rs.user_id, u.email, rs.created_at, u.balance
 		ORDER BY rs.created_at DESC, rs.user_id`)
