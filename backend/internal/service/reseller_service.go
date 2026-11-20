@@ -8,6 +8,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"unicode/utf8"
 
 	infraerrors "github.com/Wei-Shaw/sub2api/internal/pkg/errors"
 )
@@ -222,7 +223,8 @@ func (s *ResellerService) SetPortal(ctx context.Context, portal ResellerPortal) 
 		return ErrResellerPortalBad
 	}
 	lower := strings.ToLower(portal.Logo)
-	if len(portal.Name) > 60 || len(portal.Contact) > 300 || len(portal.Logo) > 500 ||
+	// Counted in characters, as the form does: a Chinese name is three bytes a character.
+	if utf8.RuneCountInString(portal.Name) > 60 || utf8.RuneCountInString(portal.Contact) > 300 || len(portal.Logo) > 500 ||
 		(portal.Logo != "" && !strings.HasPrefix(lower, "https://") && !strings.HasPrefix(lower, "http://")) {
 		return ErrResellerPortalBad
 	}
