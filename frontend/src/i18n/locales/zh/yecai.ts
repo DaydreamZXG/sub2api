@@ -157,6 +157,12 @@ export default {
     contactTitle: '找人帮忙', noContact: '站长还没有填写联系方式。', docs: '查看使用文档',
     newsTitle: '公告'
   },
+  guide: {
+    title: '接入与报错指南',
+    lead: '选你的工具，只看它的配置步骤和常见报错。',
+    zhOnly: '这份指南目前只有中文。',
+    loadFailed: '指南没有加载出来，请刷新页面再试。'
+  },
   tickets: {
     title: '工单',
     lead: '说清楚遇到了什么，我们在这里回复你。',

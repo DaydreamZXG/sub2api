@@ -3,6 +3,11 @@
     <h1 class="yc-page-h1">{{ t('yc.help.title') }}</h1>
     <p class="yc-page-lead">{{ t('yc.help.lead') }}</p>
 
+    <router-link to="/help/guide" class="yc-help-guide">
+      <span><b>{{ t('yc.guide.title') }}</b><em>{{ t('yc.guide.lead') }}</em></span>
+      <i aria-hidden="true">→</i>
+    </router-link>
+
     <section class="yc-surface yc-help">
       <h2 class="yc-sec-h2">{{ t('yc.help.contactTitle') }}</h2>
       <p v-if="contact" class="yc-help-contact">{{ contact }}</p>
@@ -67,6 +72,11 @@ onMounted(async () => {
 
 <style scoped>
 .yc-help { margin-top: 20px; padding: 26px 30px; }
+.yc-help-guide { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 20px; padding: 22px 30px; border-radius: 24px; background: var(--yc-lime); color: var(--yc-on-lime); text-decoration: none; transition: transform 0.15s, box-shadow 0.15s; }
+.yc-help-guide:hover { transform: translateY(-2px); box-shadow: 0 6px 0 -1px var(--yc-ink); }
+.yc-help-guide b { display: block; font-size: 19px; font-weight: 800; letter-spacing: -0.01em; }
+.yc-help-guide em { display: block; margin-top: 2px; font-style: normal; font-size: 14.5px; opacity: 0.8; }
+.yc-help-guide i { flex: none; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--yc-on-lime); color: var(--yc-lime); font-style: normal; font-size: 18px; }
 .yc-help-contact { margin: 10px 0 4px; font-size: 16px; line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; }
 .yc-help .yc-note { margin-top: 8px; }
 .yc-help .yc-btn { margin-top: 14px; }
@@ -81,5 +91,6 @@ onMounted(async () => {
 .yc-help-item p { padding: 0 0 16px; font-size: 14.5px; line-height: 1.7; color: var(--yc-mut); white-space: pre-wrap; overflow-wrap: anywhere; }
 @media (max-width: 760px) {
   .yc-help { padding: 22px 20px; }
+  .yc-help-guide { padding: 18px 20px; }
 }
 </style>

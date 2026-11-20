@@ -157,6 +157,12 @@ export default {
     contactTitle: 'Get help from a person', noContact: 'The site owner has not added contact details yet.', docs: 'Read the docs',
     newsTitle: 'Announcements'
   },
+  guide: {
+    title: 'Setup and error guide',
+    lead: 'Pick your tool and see only its setup steps and common errors.',
+    zhOnly: 'This guide is only available in Chinese for now.',
+    loadFailed: 'The guide did not load. Refresh the page and try again.'
+  },
   tickets: {
     title: 'Tickets',
     lead: 'Tell us what went wrong and we will reply here.',
