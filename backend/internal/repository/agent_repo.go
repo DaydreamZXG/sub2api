@@ -71,7 +71,7 @@ func (r *agentRepository) ListAgents(ctx context.Context) ([]service.AgentEntry,
 }
 
 // agentAccrueSQL credits, for the usage in ($1, $2], each agent their share of the real money their
-// users were charged, one ledger row per agent and user.
+// users were charged, one ledger row per agent and user. $3 limits it to one user, 0 means all.
 const agentAccrueSQL = `
 	WITH active AS (
 		SELECT DISTINCT l.user_id
@@ -79,6 +79,7 @@ const agentAccrueSQL = `
 		JOIN user_affiliates ua ON ua.user_id = l.user_id
 		JOIN user_affiliates ag ON ag.user_id = ua.inviter_id AND ag.is_agent
 		WHERE l.created_at > $1 AND l.created_at <= $2
+			AND ($3::bigint = 0 OR l.user_id = $3)
 	), ` + profitPaidShareCTEs + `, due AS (
 		SELECT ag.user_id AS agent_id, l.user_id AS invitee_id,
 			SUM(l.actual_cost * COALESCE(s.paid_share, 0)) AS base,
@@ -89,8 +90,9 @@ const agentAccrueSQL = `
 		LEFT JOIN share s ON s.user_id = l.user_id
 		WHERE l.created_at > $1 AND l.created_at <= $2
 			AND COALESCE(l.billing_type, 0) = 0
+			AND ($3::bigint = 0 OR l.user_id = $3)
 			AND l.created_at >= ag.agent_since
-			AND (ua.agent_bound_at IS NULL OR l.created_at >= ua.agent_bound_at)
+			AND (ua.agent_bound_at IS NULL OR l.created_at > ua.agent_bound_at)
 		GROUP BY ag.user_id, l.user_id, ag.agent_share_percent
 	), credited AS (
 		INSERT INTO user_affiliate_ledger (user_id, action, amount, base_amount, source_user_id, created_at, updated_at)
@@ -104,6 +106,32 @@ const agentAccrueSQL = `
 	FROM (SELECT user_id, SUM(amount) AS amount FROM credited GROUP BY user_id) t
 	WHERE ua.user_id = t.user_id`
 
+// lockAgentWatermark returns the moment up to which usage was shared, and holds its row until the
+// transaction ends: one accrual, or one move of a user between agents, at a time. The first call only
+// sets the mark to firstMark: nothing from before the feature is shared.
+func lockAgentWatermark(ctx context.Context, tx *sql.Tx, firstMark time.Time) (time.Time, error) {
+	mark := firstMark.UTC().Format(time.RFC3339Nano)
+	if _, err := tx.ExecContext(ctx, `INSERT INTO settings (key, value) VALUES ($1, $2) ON CONFLICT (key) DO NOTHING`, agentWatermarkKey, mark); err != nil {
+		return time.Time{}, err
+	}
+	var stored string
+	if err := tx.QueryRowContext(ctx, `SELECT value FROM settings WHERE key = $1 FOR UPDATE`, agentWatermarkKey).Scan(&stored); err != nil {
+		return time.Time{}, err
+	}
+	return time.Parse(time.RFC3339Nano, stored)
+}
+
+// settleAgentUser credits the user's agent for what the user spent in (from, now], ahead of the regular
+// run, because the user is about to leave that agent. from is the locked mark, which stays where it is:
+// the regular run skips this usage, as by then the user has another agent from now on, or none.
+func settleAgentUser(ctx context.Context, tx *sql.Tx, userID int64, from, now time.Time) error {
+	if !now.After(from) {
+		return nil
+	}
+	_, err := tx.ExecContext(ctx, agentAccrueSQL, from, now, userID)
+	return err
+}
+
 func (r *agentRepository) AccrueShares(ctx context.Context, upTo time.Time) (int, error) {
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -111,28 +139,18 @@ func (r *agentRepository) AccrueShares(ctx context.Context, upTo time.Time) (int
 	}
 	defer func() { _ = tx.Rollback() }()
 
-	// The first run only sets the mark: nothing from before the feature is shared.
-	mark := upTo.UTC().Format(time.RFC3339Nano)
-	if _, err := tx.ExecContext(ctx, `INSERT INTO settings (key, value) VALUES ($1, $2) ON CONFLICT (key) DO NOTHING`, agentWatermarkKey, mark); err != nil {
-		return 0, err
-	}
-	// The row lock keeps two instances from crediting the same usage.
-	var stored string
-	if err := tx.QueryRowContext(ctx, `SELECT value FROM settings WHERE key = $1 FOR UPDATE`, agentWatermarkKey).Scan(&stored); err != nil {
-		return 0, err
-	}
-	from, err := time.Parse(time.RFC3339Nano, stored)
+	from, err := lockAgentWatermark(ctx, tx, upTo)
 	if err != nil {
 		return 0, err
 	}
 	if !upTo.After(from) {
 		return 0, tx.Commit()
 	}
-	res, err := tx.ExecContext(ctx, agentAccrueSQL, from, upTo)
+	res, err := tx.ExecContext(ctx, agentAccrueSQL, from, upTo, 0)
 	if err != nil {
 		return 0, err
 	}
-	if _, err := tx.ExecContext(ctx, `UPDATE settings SET value = $2, updated_at = NOW() WHERE key = $1`, agentWatermarkKey, mark); err != nil {
+	if _, err := tx.ExecContext(ctx, `UPDATE settings SET value = $2, updated_at = NOW() WHERE key = $1`, agentWatermarkKey, upTo.UTC().Format(time.RFC3339Nano)); err != nil {
 		return 0, err
 	}
 	n, _ := res.RowsAffected()
@@ -320,7 +338,8 @@ func (r *agentRepository) AgentUsers(ctx context.Context, agentID int64) ([]serv
 	return users, rows.Err()
 }
 
-// AttachUser expects the user's affiliate row to exist already.
+// AttachUser expects the user's affiliate row to exist already. The agent the user leaves is credited
+// for the user's spending up to this moment; the new one earns on what comes after.
 func (r *agentRepository) AttachUser(ctx context.Context, agentID, userID int64) error {
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -328,7 +347,12 @@ func (r *agentRepository) AttachUser(ctx context.Context, agentID, userID int64)
 	}
 	defer func() { _ = tx.Rollback() }()
 
-	// Both rows are locked in the order of their ids, so two admins cannot deadlock each other.
+	// Held first by every move and every accrual, so two moves cannot wait on each other's rows.
+	now := time.Now()
+	from, err := lockAgentWatermark(ctx, tx, now)
+	if err != nil {
+		return err
+	}
 	rows, err := tx.QueryContext(ctx, `
 		SELECT user_id, is_agent, inviter_id FROM user_affiliates
 		WHERE user_id IN ($1, $2) ORDER BY user_id FOR UPDATE`, agentID, userID)
@@ -365,11 +389,14 @@ func (r *agentRepository) AttachUser(ctx context.Context, agentID, userID int64)
 		return nil
 	}
 	if userInviter.Valid {
+		if err := settleAgentUser(ctx, tx, userID, from, now); err != nil {
+			return err
+		}
 		if _, err := tx.ExecContext(ctx, `UPDATE user_affiliates SET aff_count = GREATEST(aff_count - 1, 0), updated_at = NOW() WHERE user_id = $1`, userInviter.Int64); err != nil {
 			return err
 		}
 	}
-	if _, err := tx.ExecContext(ctx, `UPDATE user_affiliates SET inviter_id = $1, agent_bound_at = NOW(), updated_at = NOW() WHERE user_id = $2`, agentID, userID); err != nil {
+	if _, err := tx.ExecContext(ctx, `UPDATE user_affiliates SET inviter_id = $1, agent_bound_at = $3, updated_at = NOW() WHERE user_id = $2`, agentID, userID, now); err != nil {
 		return err
 	}
 	if _, err := tx.ExecContext(ctx, `UPDATE user_affiliates SET aff_count = aff_count + 1, updated_at = NOW() WHERE user_id = $1`, agentID); err != nil {
@@ -378,6 +405,7 @@ func (r *agentRepository) AttachUser(ctx context.Context, agentID, userID int64)
 	return tx.Commit()
 }
 
+// DetachUser credits the agent for the user's spending up to this moment, then lets the user go.
 func (r *agentRepository) DetachUser(ctx context.Context, agentID, userID int64) (bool, error) {
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -385,14 +413,25 @@ func (r *agentRepository) DetachUser(ctx context.Context, agentID, userID int64)
 	}
 	defer func() { _ = tx.Rollback() }()
 
-	res, err := tx.ExecContext(ctx, `
-		UPDATE user_affiliates SET inviter_id = NULL, agent_bound_at = NULL, updated_at = NOW()
-		WHERE user_id = $2 AND inviter_id = $1`, agentID, userID)
+	now := time.Now()
+	from, err := lockAgentWatermark(ctx, tx, now)
 	if err != nil {
 		return false, err
 	}
-	if n, _ := res.RowsAffected(); n == 0 {
-		return false, nil
+	var under bool
+	if err := tx.QueryRowContext(ctx, `SELECT true FROM user_affiliates WHERE user_id = $2 AND inviter_id = $1 FOR UPDATE`, agentID, userID).Scan(&under); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return false, nil
+		}
+		return false, err
+	}
+	if err := settleAgentUser(ctx, tx, userID, from, now); err != nil {
+		return false, err
+	}
+	if _, err := tx.ExecContext(ctx, `
+		UPDATE user_affiliates SET inviter_id = NULL, agent_bound_at = NULL, updated_at = NOW()
+		WHERE user_id = $2 AND inviter_id = $1`, agentID, userID); err != nil {
+		return false, err
 	}
 	if _, err := tx.ExecContext(ctx, `UPDATE user_affiliates SET aff_count = GREATEST(aff_count - 1, 0), updated_at = NOW() WHERE user_id = $1`, agentID); err != nil {
 		return false, err

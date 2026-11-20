@@ -216,18 +216,15 @@ func TestAgentServiceStopEndsARunUnderWayAndWaitsForIt(t *testing.T) {
 	none.Stop()
 }
 
-func TestAgentServiceAttachUserSettlesFirstAndRefusesTheAgentThemselves(t *testing.T) {
+func TestAgentServiceAttachUserRefusesTheAgentThemselves(t *testing.T) {
 	repo := &agentRepoStub{}
 	svc := newAgentServiceForTest(repo, &agentAffiliateRepoStub{})
 
 	require.ErrorIs(t, svc.AttachUser(context.Background(), 7, 7), ErrAgentUserInvalid)
 	require.ErrorIs(t, svc.AttachUser(context.Background(), 7, 0), ErrAgentUserInvalid)
 	require.Empty(t, repo.attached)
-	require.Zero(t, repo.accrued)
 
 	require.NoError(t, svc.AttachUser(context.Background(), 7, 9))
-	// What the user's spending earned so far goes to whoever had them before the move.
-	require.Equal(t, 1, repo.accrued)
 	require.Equal(t, [][2]int64{{7, 9}}, repo.attached)
 }
 
@@ -239,5 +236,4 @@ func TestAgentServiceDetachUserSaysWhenTheUserIsNotUnderTheAgent(t *testing.T) {
 	found := &agentRepoStub{finishOK: true}
 	svc = newAgentServiceForTest(found, &agentAffiliateRepoStub{})
 	require.NoError(t, svc.DetachUser(context.Background(), 7, 9))
-	require.Equal(t, 1, found.accrued)
 }

@@ -103,10 +103,11 @@ type AgentRepository interface {
 	FinishPayout(ctx context.Context, id int64, status, adminNote string) (bool, error)
 	// AgentUsers lists the users under an agent, with what they spent and what it earned the agent.
 	AgentUsers(ctx context.Context, agentID int64) ([]AgentInvitee, error)
-	// AttachUser puts a user under an agent, taking them from whoever invited them. The agent earns on
-	// their spending from now on.
+	// AttachUser puts a user under an agent, taking them from whoever invited them, who is credited for
+	// the user's spending up to that moment. The agent earns on their spending from then on.
 	AttachUser(ctx context.Context, agentID, userID int64) error
-	// DetachUser takes a user from under an agent; false when they were not under this agent.
+	// DetachUser credits the agent for the user's spending so far and takes the user from under them;
+	// false when they were not under this agent.
 	DetachUser(ctx context.Context, agentID, userID int64) (bool, error)
 	// PayPayout marks a pending request paid and runs withdraw in the same transaction; when withdraw
 	// fails the request stays pending. False when the request was not pending any more.
@@ -223,18 +224,11 @@ func (s *AgentService) AttachUser(ctx context.Context, agentID, userID int64) er
 	if _, err := s.affiliate.EnsureUserAffiliate(ctx, userID); err != nil {
 		return err
 	}
-	// Whoever had this user until now is credited first.
-	if _, err := s.Accrue(ctx); err != nil {
-		return err
-	}
 	return s.repo.AttachUser(ctx, agentID, userID)
 }
 
 // DetachUser takes a user from under an agent. What the agent was credited stays.
 func (s *AgentService) DetachUser(ctx context.Context, agentID, userID int64) error {
-	if _, err := s.Accrue(ctx); err != nil {
-		return err
-	}
 	done, err := s.repo.DetachUser(ctx, agentID, userID)
 	if err != nil {
 		return err
