@@ -198,3 +198,21 @@ func TestAPIKeyService_Update_ReactivatesQuotaExhaustedWhenQuotaUnlimited(t *tes
 	require.Equal(t, StatusActive, repo.updatedKeys[0].Status)
 	require.Equal(t, 0.0, repo.updatedKeys[0].Quota)
 }
+
+func TestAPIKeyService_Update_ClientKeyKeepsABudget(t *testing.T) {
+	repo := &apiKeyRepoStub{
+		apiKey: &APIKey{ID: 10, UserID: 7, Key: "sk-client", Status: StatusActive, Quota: 10, QuotaUsed: 4, ClientMarkup: 1.5},
+	}
+	svc := &APIKeyService{apiKeyRepo: repo}
+
+	none := 0.0
+	_, err := svc.Update(context.Background(), 10, 7, UpdateAPIKeyRequest{Quota: &none})
+	require.ErrorIs(t, err, ErrClientKeyNeedsBudget)
+	require.Empty(t, repo.updatedKeys)
+
+	more := 20.0
+	updated, err := svc.Update(context.Background(), 10, 7, UpdateAPIKeyRequest{Quota: &more})
+	require.NoError(t, err)
+	require.Equal(t, 20.0, updated.Quota)
+	require.Equal(t, 1.5, updated.ClientMarkup)
+}
