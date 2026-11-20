@@ -110,7 +110,7 @@ type AgentRepository interface {
 	// ListAgents and AccrueShares count a month from monthStart.
 	ListAgents(ctx context.Context, monthStart time.Time) ([]AgentEntry, error)
 	// AccrueShares credits every agent their share of the usage up to upTo that was not counted yet.
-	AccrueShares(ctx context.Context, upTo, monthStart time.Time) (int, error)
+	AccrueShares(ctx context.Context, upTo time.Time) (int, error)
 	// Overview returns nil when the user is not an agent.
 	Overview(ctx context.Context, userID int64, monthStart time.Time) (*AgentOverview, error)
 	CreatePayout(ctx context.Context, userID int64, amount float64, payeeNote string) (int64, error)
@@ -123,10 +123,10 @@ type AgentRepository interface {
 	AgentUsers(ctx context.Context, agentID int64) ([]AgentInvitee, error)
 	// AttachUser puts a user under an agent, taking them from whoever invited them, who is credited for
 	// the user's spending up to that moment. The agent earns on their spending from then on.
-	AttachUser(ctx context.Context, agentID, userID int64, monthStart time.Time) error
+	AttachUser(ctx context.Context, agentID, userID int64) error
 	// DetachUser credits the agent for the user's spending so far and takes the user from under them;
 	// false when they were not under this agent.
-	DetachUser(ctx context.Context, agentID, userID int64, monthStart time.Time) (bool, error)
+	DetachUser(ctx context.Context, agentID, userID int64) (bool, error)
 	// PayPayout marks a pending request paid and runs withdraw in the same transaction; when withdraw
 	// fails the request stays pending. False when the request was not pending any more.
 	PayPayout(ctx context.Context, id int64, adminNote string, withdraw func(txCtx context.Context) error) (bool, error)
@@ -192,7 +192,7 @@ func (s *AgentService) accrueOnce() {
 
 // Accrue credits what is due now. Runs on a timer; the admin page can also ask for it.
 func (s *AgentService) Accrue(ctx context.Context) (int, error) {
-	return s.repo.AccrueShares(ctx, time.Now().Add(-agentAccrueLag), agentMonthStart())
+	return s.repo.AccrueShares(ctx, time.Now().Add(-agentAccrueLag))
 }
 
 func (s *AgentService) SetAgent(ctx context.Context, userID int64, isAgent bool, sharePercent float64, tiers []AgentTier) error {
@@ -263,10 +263,15 @@ func agentRateAt(basePercent float64, tiers []AgentTier, monthSpent float64) (fl
 	return current, nil
 }
 
-// agentMonthStart is the first moment of the current calendar month in the site's timezone.
+// AgentMonthStart is the first moment of at's calendar month in the site's timezone: the month over which
+// an agent's tiers count their users' spending.
+func AgentMonthStart(at time.Time) time.Time {
+	at = at.In(timezone.Location())
+	return time.Date(at.Year(), at.Month(), 1, 0, 0, 0, 0, at.Location())
+}
+
 func agentMonthStart() time.Time {
-	now := timezone.Now()
-	return time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location())
+	return AgentMonthStart(time.Now())
 }
 
 func (s *AgentService) ListAgents(ctx context.Context) ([]AgentEntry, error) {
@@ -295,12 +300,12 @@ func (s *AgentService) AttachUser(ctx context.Context, agentID, userID int64) er
 	if _, err := s.affiliate.EnsureUserAffiliate(ctx, userID); err != nil {
 		return err
 	}
-	return s.repo.AttachUser(ctx, agentID, userID, agentMonthStart())
+	return s.repo.AttachUser(ctx, agentID, userID)
 }
 
 // DetachUser takes a user from under an agent. What the agent was credited stays.
 func (s *AgentService) DetachUser(ctx context.Context, agentID, userID int64) error {
-	done, err := s.repo.DetachUser(ctx, agentID, userID, agentMonthStart())
+	done, err := s.repo.DetachUser(ctx, agentID, userID)
 	if err != nil {
 		return err
 	}

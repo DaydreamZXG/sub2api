@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Wei-Shaw/sub2api/internal/pkg/timezone"
 	"github.com/stretchr/testify/require"
 )
 
@@ -26,7 +27,7 @@ type agentRepoStub struct {
 	agents   []AgentEntry
 }
 
-func (s *agentRepoStub) AccrueShares(context.Context, time.Time, time.Time) (int, error) {
+func (s *agentRepoStub) AccrueShares(context.Context, time.Time) (int, error) {
 	s.accrued++
 	return 0, nil
 }
@@ -66,12 +67,12 @@ func (s *agentRepoStub) AgentUsers(context.Context, int64) ([]AgentInvitee, erro
 	return nil, nil
 }
 
-func (s *agentRepoStub) AttachUser(_ context.Context, agentID, userID int64, _ time.Time) error {
+func (s *agentRepoStub) AttachUser(_ context.Context, agentID, userID int64) error {
 	s.attached = append(s.attached, [2]int64{agentID, userID})
 	return nil
 }
 
-func (s *agentRepoStub) DetachUser(context.Context, int64, int64, time.Time) (bool, error) {
+func (s *agentRepoStub) DetachUser(context.Context, int64, int64) (bool, error) {
 	return s.finishOK, nil
 }
 
@@ -195,7 +196,7 @@ type agentBlockingRepoStub struct {
 	ended   chan struct{}
 }
 
-func (s *agentBlockingRepoStub) AccrueShares(ctx context.Context, _ time.Time, _ time.Time) (int, error) {
+func (s *agentBlockingRepoStub) AccrueShares(ctx context.Context, _ time.Time) (int, error) {
 	close(s.started)
 	<-ctx.Done()
 	close(s.ended)
@@ -310,4 +311,12 @@ func TestAgentServiceListAgentsSaysTheShareInForce(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 8.0, agents[0].CurrentPercent)
 	require.Equal(t, 5.0, agents[1].CurrentPercent)
+}
+
+func TestAgentMonthStartIsTheMonthOfTheMomentInTheSitesTimezone(t *testing.T) {
+	loc := timezone.Location()
+	// The first second of December on the site's clock, whatever zone the moment is given in.
+	at := time.Date(2026, 12, 1, 0, 0, 1, 0, loc)
+	require.True(t, AgentMonthStart(at.UTC()).Equal(time.Date(2026, 12, 1, 0, 0, 0, 0, loc)))
+	require.True(t, AgentMonthStart(at.Add(-2*time.Second)).Equal(time.Date(2026, 11, 1, 0, 0, 0, 0, loc)))
 }

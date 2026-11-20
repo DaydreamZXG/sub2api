@@ -147,7 +147,7 @@ const agentAccrueSQL = `
 		GROUP BY r.agent_id, r.base
 	), credited AS (
 		INSERT INTO user_affiliate_ledger (user_id, action, amount, base_amount, source_user_id, created_at, updated_at)
-		SELECT d.agent_id, 'agent_share', ROUND(e.amount * d.base / e.base, 8), d.base, d.invitee_id, NOW(), NOW()
+		SELECT d.agent_id, 'agent_share', ROUND(e.amount * d.base / e.base, 8), d.base, d.invitee_id, $5, $5
 		FROM due d JOIN earned e ON e.agent_id = d.agent_id
 		WHERE e.base > 0 AND ROUND(e.amount * d.base / e.base, 8) > 0
 		RETURNING user_id, amount
@@ -174,43 +174,56 @@ func lockAgentWatermark(ctx context.Context, tx *sql.Tx, firstMark time.Time) (t
 	return time.Parse(time.RFC3339Nano, stored)
 }
 
-// lockAgentMove takes the mark's lock for a change of a user's agent and returns the mark with the moment
-// of the change. The moment is read from the database after the lock is held, so of two changes the one
-// that waited always gets the later moment, whichever server it ran on.
-func lockAgentMove(ctx context.Context, tx *sql.Tx) (from, now time.Time, err error) {
-	if from, err = lockAgentWatermark(ctx, tx, time.Now()); err != nil {
+// lockAgentMark takes the mark's lock and returns the mark with the present moment. The moment is read
+// from the database after the lock is held, so of two transactions the one that waited always gets the
+// later moment, whichever server it ran on, and a wait across midnight on the last day of a month ends
+// in the new month.
+func lockAgentMark(ctx context.Context, tx *sql.Tx, firstMark time.Time) (from, now time.Time, err error) {
+	if from, err = lockAgentWatermark(ctx, tx, firstMark); err != nil {
 		return from, now, err
 	}
 	err = tx.QueryRowContext(ctx, `SELECT clock_timestamp()`).Scan(&now)
 	return from, now, err
 }
 
+// lockAgentMove is lockAgentMark for a change of a user's agent: now is the moment of the change.
+func lockAgentMove(ctx context.Context, tx *sql.Tx) (from, now time.Time, err error) {
+	return lockAgentMark(ctx, tx, time.Now())
+}
+
 // settleAgentUser credits the user's agent for what the user spent in (from, now], ahead of the regular
 // run, because the user is about to leave that agent. from is the locked mark, which stays where it is:
 // the regular run skips this usage, as by then the user has another agent from now on, or none.
-func settleAgentUser(ctx context.Context, tx *sql.Tx, userID int64, from, now, monthStart time.Time) error {
+func settleAgentUser(ctx context.Context, tx *sql.Tx, userID int64, from, now time.Time) error {
 	if !now.After(from) {
 		return nil
 	}
-	_, err := tx.ExecContext(ctx, agentAccrueSQL, from, now, userID, monthStart)
+	_, err := creditAgents(ctx, tx, from, now, userID, now)
 	return err
 }
 
-func (r *agentRepository) AccrueShares(ctx context.Context, upTo, monthStart time.Time) (int, error) {
+// creditAgents shares the usage in (from, upTo], of one user or of all with userID 0. at is the moment
+// the credits are dated, read after the mark's lock was taken: the month whose spending decides the
+// tier is the month of at, so a credit always counts in the month whose tier it was worked out with.
+func creditAgents(ctx context.Context, tx *sql.Tx, from, upTo time.Time, userID int64, at time.Time) (sql.Result, error) {
+	return tx.ExecContext(ctx, agentAccrueSQL, from, upTo, userID, service.AgentMonthStart(at), at)
+}
+
+func (r *agentRepository) AccrueShares(ctx context.Context, upTo time.Time) (int, error) {
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
 		return 0, err
 	}
 	defer func() { _ = tx.Rollback() }()
 
-	from, err := lockAgentWatermark(ctx, tx, upTo)
+	from, at, err := lockAgentMark(ctx, tx, upTo)
 	if err != nil {
 		return 0, err
 	}
 	if !upTo.After(from) {
 		return 0, tx.Commit()
 	}
-	res, err := tx.ExecContext(ctx, agentAccrueSQL, from, upTo, 0, monthStart)
+	res, err := creditAgents(ctx, tx, from, upTo, 0, at)
 	if err != nil {
 		return 0, err
 	}
@@ -408,7 +421,7 @@ func (r *agentRepository) AgentUsers(ctx context.Context, agentID int64) ([]serv
 
 // AttachUser expects the user's affiliate row to exist already. The agent the user leaves is credited
 // for the user's spending up to this moment; the new one earns on what comes after.
-func (r *agentRepository) AttachUser(ctx context.Context, agentID, userID int64, monthStart time.Time) error {
+func (r *agentRepository) AttachUser(ctx context.Context, agentID, userID int64) error {
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -456,7 +469,7 @@ func (r *agentRepository) AttachUser(ctx context.Context, agentID, userID int64,
 		return nil
 	}
 	if userInviter.Valid {
-		if err := settleAgentUser(ctx, tx, userID, from, now, monthStart); err != nil {
+		if err := settleAgentUser(ctx, tx, userID, from, now); err != nil {
 			return err
 		}
 		if _, err := tx.ExecContext(ctx, `UPDATE user_affiliates SET aff_count = GREATEST(aff_count - 1, 0), updated_at = NOW() WHERE user_id = $1`, userInviter.Int64); err != nil {
@@ -473,7 +486,7 @@ func (r *agentRepository) AttachUser(ctx context.Context, agentID, userID int64,
 }
 
 // DetachUser credits the agent for the user's spending up to this moment, then lets the user go.
-func (r *agentRepository) DetachUser(ctx context.Context, agentID, userID int64, monthStart time.Time) (bool, error) {
+func (r *agentRepository) DetachUser(ctx context.Context, agentID, userID int64) (bool, error) {
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
 		return false, err
@@ -491,7 +504,7 @@ func (r *agentRepository) DetachUser(ctx context.Context, agentID, userID int64,
 		}
 		return false, err
 	}
-	if err := settleAgentUser(ctx, tx, userID, from, now, monthStart); err != nil {
+	if err := settleAgentUser(ctx, tx, userID, from, now); err != nil {
 		return false, err
 	}
 	if _, err := tx.ExecContext(ctx, `
