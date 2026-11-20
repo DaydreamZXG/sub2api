@@ -10,6 +10,8 @@
       <a v-if="docUrl" :href="docUrl" target="_blank" rel="noopener noreferrer" class="yc-btn yc-btn-ghost yc-btn-sm">{{ t('yc.help.docs') }} →</a>
     </section>
 
+    <YcTickets />
+
     <section v-if="news.length" class="yc-surface yc-help">
       <h2 class="yc-sec-h2">{{ t('yc.help.newsTitle') }}</h2>
       <details v-for="n in news" :key="n.id" class="yc-help-item" @toggle="read(n)">
@@ -37,6 +39,7 @@ import type { UserAnnouncement } from '@/types'
 import { formatRelativeTime } from '@/utils/format'
 import { sanitizeUrl } from '@/utils/url'
 import YcShell from '@/components/yecai/YcShell.vue'
+import YcTickets from '@/components/yecai/YcTickets.vue'
 
 const FAQS = [1, 2, 3, 4, 5]
 

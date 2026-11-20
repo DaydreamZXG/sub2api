@@ -71,6 +71,8 @@ var definitions = []permissionDefinition{
 	{Permission{"announcements.read", "读取所有公告与阅读记录", "内容", "global"}, []string{"GET /announcements", "GET /announcements/:id", "GET /announcements/:id/read-status"}},
 	{Permission{"announcements.write", "创建、发布与修改公告", "内容", "global"}, []string{"POST /announcements", "PUT /announcements/:id"}},
 	{Permission{"announcements.delete", "删除公告", "内容", "global"}, []string{"DELETE /announcements/:id"}},
+	{Permission{"tickets.read", "读取所有用户的工单与对话", "内容", "global"}, []string{"GET /tickets", "GET /tickets/:id"}},
+	{Permission{"tickets.write", "回复工单并修改工单状态", "内容", "global"}, []string{"POST /tickets/:id/messages", "PUT /tickets/:id/status"}},
 	{Permission{"promo.read", "读取优惠码及使用记录", "财务", "global"}, []string{"GET /promo-codes", "GET /promo-codes/:id", "GET /promo-codes/:id/usages"}},
 	{Permission{"promo.write", "创建与修改优惠码权益", "财务", "global"}, []string{"POST /promo-codes", "PUT /promo-codes/:id"}},
 	{Permission{"promo.delete", "删除优惠码", "财务", "global"}, []string{"DELETE /promo-codes/:id"}},

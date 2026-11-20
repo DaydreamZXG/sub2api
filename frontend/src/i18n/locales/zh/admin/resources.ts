@@ -370,6 +370,24 @@ export default {
       failedToDelete: '删除兑换码失败'
     },
 
+    // Tickets
+    tickets: {
+      title: '工单',
+      description: '查看并回复用户提交的工单',
+      allStatus: '全部状态',
+      view: '查看',
+      reply: '回复',
+      close: '关闭工单',
+      reopen: '重新打开',
+      replyPlaceholder: '写下给用户的回复',
+      failedToLoad: '加载工单失败',
+      failedToSave: '操作失败',
+      status: { open: '待回复', answered: '已回复', closed: '已关闭' },
+      category: { usage: '接入和使用', billing: '充值和扣费', account: '账号', other: '其他' },
+      author: { user: '用户', staff: '客服', ai: 'AI 助手' },
+      columns: { subject: '标题', user: '用户', category: '类型', status: '状态', lastMessage: '最后消息' }
+    },
+
     // Announcements
     announcements: {
       title: '公告管理',
