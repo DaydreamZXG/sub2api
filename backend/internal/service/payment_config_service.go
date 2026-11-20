@@ -208,6 +208,8 @@ type PaymentConfigService struct {
 	entClient     *dbent.Client
 	settingRepo   SettingRepository
 	encryptionKey []byte
+	// Called after the payment config is saved: part of it is in the public settings.
+	onPublicSettingsChange func()
 }
 
 // NewPaymentConfigService creates a new PaymentConfigService.
@@ -463,7 +465,13 @@ func (s *PaymentConfigService) UpdatePaymentConfig(ctx context.Context, req Upda
 	if req.VisibleMethodWxpayEnabled != nil {
 		m[SettingPaymentVisibleMethodWxpayEnabled] = formatBoolOrEmpty(req.VisibleMethodWxpayEnabled)
 	}
-	return s.settingRepo.SetMultiple(ctx, m)
+	if err := s.settingRepo.SetMultiple(ctx, m); err != nil {
+		return err
+	}
+	if s.onPublicSettingsChange != nil {
+		s.onPublicSettingsChange()
+	}
+	return nil
 }
 
 func formatBoolOrEmpty(v *bool) string {

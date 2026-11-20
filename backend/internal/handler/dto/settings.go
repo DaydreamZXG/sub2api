@@ -420,8 +420,12 @@ type PublicSettings struct {
 	// PaymentBalanceDisabled mirrors the payment-config BALANCE_PAYMENT_DISABLED switch so the
 	// user shell can derive the site billing mode (recharge & subscription / recharge only /
 	// subscription only) before any authenticated checkout call.
-	PaymentBalanceDisabled bool   `json:"payment_balance_disabled"`
-	Version                string `json:"version"`
+	PaymentBalanceDisabled bool `json:"payment_balance_disabled"`
+	// What ¥1 of top-up buys and the USD to CNY rate (0 = not set), so price pages can show
+	// yuan to visitors who have no checkout info yet.
+	BalanceRechargeMultiplier float64 `json:"balance_recharge_multiplier"`
+	SubscriptionUSDToCNYRate  float64 `json:"subscription_usd_to_cny_rate"`
+	Version                   string  `json:"version"`
 	// 服务器全局时区（IANA 名称与当前 UTC 偏移，如 "Asia/Shanghai" / "+08:00"）。
 	// 高峰时段等按服务器本地时间判定的窗口，前端展示时据此标注，避免用户按浏览器本地时间误读。
 	ServerTimezone              string  `json:"server_timezone"`

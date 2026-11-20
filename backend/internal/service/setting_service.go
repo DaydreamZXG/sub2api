@@ -394,6 +394,14 @@ func (s *SettingService) SetOnUpdateCallback(callback func()) {
 	s.onUpdate = callback
 }
 
+// NotifyPublicSettingsChanged runs the update callback for settings that are saved outside this
+// service but shown in the public settings (the payment config), so the embedded HTML is rebuilt.
+func (s *SettingService) NotifyPublicSettingsChanged() {
+	if s != nil && s.onUpdate != nil {
+		s.onUpdate()
+	}
+}
+
 // SubscribeChannelMonitorRuntime registers a listener that is invoked after
 // settings are successfully persisted (and process caches refreshed).
 // Used by ChannelMonitorRunner / ChannelMonitorV2Aggregator for immediate

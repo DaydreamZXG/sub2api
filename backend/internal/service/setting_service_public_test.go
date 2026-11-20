@@ -312,6 +312,48 @@ func TestSettingService_GetPublicSettings_PaymentBalanceDisabledStrictTrue(t *te
 	}
 }
 
+// The two rates that turn list prices into yuan are public, so a visitor sees the same
+// prices as a signed-in user. Bad values fall back the way the payment config does.
+func TestSettingService_GetPublicSettings_ExposesYuanRates(t *testing.T) {
+	cases := []struct {
+		name           string
+		value          map[string]string
+		wantMultiplier float64
+		wantRate       float64
+	}{
+		{name: "nothing set", value: map[string]string{}, wantMultiplier: 1, wantRate: 0},
+		{
+			name:           "both set",
+			value:          map[string]string{SettingBalanceRechargeMult: "7", SettingSubscriptionUSDToCNYRate: "7.3"},
+			wantMultiplier: 7,
+			wantRate:       7.3,
+		},
+		{
+			name:           "invalid values",
+			value:          map[string]string{SettingBalanceRechargeMult: "-2", SettingSubscriptionUSDToCNYRate: "abc"},
+			wantMultiplier: 1,
+			wantRate:       0,
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			svc := NewSettingService(&settingPublicRepoStub{values: tc.value}, &config.Config{})
+
+			settings, err := svc.GetPublicSettings(context.Background())
+			require.NoError(t, err)
+			require.Equal(t, tc.wantMultiplier, settings.BalanceRechargeMultiplier)
+			require.Equal(t, tc.wantRate, settings.SubscriptionUSDToCNYRate)
+
+			raw, err := svc.GetPublicSettingsForInjection(context.Background())
+			require.NoError(t, err)
+			payload, ok := raw.(*PublicSettingsInjectionPayload)
+			require.True(t, ok)
+			require.Equal(t, tc.wantMultiplier, payload.BalanceRechargeMultiplier)
+			require.Equal(t, tc.wantRate, payload.SubscriptionUSDToCNYRate)
+		})
+	}
+}
+
 func TestSettingService_GetPublicSettings_MCPEnabledFollowsExplicitPublicURL(t *testing.T) {
 	for _, tc := range []struct {
 		publicURL, frontendURL string

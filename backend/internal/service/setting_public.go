@@ -216,6 +216,8 @@ func (s *SettingService) GetPublicSettings(ctx context.Context) (*PublicSettings
 		SettingKeyBackendModeEnabled,
 		SettingPaymentEnabled,
 		SettingBalancePayDisabled,
+		SettingBalanceRechargeMult,
+		SettingSubscriptionUSDToCNYRate,
 		SettingKeyOIDCConnectEnabled,
 		SettingKeyOIDCConnectProviderName,
 		SettingKeyGitHubOAuthEnabled,
@@ -349,6 +351,8 @@ func (s *SettingService) GetPublicSettings(ctx context.Context) (*PublicSettings
 		MCPEnabled:                          s.cfg != nil && s.cfg.MCP.Enabled(),
 		PaymentEnabled:                      settings[SettingPaymentEnabled] == "true",
 		PaymentBalanceDisabled:              settings[SettingBalancePayDisabled] == "true",
+		BalanceRechargeMultiplier:           normalizeBalanceRechargeMultiplier(pcParseFloat(settings[SettingBalanceRechargeMult], defaultBalanceRechargeMultiplier)),
+		SubscriptionUSDToCNYRate:            normalizeSubscriptionUSDToCNYRate(pcParseFloat(settings[SettingSubscriptionUSDToCNYRate], 0)),
 		OIDCOAuthEnabled:                    oidcEnabled,
 		OIDCOAuthProviderName:               oidcProviderName,
 		GitHubOAuthEnabled:                  gitHubEnabled,
@@ -613,6 +617,8 @@ type PublicSettingsInjectionPayload struct {
 	MCPEnabled                          bool                     `json:"mcp_enabled"`
 	PaymentEnabled                      bool                     `json:"payment_enabled"`
 	PaymentBalanceDisabled              bool                     `json:"payment_balance_disabled"`
+	BalanceRechargeMultiplier           float64                  `json:"balance_recharge_multiplier"`
+	SubscriptionUSDToCNYRate            float64                  `json:"subscription_usd_to_cny_rate"`
 	Version                             string                   `json:"version"`
 	// 服务器全局时区（IANA 名称与当前 UTC 偏移），高峰时段等服务端本地时间窗口的展示标注用
 	ServerTimezone              string  `json:"server_timezone"`
@@ -708,6 +714,8 @@ func (s *SettingService) GetPublicSettingsForInjection(ctx context.Context) (any
 		MCPEnabled:                          settings.MCPEnabled,
 		PaymentEnabled:                      settings.PaymentEnabled,
 		PaymentBalanceDisabled:              settings.PaymentBalanceDisabled,
+		BalanceRechargeMultiplier:           settings.BalanceRechargeMultiplier,
+		SubscriptionUSDToCNYRate:            settings.SubscriptionUSDToCNYRate,
 		Version:                             s.version,
 		ServerTimezone:                      timezone.Name(),
 		ServerUTCOffset:                     timezone.UTCOffset(),

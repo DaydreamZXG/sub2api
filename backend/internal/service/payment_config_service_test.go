@@ -600,3 +600,38 @@ func TestUpdatePaymentConfig_RejectsBalanceRechargeMultiplierWithMoreThanSixDeci
 		t.Fatalf("multiplier was persisted despite validation error: %q", repo.updates[SettingBalanceRechargeMult])
 	}
 }
+
+type paymentConfigFailingRepoStub struct {
+	paymentConfigSettingRepoStub
+}
+
+func (s *paymentConfigFailingRepoStub) SetMultiple(context.Context, map[string]string) error {
+	return fmt.Errorf("write failed")
+}
+
+// The recharge multiplier and the USD to CNY rate are part of the public settings that are
+// embedded in the served HTML, so saving the payment config has to rebuild that HTML.
+func TestUpdatePaymentConfigNotifiesPublicSettingsChange(t *testing.T) {
+	notified := 0
+	settingService := &SettingService{}
+	settingService.SetOnUpdateCallback(func() { notified++ })
+
+	svc := &PaymentConfigService{settingRepo: &paymentConfigSettingRepoStub{}}
+	svc.onPublicSettingsChange = settingService.NotifyPublicSettingsChanged
+	multiplier := 7.0
+	if err := svc.UpdatePaymentConfig(context.Background(), UpdatePaymentConfigRequest{BalanceRechargeMultiplier: &multiplier}); err != nil {
+		t.Fatalf("UpdatePaymentConfig returned error: %v", err)
+	}
+	if notified != 1 {
+		t.Fatalf("notified = %d after a saved update, want 1", notified)
+	}
+
+	failing := &PaymentConfigService{settingRepo: &paymentConfigFailingRepoStub{}}
+	failing.onPublicSettingsChange = settingService.NotifyPublicSettingsChanged
+	if err := failing.UpdatePaymentConfig(context.Background(), UpdatePaymentConfigRequest{BalanceRechargeMultiplier: &multiplier}); err == nil {
+		t.Fatal("UpdatePaymentConfig returned nil for a failed write")
+	}
+	if notified != 1 {
+		t.Fatalf("notified = %d after a failed update, want 1", notified)
+	}
+}
