@@ -174,7 +174,7 @@
                   <template v-if="row.group">
                     <span class="yk-line-name">{{ row.group.name }}</span>
                     <span v-if="row.group.app_only" class="yk-tag">{{ t('yc.prices.appOnly') }}</span>
-                    <span v-if="lineRate(row) !== 1" class="yk-tag">{{ t('keys.priceTimes', { rate: lineRate(row) }) }}</span>
+                    <span v-if="linePriceTag(row)" data-test="key-line-price" class="yk-tag">{{ linePriceTag(row) }}</span>
                   </template>
                   <span v-else class="yk-dim">{{ t('keys.noGroup') }}</span>
                   <span class="yk-line-change">{{ t('keys.changeLine') }}</span>
@@ -1599,8 +1599,16 @@ const onSortChange = (value: string | number | boolean | null) => {
   handleSort(key, order === 'asc' ? 'asc' : 'desc')
 }
 
-const lineRate = (row: ApiKey) =>
-  row.group ? (userGroupRates.value[row.group.id] ?? row.group.rate_multiplier) : 1
+// A line's price next to the standard one, in words instead of a multiplier.
+const linePriceTag = (row: ApiKey) => {
+  if (!row.group) return ''
+  const rate = userGroupRates.value[row.group.id] ?? row.group.rate_multiplier
+  if (!(rate > 0) || rate === 1) return ''
+  const pct = Math.round(Math.abs(1 - rate) * 100)
+  return rate < 1
+    ? t('keys.lineCheaper', { zhe: parseFloat((rate * 10).toFixed(1)), pct })
+    : t('keys.lineDearer', { pct })
+}
 
 const editKey = (key: ApiKey) => {
   selectedKey.value = key

@@ -423,6 +423,22 @@ describe('user KeysView', () => {
     expect(wrapper.get('[data-test="current-concurrency"]').text()).toBe('3')
   })
 
+  it.each([
+    [0.8, 'keys.lineCheaper'],
+    [1.5, 'keys.lineDearer'],
+    [1, null],
+  ])('says a line at %s times the standard price in words, not as a multiplier', async (rate, label) => {
+    listKeys.mockResolvedValue({
+      items: [{ ...createApiKey(), group_id: 7, group: { id: 7, name: 'Line', platform: 'anthropic', rate_multiplier: rate } }],
+      total: 1, page: 1, page_size: 20, pages: 1,
+    })
+    const wrapper = await mountView()
+    const tag = wrapper.find('[data-test="key-line-price"]')
+    expect(tag.exists()).toBe(label !== null)
+    if (label) expect(tag.text()).toBe(label)
+    wrapper.unmount()
+  })
+
   it('reloads the keys in the chosen order', async () => {
     const wrapper = await mountView()
     expect(sortSelect(wrapper).props('modelValue')).toBe('created_at:desc')

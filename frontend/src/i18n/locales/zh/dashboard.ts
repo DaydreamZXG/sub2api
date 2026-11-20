@@ -158,7 +158,8 @@ export default {
     copyKey: '复制密钥',
     details: '详情',
     changeLine: '更换',
-    priceTimes: '{rate} 倍价格',
+    lineCheaper: '约 {zhe} 折',
+    lineDearer: '贵 {pct}%',
     selectAllOnPage: '全选本页',
     sort: {
       newest: '最新创建',

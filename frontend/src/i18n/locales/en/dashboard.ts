@@ -158,7 +158,8 @@ export default {
     copyKey: 'Copy key',
     details: 'Details',
     changeLine: 'Change',
-    priceTimes: '{rate}× price',
+    lineCheaper: '{pct}% off',
+    lineDearer: '{pct}% more',
     selectAllOnPage: 'Select all on this page',
     sort: {
       newest: 'Newest first',
