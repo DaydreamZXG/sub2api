@@ -484,7 +484,11 @@ func buildProfitReport(rows []ProfitUsageRow, packs []CostPack, from, to, today 
 	if !(rate > 0) {
 		rate = defaultBalanceRechargeMultiplier
 	}
-	report := &ProfitReport{From: from, To: to, UnitsPerYuan: rate}
+	// Empty lists, not nil: the page reads their length.
+	report := &ProfitReport{
+		From: from, To: to, UnitsPerYuan: rate,
+		Months: []ProfitMonthLine{}, Groups: []ProfitGroupLine{}, Packs: []ProfitPackLine{}, Accounts: []ProfitAccountLine{},
+	}
 	months := map[string]*ProfitFigures{}
 	groups := map[int64]*ProfitFigures{}
 	packLines := map[int64]*ProfitFigures{}

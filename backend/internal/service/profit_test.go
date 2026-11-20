@@ -3,6 +3,7 @@
 package service
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -152,5 +153,11 @@ func TestBuildProfitReportEmpty(t *testing.T) {
 	report := buildProfitReport(nil, nil, "2026-03-01", "2026-03-31", "2026-03-31", 0)
 	require.Equal(t, 1.0, report.UnitsPerYuan)
 	require.Zero(t, report.Totals.Profit)
-	require.Empty(t, report.Months)
+
+	// A period with nothing in it is sent as empty lists; the page reads their length.
+	body, err := json.Marshal(report)
+	require.NoError(t, err)
+	for _, list := range []string{"months", "groups", "packs", "accounts"} {
+		require.Contains(t, string(body), `"`+list+`":[]`)
+	}
 }
