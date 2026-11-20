@@ -35,7 +35,7 @@
             <tbody>
               <tr v-for="l in m.lines" :key="l.name">
                 <td>{{ l.name }} <span v-if="l.plan" class="yc-badge">{{ t('yc.shell.plans') }}</span><span v-if="l.app" class="yc-badge">{{ t('yc.prices.appOnly') }}</span></td><td>¥{{ price(l.input) }}</td><td>¥{{ price(l.output) }}</td>
-                <td>{{ l.cacheRead == null ? '-' : `¥${price(l.cacheRead)}` }}</td><td>×{{ l.multiplier }}</td>
+                <td>{{ l.cacheRead == null ? '-' : `¥${price(l.cacheRead)}` }}</td><td :title="t('modelPlaza.table.rawRate', { rate: l.multiplier })">{{ priceChangeLabel(t, l.multiplier) || t('modelPlaza.table.standardPrice') }}</td>
               </tr>
             </tbody>
           </table>
@@ -56,6 +56,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import YcShell from '@/components/yecai/YcShell.vue'
 import { useYcPrices } from '@/composables/useYcPrices'
+import { priceChangeLabel } from '@/utils/ycPriceWords'
 
 const { t } = useI18n()
 const { prices, load, cnyPerUsd } = useYcPrices()

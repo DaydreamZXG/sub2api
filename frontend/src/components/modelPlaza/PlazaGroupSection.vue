@@ -1,75 +1,33 @@
 <template>
-  <section
-    class="overflow-hidden rounded-2xl border bg-white shadow-card dark:bg-dark-800/50"
-    :class="[platformBorderStrongClass(group.platform)]"
-  >
-    <!-- 分组头部:名称/平台/倍率徽章/专属/订阅徽章 + 描述 -->
-    <header class="border-b border-gray-100 px-5 py-4 dark:border-dark-700/60">
-      <div class="flex flex-wrap items-center gap-2">
-        <GroupBadge
-          :name="group.name"
-          :platform="group.platform as GroupPlatform"
-          :subscription-type="(group.subscription_type || 'standard') as SubscriptionType"
-          :rate-multiplier="group.rate_multiplier"
-          :user-rate-multiplier="group.user_rate_multiplier ?? null"
-          :peak-rate-enabled="group.peak_rate_enabled"
-          :peak-start="group.peak_start"
-          :peak-end="group.peak_end"
-          :peak-rate-multiplier="group.peak_rate_multiplier"
-          always-show-rate
-        />
-        <span
-          v-if="group.is_exclusive"
-          class="inline-flex items-center gap-1 rounded-md bg-purple-50 px-2 py-0.5 text-xs font-medium text-purple-600 dark:bg-purple-900/20 dark:text-purple-400"
-        >
-          <Icon name="shield" size="xs" class="h-3 w-3" />
-          {{ t('modelPlaza.badges.exclusive') }}
-        </span>
-        <span
-          v-if="group.subscription_type === 'subscription'"
-          class="inline-flex items-center rounded-md bg-violet-50 px-2 py-0.5 text-xs font-medium text-violet-600 dark:bg-violet-900/20 dark:text-violet-400"
-        >
-          {{ t('modelPlaza.badges.subscription') }}
-        </span>
+  <section class="yc-surface pzg" data-test="plaza-line">
+    <header class="pzg-head">
+      <div class="pzg-title">
+        <PlatformIcon :platform="group.platform as GroupPlatform" size="sm" />
+        <h2 class="pzg-name">{{ group.name }}</h2>
+        <span v-if="priceTag" data-test="plaza-line-price" class="yc-badge yc-badge-lime">{{ priceTag }}</span>
+        <span v-if="group.app_only" class="yc-badge">{{ t('yc.prices.appOnly') }}</span>
+        <span v-if="group.subscription_type === 'subscription'" class="yc-badge">{{ t('modelPlaza.badges.subscription') }}</span>
+        <span v-if="group.is_exclusive" class="yc-badge">{{ t('modelPlaza.badges.exclusive') }}</span>
       </div>
-      <p v-if="group.description" class="mt-2 text-sm text-gray-500 dark:text-dark-400">
-        {{ group.description }}
-      </p>
-      <p
-        v-if="peakNote"
-        class="mt-1.5 inline-flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400"
-      >
-        <Icon name="clock" size="xs" class="h-3 w-3" />
-        {{ peakNote }}
-      </p>
-      <p
-        v-if="longContextNote"
-        class="mt-1.5 flex items-center gap-1 text-xs text-gray-500 dark:text-dark-400"
-      >
-        <Icon name="infoCircle" size="xs" class="h-3 w-3" />
-        {{ longContextNote }}
-      </p>
+      <p v-if="group.description" class="pzg-desc">{{ group.description }}</p>
+      <p v-if="peakNote" class="pzg-note"><Icon name="clock" size="xs" />{{ peakNote }}</p>
+      <p v-if="longContextNote" class="pzg-note"><Icon name="infoCircle" size="xs" />{{ longContextNote }}</p>
     </header>
 
-    <!-- 模型价格表:整行(含 hover 底色/分区底色)顶到卡片边缘,左右留白由表格首列/末列的 padding 提供 -->
-    <div>
-      <PlazaModelPricingTable
-        v-if="group.models.length > 0"
-        :models="group.models"
-        :platform="group.platform"
-        :rate-multiplier="group.rate_multiplier"
-        :user-rate-multiplier="group.user_rate_multiplier ?? null"
-        :image-rate-independent="group.image_rate_independent"
-        :image-rate-multiplier="group.image_rate_multiplier"
-        :video-rate-independent="group.video_rate_independent"
-        :video-rate-multiplier="group.video_rate_multiplier"
-        :peak-window="peakWindow"
-        :peak-rate-multiplier="group.peak_rate_multiplier"
-      />
-      <p v-else class="px-5 py-4 text-center text-sm text-gray-400 dark:text-dark-500">
-        {{ t('modelPlaza.detail.noModels') }}
-      </p>
-    </div>
+    <PlazaModelPricingTable
+      v-if="group.models.length > 0"
+      :models="group.models"
+      :platform="group.platform"
+      :rate-multiplier="group.rate_multiplier"
+      :user-rate-multiplier="group.user_rate_multiplier ?? null"
+      :image-rate-independent="group.image_rate_independent"
+      :image-rate-multiplier="group.image_rate_multiplier"
+      :video-rate-independent="group.video_rate_independent"
+      :video-rate-multiplier="group.video_rate_multiplier"
+      :peak-window="peakWindow"
+      :peak-rate-multiplier="group.peak_rate_multiplier"
+    />
+    <p v-else class="pzg-empty">{{ t('modelPlaza.detail.noModels') }}</p>
   </section>
 </template>
 
@@ -77,12 +35,12 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Icon from '@/components/icons/Icon.vue'
-import GroupBadge from '@/components/common/GroupBadge.vue'
+import PlatformIcon from '@/components/common/PlatformIcon.vue'
 import PlazaModelPricingTable from './PlazaModelPricingTable.vue'
 import type { ModelPlazaGroup } from '@/api/modelPlaza'
-import type { GroupPlatform, SubscriptionType } from '@/types'
-import { platformBorderStrongClass } from '@/utils/platformColors'
-import { hasPeakRate, formatPeakRateWindow, serverTimezoneLabel } from '@/utils/peak-rate'
+import type { GroupPlatform } from '@/types'
+import { priceChangeLabel } from '@/utils/ycPriceWords'
+import { hasPeakRate, serverTimezoneLabel } from '@/utils/peak-rate'
 import { useAppStore } from '@/stores/app'
 
 const props = defineProps<{
@@ -95,19 +53,23 @@ const appStore = useAppStore()
 /** 高峰窗口描述(含倍率与服务器时区标注);分组未启用高峰为空串。 */
 const peakWindow = computed(() => {
   if (!hasPeakRate(props.group)) return ''
-  return formatPeakRateWindow(
-    props.group,
-    serverTimezoneLabel(appStore.cachedPublicSettings?.server_utc_offset)
-  )
+  const zone = serverTimezoneLabel(appStore.cachedPublicSettings?.server_utc_offset)
+  const hours = `${props.group.peak_start}-${props.group.peak_end}`
+  return zone ? `${hours} (${zone})` : hours
 })
 
 const peakNote = computed(() => {
   if (!peakWindow.value) return ''
   return t('modelPlaza.detail.peakNote', {
     window: peakWindow.value,
-    multiplier: props.group.peak_rate_multiplier
+    change: priceChangeLabel(t, props.group.peak_rate_multiplier)
   })
 })
+
+/** The line's price next to the standard one, in words; empty at the standard price. */
+const priceTag = computed(() =>
+  priceChangeLabel(t, props.group.user_rate_multiplier ?? props.group.rate_multiplier)
+)
 
 /**
  * 分组关闭了长上下文阶梯、但组内有模型官方带阶梯时提示:实付列只展示基础档,
@@ -121,3 +83,14 @@ const longContextNote = computed(() => {
   return hasOfficialLadder ? t('modelPlaza.detail.longContextDisabledNote') : ''
 })
 </script>
+
+<style scoped>
+.pzg { overflow: hidden; }
+.pzg-head { padding: 20px 24px 16px; }
+.pzg-title { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.pzg-name { margin: 0 4px 0 0; font-size: 17px; font-weight: 700; color: var(--yc-ink); }
+.pzg-desc { margin: 8px 0 0; font-size: 14px; color: var(--yc-mut); }
+.pzg-note { display: flex; align-items: center; gap: 6px; margin: 6px 0 0; font-size: 12.5px; color: var(--yc-mut); }
+.pzg-empty { margin: 0; padding: 20px 24px; border-top: 1px solid var(--yc-line); text-align: center; font-size: 14px; color: var(--yc-dim); }
+@media (max-width: 640px) { .pzg-head { padding: 16px 16px 12px; } }
+</style>

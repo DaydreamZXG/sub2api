@@ -1,41 +1,22 @@
 <template>
-  <header
-    class="glass sticky top-0 z-30 border-b border-gray-200/50 dark:border-dark-700/50"
-  >
-    <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3.5 sm:px-6">
-      <!-- 左:站点 logo + 名称 -->
-      <div class="flex min-w-0 items-center gap-3">
-        <template v-if="settings">
-          <span
-            class="flex h-9 w-9 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200 dark:bg-dark-800 dark:ring-dark-700"
-          >
-            <img :src="siteLogo || '/logo.svg'" alt="Logo" class="h-full w-full object-contain" />
-          </span>
-          <span class="truncate text-base font-semibold text-gray-950 dark:text-white">
-            {{ siteName }}
-          </span>
-        </template>
-        <template v-else>
-          <span class="h-9 w-9 flex-shrink-0 animate-pulse rounded-xl bg-gray-200 dark:bg-dark-700" aria-hidden="true"></span>
-          <span class="h-5 w-28 animate-pulse rounded bg-gray-200 dark:bg-dark-700" aria-hidden="true"></span>
-        </template>
+  <header class="pzn">
+    <div class="yc-wrap pzn-in">
+      <router-link to="/home" class="pzn-brand">
+        <YcBrand />
+      </router-link>
+      <div class="pzn-actions">
+        <YcThemeSwitch />
+        <router-link v-if="isAuthenticated" :to="backTarget" class="yc-btn yc-btn-sm yc-btn-lime">
+          {{ t('modelPlaza.nav.backToDashboard') }}
+        </router-link>
+        <router-link
+          v-else
+          :to="{ path: '/login', query: { redirect: '/model-plaza' } }"
+          class="yc-btn yc-btn-sm yc-btn-lime"
+        >
+          {{ t('modelPlaza.nav.login') }}
+        </router-link>
       </div>
-
-      <!-- 右:登录 / 回到后台 -->
-      <RouterLink
-        v-if="isAuthenticated"
-        :to="backTarget"
-        class="inline-flex flex-shrink-0 items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-primary-500 to-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-primary-500/25 transition-all duration-200 hover:from-primary-600 hover:to-primary-700 hover:shadow-lg hover:shadow-primary-500/30 active:scale-[0.98] dark:shadow-primary-500/20"
-      >
-        {{ t('modelPlaza.nav.backToDashboard') }}
-      </RouterLink>
-      <RouterLink
-        v-else
-        :to="{ path: '/login', query: { redirect: '/model-plaza' } }"
-        class="inline-flex flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-r from-primary-500 to-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-primary-500/25 transition-all duration-200 hover:from-primary-600 hover:to-primary-700 hover:shadow-lg hover:shadow-primary-500/30 active:scale-[0.98] dark:shadow-primary-500/20"
-      >
-        {{ t('modelPlaza.nav.login') }}
-      </RouterLink>
     </div>
   </header>
 </template>
@@ -43,20 +24,20 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { sanitizeUrl } from '@/utils/url'
-import { useAppStore } from '@/stores/app'
+import YcBrand from '@/components/yecai/YcBrand.vue'
+import YcThemeSwitch from '@/components/yecai/YcThemeSwitch.vue'
 import { useAuthStore } from '@/stores/auth'
-import { ycSiteName } from '@/utils/ycBrand'
 
 const { t } = useI18n()
-const appStore = useAppStore()
 const authStore = useAuthStore()
 
-const settings = computed(() => appStore.cachedPublicSettings)
-const siteName = computed(() => ycSiteName(settings.value?.site_name))
-const siteLogo = computed(() =>
-  sanitizeUrl(settings.value?.site_logo || '', { allowRelative: true, allowDataUrl: true })
-)
 const isAuthenticated = computed(() => authStore.isAuthenticated)
 const backTarget = computed(() => (authStore.isAdmin ? '/admin/dashboard' : '/dashboard'))
 </script>
+
+<style scoped>
+.pzn { position: sticky; top: 0; z-index: 20; border-bottom: 1px solid var(--yc-line); background: color-mix(in srgb, var(--yc-bg) 82%, transparent); backdrop-filter: saturate(160%) blur(14px); }
+.pzn-in { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 64px; }
+.pzn-brand { display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 750; letter-spacing: -0.01em; white-space: nowrap; color: var(--yc-ink); }
+.pzn-actions { display: flex; align-items: center; gap: 12px; }
+</style>
