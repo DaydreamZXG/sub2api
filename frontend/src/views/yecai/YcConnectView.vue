@@ -10,6 +10,9 @@
         <p class="yc-note">{{ t('yc.connect.clientText') }}</p>
         <div class="yc-way-cta">
           <a v-if="clientUrl" :href="clientUrl" class="yc-btn yc-btn-lime">{{ t(clientLabel) }} ↓</a>
+          <button type="button" class="yc-btn yc-btn-ghost" :disabled="handingOver" @click="connectApp">
+            {{ t('yc.connect.appConnect') }}
+          </button>
           <span class="yc-note">
             <a :href="YC_CLIENT_DOWNLOADS.windows" class="yc-link">Windows</a> ·
             <a :href="YC_CLIENT_DOWNLOADS.macos" class="yc-link">macOS</a>
@@ -107,6 +110,7 @@ import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores'
 import { keysAPI } from '@/api/keys'
 import { userGroupsAPI } from '@/api/groups'
+import { issueConnectCode, openDesktopApp, stationOrigin } from '@/api/desktop'
 import type { ApiKey, Group } from '@/types'
 import { useClipboard } from '@/composables/useClipboard'
 import { YC_CLIENT_DOWNLOADS, detectYcClientPlatform } from '@/utils/ycClient'
@@ -199,6 +203,25 @@ onMounted(async () => {
     loading.value = false
   }
 })
+
+const handingOver = ref(false)
+
+// Hands this signed-in account to the installed desktop assistant with a one-time code.
+async function connectApp() {
+  if (!stationOrigin().startsWith('https://')) {
+    appStore.showError(t('yc.connect.appConnectNeedsHttps'))
+    return
+  }
+  handingOver.value = true
+  try {
+    openDesktopApp(await issueConnectCode())
+    appStore.showInfo(t('yc.connect.appConnectHint'))
+  } catch {
+    appStore.showError(t('yc.connect.appConnectFailed'))
+  } finally {
+    handingOver.value = false
+  }
+}
 </script>
 
 <style scoped>
