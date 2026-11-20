@@ -69,6 +69,11 @@ func SetupRouter(
 		return nil
 	}))
 	r.Use(middleware2.ServerTiming(cfg.Server.EnableServerTiming))
+	// On the resellers' client domain only the gateway and the client pages answer. This sits before
+	// the frontend and every route, so nothing of the site itself is reachable there.
+	if handlers != nil && handlers.Reseller != nil {
+		r.Use(resellerPortalGuard(handlers.Reseller))
+	}
 
 	// Serve embedded frontend with settings injection if available
 	if web.HasEmbeddedFrontend() {
@@ -83,6 +88,7 @@ func SetupRouter(
 				frontendServer.InvalidateCache()
 				refreshFrameOrigins()
 			})
+			frontendServer.SetPortalPage(resellerPortalPage(resellerPortalSign(settingService)))
 			r.Use(frontendServer.Middleware())
 		}
 	} else {

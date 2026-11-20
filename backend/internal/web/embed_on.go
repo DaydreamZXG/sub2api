@@ -42,6 +42,13 @@ type FrontendServer struct {
 	cache       *HTMLCache
 	settings    PublicSettingsProvider
 	overrideDir string // local file override directory
+	portalPage  PortalPageFunc
+}
+
+// SetPortalPage makes the server answer page requests on the resellers' client domain with that
+// domain's own config. Call it before the server takes requests.
+func (s *FrontendServer) SetPortalPage(fn PortalPageFunc) {
+	s.portalPage = fn
 }
 
 // NewFrontendServer creates a new frontend server with settings injection
@@ -101,6 +108,12 @@ func (s *FrontendServer) Middleware() gin.HandlerFunc {
 
 		// For index.html or SPA routes, serve with injected settings
 		if cleanPath == "index.html" || !s.fileExists(cleanPath) {
+			if s.portalPage != nil {
+				if config, ok := s.portalPage(c); ok {
+					s.servePortalHTML(c, config)
+					return
+				}
+			}
 			s.serveIndexHTML(c)
 			return
 		}
@@ -203,6 +216,15 @@ func (s *FrontendServer) serveIndexHTML(c *gin.Context) {
 	if cached != nil {
 		c.Header("ETag", cached.ETag)
 	}
+	applyHTMLNoCacheHeaders(c.Writer.Header())
+	c.Data(http.StatusOK, "text/html; charset=utf-8", content)
+	c.Abort()
+}
+
+// servePortalHTML serves the page for the resellers' client domain: the same bundle, but with that
+// domain's config in place of the site's public settings, and never from the shared cache.
+func (s *FrontendServer) servePortalHTML(c *gin.Context, configJSON []byte) {
+	content := replaceNoncePlaceholder(s.injectSettings(configJSON), middleware.GetNonceFromContext(c))
 	applyHTMLNoCacheHeaders(c.Writer.Header())
 	c.Data(http.StatusOK, "text/html; charset=utf-8", content)
 	c.Abort()
