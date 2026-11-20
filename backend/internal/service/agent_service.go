@@ -97,8 +97,9 @@ type AgentRepository interface {
 	GetPayout(ctx context.Context, id int64) (*AgentPayout, error)
 	// FinishPayout moves a pending request to status; false when it was not pending any more.
 	FinishPayout(ctx context.Context, id int64, status, adminNote string) (bool, error)
-	// ReopenPayout puts a request marked paid back to pending, when taking the amount off failed.
-	ReopenPayout(ctx context.Context, id int64) error
+	// PayPayout marks a pending request paid and runs withdraw in the same transaction; when withdraw
+	// fails the request stays pending. False when the request was not pending any more.
+	PayPayout(ctx context.Context, id int64, adminNote string, withdraw func(txCtx context.Context) error) (bool, error)
 }
 
 type AgentService struct {
@@ -246,20 +247,17 @@ func (s *AgentService) MarkPaid(ctx context.Context, id int64, adminNote string)
 	if payout.Status != AgentPayoutPending {
 		return ErrAgentPayoutHandled
 	}
-	// The request is taken first, so a reject arriving at the same moment cannot end up on a request whose amount was taken off.
-	done, err := s.repo.FinishPayout(ctx, id, AgentPayoutPaid, strings.TrimSpace(adminNote))
+	// One transaction for both: the request becomes paid and the amount leaves the quota, or neither.
+	// A reject arriving at the same moment waits for it and then finds the request handled.
+	done, err := s.repo.PayPayout(ctx, id, strings.TrimSpace(adminNote), func(txCtx context.Context) error {
+		_, err := s.affiliate.AdminWithdrawQuota(txCtx, payout.UserID, payout.Amount, fmt.Sprintf("agent-payout-%d", id))
+		return err
+	})
 	if err != nil {
 		return err
 	}
 	if !done {
 		return ErrAgentPayoutHandled
-	}
-	// The key makes the deduction happen once, also when it is tried again after a failure.
-	if _, err := s.affiliate.AdminWithdrawQuota(ctx, payout.UserID, payout.Amount, fmt.Sprintf("agent-payout-%d", id)); err != nil {
-		if reopenErr := s.repo.ReopenPayout(ctx, id); reopenErr != nil {
-			logger.LegacyPrintf("service.agent", "[Agent] payout %d is marked paid but nothing was taken off, and putting it back failed: %v", id, reopenErr)
-		}
-		return err
 	}
 	return nil
 }

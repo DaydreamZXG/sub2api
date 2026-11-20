@@ -4,8 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"time"
 
+	dbent "github.com/Wei-Shaw/sub2api/ent"
 	"github.com/Wei-Shaw/sub2api/internal/service"
 	"github.com/lib/pq"
 )
@@ -13,12 +15,13 @@ import (
 const agentWatermarkKey = "agent_share_watermark"
 
 type agentRepository struct {
-	db *sql.DB
+	client *dbent.Client
+	db     *sql.DB
 }
 
 // NewAgentRepository creates the store for agents, their shares and their payout requests.
-func NewAgentRepository(db *sql.DB) service.AgentRepository {
-	return &agentRepository{db: db}
+func NewAgentRepository(client *dbent.Client, db *sql.DB) service.AgentRepository {
+	return &agentRepository{client: client, db: db}
 }
 
 func (r *agentRepository) SetAgent(ctx context.Context, userID int64, isAgent bool, sharePercent float64) error {
@@ -263,9 +266,29 @@ func (r *agentRepository) FinishPayout(ctx context.Context, id int64, status, ad
 	return n > 0, nil
 }
 
-func (r *agentRepository) ReopenPayout(ctx context.Context, id int64) error {
-	_, err := r.db.ExecContext(ctx, `
-		UPDATE agent_payout_requests SET status = 'pending', admin_note = '', handled_at = NULL
-		WHERE id = $1 AND status = 'paid'`, id)
-	return err
+func (r *agentRepository) PayPayout(ctx context.Context, id int64, adminNote string, withdraw func(txCtx context.Context) error) (bool, error) {
+	tx, err := r.client.Tx(ctx)
+	if err != nil {
+		return false, fmt.Errorf("begin payout transaction: %w", err)
+	}
+	defer func() { _ = tx.Rollback() }()
+
+	// The affiliate store joins the transaction it finds in the context.
+	txCtx := dbent.NewTxContext(ctx, tx)
+	res, err := tx.Client().ExecContext(txCtx, `
+		UPDATE agent_payout_requests SET status = 'paid', admin_note = $2, handled_at = NOW()
+		WHERE id = $1 AND status = 'pending'`, id, adminNote)
+	if err != nil {
+		return false, err
+	}
+	if n, _ := res.RowsAffected(); n == 0 {
+		return false, nil
+	}
+	if err := withdraw(txCtx); err != nil {
+		return false, err
+	}
+	if err := tx.Commit(); err != nil {
+		return false, fmt.Errorf("commit payout transaction: %w", err)
+	}
+	return true, nil
 }

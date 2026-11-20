@@ -192,7 +192,7 @@ func initializeApplication(buildInfo handler.BuildInfo) (*Application, error) {
 	gardenSocialRepository := repository.NewGardenSocialRepository(db)
 	gardenService := service.NewGardenService(gardenRepository, gardenSocialRepository, settingRepository, redeemService, growthLevelsService)
 	gardenHandler := handler.NewGardenHandler(gardenService)
-	agentRepository := repository.NewAgentRepository(db)
+	agentRepository := repository.NewAgentRepository(client, db)
 	agentService := service.NewAgentService(agentRepository, affiliateService)
 	agentHandler := handler.NewAgentHandler(agentService)
 	desktopConnectCodeStore := repository.NewDesktopConnectCodeStore(redisClient)

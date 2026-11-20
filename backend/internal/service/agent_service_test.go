@@ -21,7 +21,6 @@ type agentRepoStub struct {
 	payout   *AgentPayout
 	finished []string
 	finishOK bool
-	reopened int
 }
 
 func (s *agentRepoStub) AccrueShares(context.Context, time.Time) (int, error) {
@@ -47,9 +46,16 @@ func (s *agentRepoStub) GetPayout(context.Context, int64) (*AgentPayout, error) 
 	return s.payout, nil
 }
 
-func (s *agentRepoStub) ReopenPayout(context.Context, int64) error {
-	s.reopened++
-	return nil
+// PayPayout as the store does it: the status only changes when withdraw went through.
+func (s *agentRepoStub) PayPayout(ctx context.Context, _ int64, _ string, withdraw func(context.Context) error) (bool, error) {
+	if !s.finishOK {
+		return false, nil
+	}
+	if err := withdraw(ctx); err != nil {
+		return false, err
+	}
+	s.finished = append(s.finished, AgentPayoutPaid)
+	return true, nil
 }
 
 func (s *agentRepoStub) FinishPayout(_ context.Context, _ int64, status, _ string) (bool, error) {
@@ -144,9 +150,7 @@ func TestAgentMarkPaid_LeavesTheRequestWhenTheQuotaIsShort(t *testing.T) {
 	repo := &agentRepoStub{payout: &AgentPayout{ID: 3, UserID: 7, Amount: 25, Status: AgentPayoutPending}, finishOK: true}
 	svc := newAgentServiceForTest(repo, &agentAffiliateRepoStub{withdrawErr: ErrAffiliateQuotaInsufficient})
 	require.ErrorIs(t, svc.MarkPaid(context.Background(), 3, ""), ErrAffiliateQuotaInsufficient)
-	// Taken, then put back to pending: nothing was taken off.
-	require.Equal(t, []string{AgentPayoutPaid}, repo.finished)
-	require.Equal(t, 1, repo.reopened)
+	require.Empty(t, repo.finished)
 }
 
 func TestAgentPayout_HandledRequestsAreNotHandledAgain(t *testing.T) {
