@@ -5,6 +5,7 @@ package service
 import (
 	"context"
 	"errors"
+	"strings"
 	"testing"
 	"time"
 
@@ -188,4 +189,17 @@ func TestResellerServicePortalForSaysWhenTheDomainIsNotKnownYet(t *testing.T) {
 	svc.portalLoaded = time.Now().Add(-time.Hour)
 	repo.portalErr = errors.New("down")
 	require.NotNil(t, portalForTest(t, svc, "keys.example.com"))
+}
+
+func TestResellerServiceSetPortalCountsTheNameAndContactInCharacters(t *testing.T) {
+	repo := &resellerRepoStub{}
+	svc := &ResellerService{repo: repo}
+	// 60 Chinese characters are 180 bytes: allowed, as the form allows them.
+	name := strings.Repeat("钥", 60)
+	contact := strings.Repeat("微", 300)
+	require.NoError(t, svc.SetPortal(context.Background(), ResellerPortal{Domain: "keys.example.com", Name: name, Contact: contact}))
+	require.Equal(t, name, repo.portal.Name)
+
+	require.ErrorIs(t, svc.SetPortal(context.Background(), ResellerPortal{Domain: "keys.example.com", Name: name + "钥"}), ErrResellerPortalBad)
+	require.ErrorIs(t, svc.SetPortal(context.Background(), ResellerPortal{Domain: "keys.example.com", Name: "Keys", Contact: contact + "微"}), ErrResellerPortalBad)
 }
