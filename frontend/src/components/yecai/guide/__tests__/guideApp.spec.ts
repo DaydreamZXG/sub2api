@@ -94,6 +94,12 @@ describe('mountGuide', () => {
     expect(root.querySelector('.empty b')).toBeNull()
   })
 
+  it('lists a tool\'s errors when the error search only names the tool', () => {
+    open('#/errors')
+    type('q', 'claude')
+    expect([...root.querySelectorAll('.err-s')].map((e) => e.textContent)).toEqual(['401 Unauthorized'])
+  })
+
   it('follows in-page links without leaving the route', () => {
     root.querySelector<HTMLAnchorElement>('a.cat')!.click()
     expect(location.hash).toBe('#/tools')

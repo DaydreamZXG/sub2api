@@ -53,7 +53,8 @@ export function mountGuide(root: HTMLElement, D: GuideData): () => void {
   const searchBox = (placeholder: string) => `<div class="search">${SEARCH_ICON}<input data-g="q" type="search" autocomplete="off" placeholder="${placeholder}"></div>`
   const lineSwitch = () => `<span class="seg"><button type="button" data-line="cn" class="${state.line === 'cn' ? 'on' : ''}">大陆</button><button type="button" data-line="global" class="${state.line === 'global' ? 'on' : ''}">全球</button></span>`
 
-  function find(q: string) {
+  // A query that only names a tool lists that tool's errors on the error page; on the home page its card is enough.
+  function find(q: string, onlyErrors: boolean) {
     const words = q.toLowerCase().split(/\s+/).filter(Boolean)
     const errors: Array<[GuideError, GuideTool | null]> = []
     if (!words.length) return { tools: [] as GuideTool[], errors }
@@ -62,13 +63,13 @@ export function mountGuide(root: HTMLElement, D: GuideData): () => void {
     for (const e of D.general.errors) if (hit(e.t)) errors.push([e, null])
     for (const t of D.tools) {
       for (const e of t.errors) {
-        if (hit(e.t) || (hit(`${t.name.toLowerCase()} ${e.t}`) && words.some((w) => e.t.includes(w)))) errors.push([e, t])
+        if (hit(e.t) || (hit(`${t.name.toLowerCase()} ${e.t}`) && (onlyErrors || words.some((w) => e.t.includes(w))))) errors.push([e, t])
       }
     }
     return { tools, errors }
   }
   function results(q: string, onlyErrors: boolean) {
-    const { tools, errors } = find(q)
+    const { tools, errors } = find(q, onlyErrors)
     let html = ''
     if (!onlyErrors && tools.length) html += `<h2 class="sec">工具<small>${tools.length} 个</small></h2><div class="grid">${tools.map(card).join('')}</div>`
     if (errors.length) html += `<h2 class="sec">报错<small>${errors.length} 条</small></h2><div class="errs prose wide">${errors.slice(0, 60).map(([e, t]) => errCard(e, t)).join('')}</div>${errors.length > 60 ? '<p class="empty">结果太多，只显示前 60 条，再加一个词试试。</p>' : ''}`

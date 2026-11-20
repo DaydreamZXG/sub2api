@@ -201,18 +201,18 @@ const card = (t) => `<a class="card" href="#/tool/${t.num}">
 const errCard = (e, tool) => `<div class="err">${tool ? `<a class="err-from" href="#/tool/${tool.num}/errors">${esc(tool.name)}</a>` : '<span class="err-from">通用</span>'}
   <div class="err-s">${e.s}</div><dl><dt>原因</dt><dd>${e.c}</dd><dt>怎么办</dt><dd>${e.f}</dd></dl></div>`
 
-function find(q) {
+function find(q, onlyErrors) {
   const words = q.toLowerCase().split(/\s+/).filter(Boolean)
   if (!words.length) return { tools: [], errors: [] }
   const hit = (text) => words.every((w) => text.includes(w))
   const tools = D.tools.filter((t) => hit(`${t.name} ${t.note} ${t.lead} ${catTitle[t.cat]}`.toLowerCase()))
   const errors = []
   D.general.errors.forEach((e) => hit(e.t) && errors.push([e, null]))
-  D.tools.forEach((t) => t.errors.forEach((e) => (hit(e.t) || (hit(`${t.name.toLowerCase()} ${e.t}`) && words.some((w) => e.t.includes(w)))) && errors.push([e, t])))
+  D.tools.forEach((t) => t.errors.forEach((e) => (hit(e.t) || (hit(`${t.name.toLowerCase()} ${e.t}`) && (onlyErrors || words.some((w) => e.t.includes(w))))) && errors.push([e, t])))
   return { tools, errors }
 }
 function results(q, onlyErrors) {
-  const { tools, errors } = find(q)
+  const { tools, errors } = find(q, onlyErrors)
   let html = ''
   if (!onlyErrors && tools.length) html += `<h2 class="sec">工具<small>${tools.length} 个</small></h2><div class="grid">${tools.map(card).join('')}</div>`
   if (errors.length) html += `<h2 class="sec">报错<small>${errors.length} 条</small></h2><div class="errs prose" style="max-width:none">${errors.slice(0, 60).map(([e, t]) => errCard(e, t)).join('')}</div>${errors.length > 60 ? '<p class="empty">结果太多，只显示前 60 条，再加一个词试试。</p>' : ''}`
