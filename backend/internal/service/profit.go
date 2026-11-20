@@ -8,11 +8,14 @@ import (
 	"time"
 
 	infraerrors "github.com/Wei-Shaw/sub2api/internal/pkg/errors"
+	"github.com/Wei-Shaw/sub2api/internal/pkg/logger"
 	"github.com/Wei-Shaw/sub2api/internal/pkg/timezone"
 )
 
 // SettingKeyProfitBackfilled is set once the usage that predates the profit summary has been folded into it.
 const SettingKeyProfitBackfilled = "profit_backfilled"
+
+const profitBackfillTimeout = 30 * time.Minute
 
 const (
 	profitDateLayout     = "2006-01-02"
@@ -203,7 +206,19 @@ type ProfitService struct {
 }
 
 func NewProfitService(repo ProfitRepository, settingRepo SettingRepository, payment *PaymentConfigService) *ProfitService {
-	return &ProfitService{repo: repo, settingRepo: settingRepo, payment: payment, now: timezone.Now}
+	s := &ProfitService{repo: repo, settingRepo: settingRepo, payment: payment, now: timezone.Now}
+	if repo != nil {
+		// Right at start, not at the first visit of the report: by then the log retention may have
+		// removed usage that was still there when the feature arrived.
+		go func() {
+			ctx, cancel := context.WithTimeout(context.Background(), profitBackfillTimeout)
+			defer cancel()
+			if err := s.ensureBackfilled(ctx); err != nil {
+				logger.LegacyPrintf("service.profit", "[Profit] folding earlier usage into the summary failed, the report will try again: %v", err)
+			}
+		}()
+	}
+	return s
 }
 
 func (s *ProfitService) today() string {
