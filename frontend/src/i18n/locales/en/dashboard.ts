@@ -779,7 +779,7 @@ export default {
     },
     agent: {
       title: 'Agent share',
-      rule: 'You are an agent: for every 100 of their own top-up money your invited users spend, you get {rate} (gifted balance does not count). The share goes into the same quota as the rebate.',
+      rule: 'You are an agent: when the users you invited spend money they topped up themselves, you get {rate} of it (spending gifted balance does not count). The share goes into the same quota as the rebate.',
       monthShared: 'Share this month',
       shared: 'Share so far',
       fromSpent: 'from {amount} your users spent',
