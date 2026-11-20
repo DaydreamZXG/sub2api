@@ -37,15 +37,22 @@ const profitHourlyUpsertSQL = `
 			OR (type = 'balance' AND COALESCE((SELECT value FROM settings WHERE key = 'profit_redeem_is_paid'), '') = 'true'
 				AND NOT EXISTS (SELECT 1 FROM payment_orders po WHERE po.recharge_code = rc.code)))
 		GROUP BY used_by
+	), taken AS (
+		-- total_recharged does not go down when an admin takes balance back, so it is taken off here.
+		SELECT used_by AS user_id, SUM(value) AS amount
+		FROM redeem_codes
+		WHERE status = 'used' AND type = 'admin_balance' AND value < 0 AND used_by IN (SELECT user_id FROM active)
+		GROUP BY used_by
 	), share AS (
 		SELECT u.id AS user_id,
-			CASE WHEN u.total_recharged > 0
-				THEN LEAST((COALESCE(p.amount, 0) + COALESCE(g.amount, 0)) / u.total_recharged, 1)
+			CASE WHEN u.total_recharged + COALESCE(t.amount, 0) > 0
+				THEN LEAST((COALESCE(p.amount, 0) + COALESCE(g.amount, 0)) / (u.total_recharged + COALESCE(t.amount, 0)), 1)
 				ELSE 0 END AS paid_share
 		FROM active a
 		JOIN users u ON u.id = a.user_id
 		LEFT JOIN paid p ON p.user_id = u.id
 		LEFT JOIN granted g ON g.user_id = u.id
+		LEFT JOIN taken t ON t.user_id = u.id
 	)
 	INSERT INTO profit_hourly (bucket_start, account_id, group_id, billing_type, requests, standard_cost, actual_cost, account_cost, paid_cost)
 	SELECT
