@@ -836,6 +836,7 @@ const adminNavItems = computed((): NavItem[] => {
     { path: '/admin/tickets', label: t('nav.tickets'), icon: SupportTicketIcon },
     { path: '/admin/growth-levels', label: t('nav.growthLevels'), icon: GrowthIcon },
     { path: '/admin/garden', label: t('nav.garden'), icon: GrowthIcon },
+    { path: '/admin/profit', label: t('nav.profit'), icon: CreditCardIcon },
     { path: '/admin/proxies', label: t('nav.proxies'), icon: ServerIcon },
     {
       path: '/admin/security-audit',

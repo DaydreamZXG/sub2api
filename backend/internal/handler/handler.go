@@ -13,6 +13,7 @@ type AdminHandlers struct {
 	Account                *admin.AccountHandler
 	Announcement           *admin.AnnouncementHandler
 	Ticket                 *admin.TicketHandler
+	Profit                 *admin.ProfitHandler
 	DataManagement         *admin.DataManagementHandler
 	Backup                 *admin.BackupHandler
 	OAuth                  *admin.OAuthHandler

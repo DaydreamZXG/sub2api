@@ -54,6 +54,7 @@ func RegisterAdminRoutes(
 		// 工单管理
 		registerTicketRoutes(admin, h)
 		registerGrowthRoutes(admin, h)
+		registerProfitRoutes(admin, h)
 
 		// OpenAI OAuth
 		registerOpenAIOAuthRoutes(admin, h)
@@ -453,6 +454,20 @@ func registerGrowthRoutes(admin *gin.RouterGroup, h *handler.Handlers) {
 	admin.GET("/garden-settings", h.Garden.AdminGet)
 	admin.PUT("/garden-settings", h.Garden.AdminUpdate)
 	admin.POST("/garden/crops", h.Garden.AdminGift)
+}
+
+func registerProfitRoutes(admin *gin.RouterGroup, h *handler.Handlers) {
+	admin.GET("/profit/report", h.Admin.Profit.Report)
+	admin.POST("/profit/rebuild", h.Admin.Profit.Rebuild)
+	packs := admin.Group("/cost-packs")
+	{
+		packs.GET("", h.Admin.Profit.ListPacks)
+		packs.POST("", h.Admin.Profit.CreatePack)
+		packs.PUT("/:id", h.Admin.Profit.UpdatePack)
+		packs.DELETE("/:id", h.Admin.Profit.DeletePack)
+		packs.POST("/:id/payments", h.Admin.Profit.AddPayment)
+		packs.DELETE("/:id/payments/:payment_id", h.Admin.Profit.DeletePayment)
+	}
 }
 
 func registerTicketRoutes(admin *gin.RouterGroup, h *handler.Handlers) {

@@ -444,6 +444,7 @@ func TestDashboardAggregationRepositoryRecomputeRangeLeavesGroupRollupRebuildToS
 		`INSERT INTO usage_dashboard_daily_users`,
 		`INSERT INTO usage_dashboard_hourly`,
 		`INSERT INTO usage_dashboard_daily`,
+		`INSERT INTO profit_hourly`,
 	} {
 		mock.ExpectExec(query).WillReturnResult(sqlmock.NewResult(0, 1))
 	}
