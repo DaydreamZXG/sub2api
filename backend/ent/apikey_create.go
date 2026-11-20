@@ -167,6 +167,20 @@ func (_c *APIKeyCreate) SetNillableQuotaUsed(v *float64) *APIKeyCreate {
 	return _c
 }
 
+// SetClientMarkup sets the "client_markup" field.
+func (_c *APIKeyCreate) SetClientMarkup(v float64) *APIKeyCreate {
+	_c.mutation.SetClientMarkup(v)
+	return _c
+}
+
+// SetNillableClientMarkup sets the "client_markup" field if the given value is not nil.
+func (_c *APIKeyCreate) SetNillableClientMarkup(v *float64) *APIKeyCreate {
+	if v != nil {
+		_c.SetClientMarkup(*v)
+	}
+	return _c
+}
+
 // SetExpiresAt sets the "expires_at" field.
 func (_c *APIKeyCreate) SetExpiresAt(v time.Time) *APIKeyCreate {
 	_c.mutation.SetExpiresAt(v)
@@ -395,6 +409,10 @@ func (_c *APIKeyCreate) defaults() error {
 		v := apikey.DefaultQuotaUsed
 		_c.mutation.SetQuotaUsed(v)
 	}
+	if _, ok := _c.mutation.ClientMarkup(); !ok {
+		v := apikey.DefaultClientMarkup
+		_c.mutation.SetClientMarkup(v)
+	}
 	if _, ok := _c.mutation.RateLimit5h(); !ok {
 		v := apikey.DefaultRateLimit5h
 		_c.mutation.SetRateLimit5h(v)
@@ -462,6 +480,9 @@ func (_c *APIKeyCreate) check() error {
 	}
 	if _, ok := _c.mutation.QuotaUsed(); !ok {
 		return &ValidationError{Name: "quota_used", err: errors.New(`ent: missing required field "APIKey.quota_used"`)}
+	}
+	if _, ok := _c.mutation.ClientMarkup(); !ok {
+		return &ValidationError{Name: "client_markup", err: errors.New(`ent: missing required field "APIKey.client_markup"`)}
 	}
 	if _, ok := _c.mutation.RateLimit5h(); !ok {
 		return &ValidationError{Name: "rate_limit_5h", err: errors.New(`ent: missing required field "APIKey.rate_limit_5h"`)}
@@ -554,6 +575,10 @@ func (_c *APIKeyCreate) createSpec() (*APIKey, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.QuotaUsed(); ok {
 		_spec.SetField(apikey.FieldQuotaUsed, field.TypeFloat64, value)
 		_node.QuotaUsed = value
+	}
+	if value, ok := _c.mutation.ClientMarkup(); ok {
+		_spec.SetField(apikey.FieldClientMarkup, field.TypeFloat64, value)
+		_node.ClientMarkup = value
 	}
 	if value, ok := _c.mutation.ExpiresAt(); ok {
 		_spec.SetField(apikey.FieldExpiresAt, field.TypeTime, value)
@@ -880,6 +905,24 @@ func (u *APIKeyUpsert) UpdateQuotaUsed() *APIKeyUpsert {
 // AddQuotaUsed adds v to the "quota_used" field.
 func (u *APIKeyUpsert) AddQuotaUsed(v float64) *APIKeyUpsert {
 	u.Add(apikey.FieldQuotaUsed, v)
+	return u
+}
+
+// SetClientMarkup sets the "client_markup" field.
+func (u *APIKeyUpsert) SetClientMarkup(v float64) *APIKeyUpsert {
+	u.Set(apikey.FieldClientMarkup, v)
+	return u
+}
+
+// UpdateClientMarkup sets the "client_markup" field to the value that was provided on create.
+func (u *APIKeyUpsert) UpdateClientMarkup() *APIKeyUpsert {
+	u.SetExcluded(apikey.FieldClientMarkup)
+	return u
+}
+
+// AddClientMarkup adds v to the "client_markup" field.
+func (u *APIKeyUpsert) AddClientMarkup(v float64) *APIKeyUpsert {
+	u.Add(apikey.FieldClientMarkup, v)
 	return u
 }
 
@@ -1322,6 +1365,27 @@ func (u *APIKeyUpsertOne) AddQuotaUsed(v float64) *APIKeyUpsertOne {
 func (u *APIKeyUpsertOne) UpdateQuotaUsed() *APIKeyUpsertOne {
 	return u.Update(func(s *APIKeyUpsert) {
 		s.UpdateQuotaUsed()
+	})
+}
+
+// SetClientMarkup sets the "client_markup" field.
+func (u *APIKeyUpsertOne) SetClientMarkup(v float64) *APIKeyUpsertOne {
+	return u.Update(func(s *APIKeyUpsert) {
+		s.SetClientMarkup(v)
+	})
+}
+
+// AddClientMarkup adds v to the "client_markup" field.
+func (u *APIKeyUpsertOne) AddClientMarkup(v float64) *APIKeyUpsertOne {
+	return u.Update(func(s *APIKeyUpsert) {
+		s.AddClientMarkup(v)
+	})
+}
+
+// UpdateClientMarkup sets the "client_markup" field to the value that was provided on create.
+func (u *APIKeyUpsertOne) UpdateClientMarkup() *APIKeyUpsertOne {
+	return u.Update(func(s *APIKeyUpsert) {
+		s.UpdateClientMarkup()
 	})
 }
 
@@ -1960,6 +2024,27 @@ func (u *APIKeyUpsertBulk) AddQuotaUsed(v float64) *APIKeyUpsertBulk {
 func (u *APIKeyUpsertBulk) UpdateQuotaUsed() *APIKeyUpsertBulk {
 	return u.Update(func(s *APIKeyUpsert) {
 		s.UpdateQuotaUsed()
+	})
+}
+
+// SetClientMarkup sets the "client_markup" field.
+func (u *APIKeyUpsertBulk) SetClientMarkup(v float64) *APIKeyUpsertBulk {
+	return u.Update(func(s *APIKeyUpsert) {
+		s.SetClientMarkup(v)
+	})
+}
+
+// AddClientMarkup adds v to the "client_markup" field.
+func (u *APIKeyUpsertBulk) AddClientMarkup(v float64) *APIKeyUpsertBulk {
+	return u.Update(func(s *APIKeyUpsert) {
+		s.AddClientMarkup(v)
+	})
+}
+
+// UpdateClientMarkup sets the "client_markup" field to the value that was provided on create.
+func (u *APIKeyUpsertBulk) UpdateClientMarkup() *APIKeyUpsertBulk {
+	return u.Update(func(s *APIKeyUpsert) {
+		s.UpdateClientMarkup()
 	})
 }
 

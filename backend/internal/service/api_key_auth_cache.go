@@ -18,6 +18,8 @@ type APIKeyAuthSnapshot struct {
 	// Quota fields for API Key independent quota feature
 	Quota     float64 `json:"quota"`      // Quota limit in USD (0 = unlimited)
 	QuotaUsed float64 `json:"quota_used"` // Used quota amount
+	// Above 0 for a reseller's client key, see APIKey.ClientMarkup.
+	ClientMarkup float64 `json:"client_markup,omitempty"`
 
 	// Expiration field for API Key expiration feature
 	ExpiresAt *time.Time `json:"expires_at,omitempty"` // Expiration time (nil = never expires)

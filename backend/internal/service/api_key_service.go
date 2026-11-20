@@ -35,6 +35,7 @@ var (
 	ErrAPIKeyCountExceeded  = infraerrors.Forbidden("API_KEY_COUNT_EXCEEDED", "api key count limit reached, please delete unused keys first")
 	ErrAPIKeyAuthOverloaded = infraerrors.ServiceUnavailable("API_KEY_AUTH_OVERLOADED", "api key authentication is temporarily overloaded")
 	ErrInvalidIPPattern     = infraerrors.BadRequest("INVALID_IP_PATTERN", "invalid IP or CIDR pattern")
+	ErrClientKeyNeedsBudget = infraerrors.BadRequest("CLIENT_KEY_NEEDS_BUDGET", "a client key needs a budget above 0")
 	// ErrAPIKeyExpired        = infraerrors.Forbidden("API_KEY_EXPIRED", "api key has expired")
 	ErrAPIKeyExpired = infraerrors.Forbidden("API_KEY_EXPIRED", "api key 已过期")
 	// ErrAPIKeyQuotaExhausted = infraerrors.TooManyRequests("API_KEY_QUOTA_EXHAUSTED", "api key quota exhausted")
@@ -229,6 +230,10 @@ type CreateAPIKeyRequest struct {
 	RateLimit5h float64 `json:"rate_limit_5h"`
 	RateLimit1d float64 `json:"rate_limit_1d"`
 	RateLimit7d float64 `json:"rate_limit_7d"`
+
+	// ClientMarkup makes this a reseller's client key (see APIKey.ClientMarkup). Never read from a
+	// request body: only ResellerService sets it.
+	ClientMarkup float64 `json:"-"`
 }
 
 // UpdateAPIKeyRequest 更新API Key请求
@@ -572,18 +577,19 @@ func (s *APIKeyService) Create(ctx context.Context, userID int64, req CreateAPIK
 
 	// 创建API Key记录
 	apiKey := &APIKey{
-		UserID:      userID,
-		Key:         key,
-		Name:        html.EscapeString(req.Name),
-		GroupID:     req.GroupID,
-		Status:      StatusActive,
-		IPWhitelist: req.IPWhitelist,
-		IPBlacklist: req.IPBlacklist,
-		Quota:       req.Quota,
-		QuotaUsed:   0,
-		RateLimit5h: req.RateLimit5h,
-		RateLimit1d: req.RateLimit1d,
-		RateLimit7d: req.RateLimit7d,
+		UserID:       userID,
+		Key:          key,
+		Name:         html.EscapeString(req.Name),
+		GroupID:      req.GroupID,
+		Status:       StatusActive,
+		IPWhitelist:  req.IPWhitelist,
+		IPBlacklist:  req.IPBlacklist,
+		Quota:        req.Quota,
+		QuotaUsed:    0,
+		ClientMarkup: req.ClientMarkup,
+		RateLimit5h:  req.RateLimit5h,
+		RateLimit1d:  req.RateLimit1d,
+		RateLimit7d:  req.RateLimit7d,
 	}
 
 	// Set expiration time if specified
@@ -862,6 +868,11 @@ func (s *APIKeyService) Update(ctx context.Context, id int64, userID int64, req 
 
 	// Update quota fields
 	if req.Quota != nil {
+		// A client key's usage is only counted against a budget; without one the reseller would
+		// no longer see what the client used.
+		if apiKey.ClientMarkup > 0 && *req.Quota <= 0 {
+			return nil, ErrClientKeyNeedsBudget
+		}
 		apiKey.Quota = *req.Quota
 		fields.Quota = true
 		// If quota now has room, or is changed to unlimited, reactivate exhausted keys.

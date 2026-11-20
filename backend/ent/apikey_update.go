@@ -232,6 +232,27 @@ func (_u *APIKeyUpdate) AddQuotaUsed(v float64) *APIKeyUpdate {
 	return _u
 }
 
+// SetClientMarkup sets the "client_markup" field.
+func (_u *APIKeyUpdate) SetClientMarkup(v float64) *APIKeyUpdate {
+	_u.mutation.ResetClientMarkup()
+	_u.mutation.SetClientMarkup(v)
+	return _u
+}
+
+// SetNillableClientMarkup sets the "client_markup" field if the given value is not nil.
+func (_u *APIKeyUpdate) SetNillableClientMarkup(v *float64) *APIKeyUpdate {
+	if v != nil {
+		_u.SetClientMarkup(*v)
+	}
+	return _u
+}
+
+// AddClientMarkup adds value to the "client_markup" field.
+func (_u *APIKeyUpdate) AddClientMarkup(v float64) *APIKeyUpdate {
+	_u.mutation.AddClientMarkup(v)
+	return _u
+}
+
 // SetExpiresAt sets the "expires_at" field.
 func (_u *APIKeyUpdate) SetExpiresAt(v time.Time) *APIKeyUpdate {
 	_u.mutation.SetExpiresAt(v)
@@ -636,6 +657,12 @@ func (_u *APIKeyUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.AddedQuotaUsed(); ok {
 		_spec.AddField(apikey.FieldQuotaUsed, field.TypeFloat64, value)
 	}
+	if value, ok := _u.mutation.ClientMarkup(); ok {
+		_spec.SetField(apikey.FieldClientMarkup, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.AddedClientMarkup(); ok {
+		_spec.AddField(apikey.FieldClientMarkup, field.TypeFloat64, value)
+	}
 	if value, ok := _u.mutation.ExpiresAt(); ok {
 		_spec.SetField(apikey.FieldExpiresAt, field.TypeTime, value)
 	}
@@ -1016,6 +1043,27 @@ func (_u *APIKeyUpdateOne) SetNillableQuotaUsed(v *float64) *APIKeyUpdateOne {
 // AddQuotaUsed adds value to the "quota_used" field.
 func (_u *APIKeyUpdateOne) AddQuotaUsed(v float64) *APIKeyUpdateOne {
 	_u.mutation.AddQuotaUsed(v)
+	return _u
+}
+
+// SetClientMarkup sets the "client_markup" field.
+func (_u *APIKeyUpdateOne) SetClientMarkup(v float64) *APIKeyUpdateOne {
+	_u.mutation.ResetClientMarkup()
+	_u.mutation.SetClientMarkup(v)
+	return _u
+}
+
+// SetNillableClientMarkup sets the "client_markup" field if the given value is not nil.
+func (_u *APIKeyUpdateOne) SetNillableClientMarkup(v *float64) *APIKeyUpdateOne {
+	if v != nil {
+		_u.SetClientMarkup(*v)
+	}
+	return _u
+}
+
+// AddClientMarkup adds value to the "client_markup" field.
+func (_u *APIKeyUpdateOne) AddClientMarkup(v float64) *APIKeyUpdateOne {
+	_u.mutation.AddClientMarkup(v)
 	return _u
 }
 
@@ -1452,6 +1500,12 @@ func (_u *APIKeyUpdateOne) sqlSave(ctx context.Context) (_node *APIKey, err erro
 	}
 	if value, ok := _u.mutation.AddedQuotaUsed(); ok {
 		_spec.AddField(apikey.FieldQuotaUsed, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.ClientMarkup(); ok {
+		_spec.SetField(apikey.FieldClientMarkup, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.AddedClientMarkup(); ok {
+		_spec.AddField(apikey.FieldClientMarkup, field.TypeFloat64, value)
 	}
 	if value, ok := _u.mutation.ExpiresAt(); ok {
 		_spec.SetField(apikey.FieldExpiresAt, field.TypeTime, value)

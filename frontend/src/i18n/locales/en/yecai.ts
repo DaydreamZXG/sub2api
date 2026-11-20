@@ -93,7 +93,7 @@ export default {
   },
   shell: {
     garden: 'Garden', start: 'Home', connect: 'Connect a tool', prices: 'Prices', keys: 'Manage keys', bills: 'Bills', topUp: 'Top up',
-    help: 'Help', more: 'More', plans: 'Monthly plans', invite: 'Invite & earn', admin: 'Admin', account: 'My account'
+    help: 'Help', more: 'More', plans: 'Monthly plans', invite: 'Invite & earn', reseller: 'Reselling', admin: 'Admin', account: 'My account'
   },
   connect: {
     title: 'Connect a tool',

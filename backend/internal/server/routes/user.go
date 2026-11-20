@@ -130,6 +130,8 @@ func RegisterUserRoutes(
 		authenticated.GET("/user/growth", h.Growth.Get)
 		authenticated.GET("/user/agent", h.Agent.Get)
 		authenticated.POST("/user/agent/payouts", h.Agent.RequestPayout)
+		authenticated.GET("/user/reseller", h.Reseller.Get)
+		authenticated.POST("/user/reseller/keys", h.Reseller.CreateKey)
 		authenticated.GET("/user/garden", h.Garden.Get)
 		authenticated.POST("/user/garden/crops/:id/harvest", h.Garden.Harvest)
 		authenticated.GET("/user/garden/neighbours", h.Garden.Neighbours)

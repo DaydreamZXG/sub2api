@@ -41,6 +41,8 @@ const (
 	FieldQuota = "quota"
 	// FieldQuotaUsed holds the string denoting the quota_used field in the database.
 	FieldQuotaUsed = "quota_used"
+	// FieldClientMarkup holds the string denoting the client_markup field in the database.
+	FieldClientMarkup = "client_markup"
 	// FieldExpiresAt holds the string denoting the expires_at field in the database.
 	FieldExpiresAt = "expires_at"
 	// FieldRateLimit5h holds the string denoting the rate_limit_5h field in the database.
@@ -108,6 +110,7 @@ var Columns = []string{
 	FieldIPBlacklist,
 	FieldQuota,
 	FieldQuotaUsed,
+	FieldClientMarkup,
 	FieldExpiresAt,
 	FieldRateLimit5h,
 	FieldRateLimit1d,
@@ -156,6 +159,8 @@ var (
 	DefaultQuota float64
 	// DefaultQuotaUsed holds the default value on creation for the "quota_used" field.
 	DefaultQuotaUsed float64
+	// DefaultClientMarkup holds the default value on creation for the "client_markup" field.
+	DefaultClientMarkup float64
 	// DefaultRateLimit5h holds the default value on creation for the "rate_limit_5h" field.
 	DefaultRateLimit5h float64
 	// DefaultRateLimit1d holds the default value on creation for the "rate_limit_1d" field.
@@ -231,6 +236,11 @@ func ByQuota(opts ...sql.OrderTermOption) OrderOption {
 // ByQuotaUsed orders the results by the quota_used field.
 func ByQuotaUsed(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldQuotaUsed, opts...).ToFunc()
+}
+
+// ByClientMarkup orders the results by the client_markup field.
+func ByClientMarkup(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldClientMarkup, opts...).ToFunc()
 }
 
 // ByExpiresAt orders the results by the expires_at field.

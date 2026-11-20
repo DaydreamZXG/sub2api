@@ -61,6 +61,7 @@ type Handlers struct {
 	Growth           *GrowthHandler
 	Garden           *GardenHandler
 	Agent            *AgentHandler
+	Reseller         *ResellerHandler
 	Desktop          *DesktopHandler
 	ChannelMonitor   *ChannelMonitorUserHandler
 	ChannelMonitorV2 *ChannelMonitorV2Handler

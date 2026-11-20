@@ -470,6 +470,13 @@ func registerAgentRoutes(admin *gin.RouterGroup, h *handler.Handlers) {
 		agents.PUT("/:user_id/users/:invitee_id", h.Agent.AttachUser)
 		agents.DELETE("/:user_id/users/:invitee_id", h.Agent.DetachUser)
 	}
+
+	resellers := admin.Group("/resellers")
+	{
+		resellers.GET("", h.Reseller.List)
+		resellers.PUT("/:user_id", h.Reseller.Add)
+		resellers.DELETE("/:user_id", h.Reseller.Remove)
+	}
 }
 
 func registerProfitRoutes(admin *gin.RouterGroup, h *handler.Handlers) {

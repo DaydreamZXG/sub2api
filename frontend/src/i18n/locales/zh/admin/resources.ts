@@ -374,7 +374,7 @@ export default {
     profit: {
       title: '利润',
       description: '上游花了多少钱，用户付了多少钱，赚了多少',
-      tabs: { report: '报表', packs: '成本包', agents: '代理分润' },
+      tabs: { report: '报表', packs: '成本包', agents: '代理分润', resellers: '分销商' },
       presets: { thisMonth: '本月', lastMonth: '上月', last30: '近 30 天', last90: '近 90 天' },
       from: '开始日期',
       to: '结束日期',
@@ -394,6 +394,20 @@ export default {
       giftedNote: '另有 {amount} 是用赠送的余额付的（充值赠送、菜园、邀请返利这些）。这不是收到的钱，没有算进收入。',
       cashNote: '这段时间充值订单实际收款 {received}，退款 {refunded}。',
       agentNote: '这段时间记给代理的分润 {amount}，已经从上面的利润里扣掉（只扣在总数里，下面按月、按线路的表没有扣）。',
+      resellers: {
+        intro: '分销商用自己的余额给他的客户发密钥、自己定价。客户每次调用，从分销商的余额里照常扣钱，所以他的消费已经算在报表的收入里；他赚的差价是他和客户之间的事，不经过本站。',
+        addTitle: '开通分销商',
+        userPlaceholder: '搜邮箱或用户名',
+        add: '开通',
+        listTitle: '分销商',
+        listEmpty: '还没有分销商。',
+        since: '{date} 开通',
+        columns: { reseller: '分销商', balance: '余额', keys: '客户密钥', clientUsed: '客户已用（客户价）', cost: '他被扣的' },
+        remove: '取消',
+        removeConfirm: '取消 {email} 的分销商身份？他已经建好的客户密钥还能继续用，只是不能再建新的。',
+        note: '想给某个分销商更低的进货价，到“用户管理”里给他设专属倍率。',
+        failed: '操作没有成功，请再试一次'
+      },
       agents: {
         tiers: {
           title: '分档（可不设）',

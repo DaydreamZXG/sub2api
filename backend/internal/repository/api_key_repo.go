@@ -52,6 +52,7 @@ func (r *apiKeyRepository) Create(ctx context.Context, key *service.APIKey) erro
 		SetNillableLastUsedAt(key.LastUsedAt).
 		SetQuota(key.Quota).
 		SetQuotaUsed(key.QuotaUsed).
+		SetClientMarkup(key.ClientMarkup).
 		SetNillableExpiresAt(key.ExpiresAt).
 		SetRateLimit5h(key.RateLimit5h).
 		SetRateLimit1d(key.RateLimit1d).
@@ -140,6 +141,7 @@ func (r *apiKeyRepository) GetByKeyForAuth(ctx context.Context, key string) (*se
 			apikey.FieldIPBlacklist,
 			apikey.FieldQuota,
 			apikey.FieldQuotaUsed,
+			apikey.FieldClientMarkup,
 			apikey.FieldExpiresAt,
 			apikey.FieldRateLimit5h,
 			apikey.FieldRateLimit1d,
@@ -903,6 +905,7 @@ func apiKeyEntityToService(m *dbent.APIKey) *service.APIKey {
 		GroupID:       m.GroupID,
 		Quota:         m.Quota,
 		QuotaUsed:     m.QuotaUsed,
+		ClientMarkup:  m.ClientMarkup,
 		ExpiresAt:     m.ExpiresAt,
 		RateLimit5h:   m.RateLimit5h,
 		RateLimit1d:   m.RateLimit1d,

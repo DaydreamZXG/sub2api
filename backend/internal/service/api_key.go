@@ -48,9 +48,12 @@ type APIKey struct {
 	CurrentConcurrency  int
 
 	// Quota fields
-	Quota     float64    // Quota limit in USD (0 = unlimited)
-	QuotaUsed float64    // Used quota amount
-	ExpiresAt *time.Time // Expiration time (nil = never expires)
+	Quota     float64 // Quota limit in USD (0 = unlimited)
+	QuotaUsed float64 // Used quota amount
+	// ClientMarkup is above 0 for a reseller's client key: the quota and the rate limits then count
+	// what a call costs the owner times this, so the client's budget is in the client's price.
+	ClientMarkup float64
+	ExpiresAt    *time.Time // Expiration time (nil = never expires)
 
 	// Rate limit fields
 	RateLimit5h   float64    // Rate limit in USD per 5h (0 = unlimited)
