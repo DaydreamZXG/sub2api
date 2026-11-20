@@ -190,7 +190,7 @@ export default {
   theme: { label: 'Appearance', light: 'Light', dark: 'Dark', system: 'Follow system' },
   garden: {
     title: 'Garden',
-    lead: 'The bonus on a top-up is planted as a crop first. It ripens in {hours} hours; come back and harvest it into your balance. What you paid for arrives at once, as usual.',
+    lead: 'The bonus on a top-up is planted as a crop first. It ripens in {hours} hours; come back and harvest it into your balance. What you paid for arrives at once, as usual. Leave a ripe crop too long and neighbours take some.',
     failed: 'The garden cannot be opened right now. Try again later.',
     ripe: 'Ripe, ready to harvest',
     growing: 'Growing',
@@ -203,7 +203,67 @@ export default {
     emptyTitle: 'Nothing planted yet',
     empty: 'When a top-up comes with a bonus, the bonus is planted here.',
     off: 'The garden is closed for now.',
-    harvested: 'Harvested'
+    harvested: 'Harvested',
+    stolen: '{amount} taken by neighbours',
+    water: 'Water',
+    waterDone: 'Watered. This crop ripens {minutes} minutes sooner.',
+    steal: 'Take some',
+    stealDone: 'You took {amount}; it is in your balance',
+    stealCaught: 'Wangcai caught you. You leave with nothing.',
+    size: { small: 'Small crop', medium: 'Medium crop', large: 'Large crop' },
+    state: {
+      taken: 'You took from this one',
+      caught: 'You were caught here',
+      protected: 'Just ripe: the owner goes first',
+      open: 'Not harvested yet',
+      pickedClean: 'Nothing left to take'
+    },
+    dog: {
+      name: 'Wangcai',
+      fed: 'Fed today and on guard. It catches {percent}% of the people who come to take your crops; a higher level makes it fiercer.',
+      hungry: 'Wangcai has not eaten today and is not guarding. Feed it so it catches people who come to take your crops.',
+      feed: 'Feed Wangcai',
+      feedDone: 'Wangcai is fed and on guard',
+      onGuard: 'On guard'
+    },
+    neighbours: {
+      title: "Today's neighbours",
+      triesLeft: '{left} tries left today (out of {limit})',
+      rules: 'Neighbours change every day; people you invited and the person who invited you always stay. Water a growing crop to ripen it {minutes} minutes sooner. A crop its owner has not harvested {protect} hours after ripening is open: each try takes {percent}%. You need a crop of your own to take from others.',
+      none: 'No neighbour has a crop growing today.',
+      pinned: 'Always here',
+      crops: '{count} crops',
+      loading: 'Looking over the fence…',
+      noCrops: 'Their crops are all harvested.'
+    },
+    feed: {
+      title: 'Activity',
+      mine: {
+        water: "You watered {name}'s crop",
+        steal: "You took {amount} from {name}'s garden",
+        caught: "Wangcai caught you in {name}'s garden"
+      },
+      theirs: {
+        water: '{name} watered your crop',
+        steal: '{name} took {amount} from you',
+        caught: 'Wangcai caught {name} in your garden'
+      }
+    },
+    errors: {
+      GARDEN_CLOSED: 'The garden is closed for now.',
+      GARDEN_NOT_NEIGHBOUR: "They are not one of today's neighbours.",
+      GARDEN_OWN_CROP: 'This is your own crop.',
+      GARDEN_CROP_PROTECTED: 'Only the owner can harvest this crop for now.',
+      GARDEN_NEED_CROP: 'You need a crop of your own before taking from others.',
+      GARDEN_STEAL_LIMIT: 'No tries left today. Come back tomorrow.',
+      GARDEN_ALREADY_TRIED: 'You already tried this crop.',
+      GARDEN_PICKED_CLEAN: 'There is nothing left to take from this crop.',
+      GARDEN_CROP_RIPE: 'This crop is already ripe.',
+      GARDEN_WATER_FULL: 'This crop has been watered enough.',
+      GARDEN_ALREADY_WATERED: 'You already watered this crop today.',
+      GARDEN_CROP_NOT_FOUND: 'This crop is gone.',
+      other: 'That did not work. Refresh and try again.'
+    }
   },
   prices: {
     title: 'Prices',

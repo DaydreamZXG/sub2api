@@ -9,6 +9,7 @@
         <article v-for="crop in growing" :key="crop.id" class="yc-surface yc-garden-plot" :class="{ ripe: isRipe(crop) }">
           <YcPlant class="yc-garden-plant" :stage="stageOf(crop)" :label="t(isRipe(crop) ? 'yc.garden.ripe' : 'yc.garden.growing')" />
           <p class="yc-garden-amount yc-num">{{ yuan(crop.amount - crop.stolen_amount) }}</p>
+          <p v-if="crop.stolen_amount > 0" class="yc-garden-stolen">{{ t('yc.garden.stolen', { amount: yuan(crop.stolen_amount) }) }}</p>
           <p class="yc-garden-state">
             <template v-if="isRipe(crop)">{{ t('yc.garden.ripe') }}</template>
             <template v-else>{{ t('yc.garden.ripeIn', { time: remaining(crop) }) }}</template>
@@ -30,6 +31,8 @@
         </div>
       </div>
 
+      <YcGardenSocial v-if="garden.enabled" :garden="garden" :now="now" @changed="refresh" />
+
       <section v-if="harvested.length" class="yc-surface yc-garden-log">
         <h2>{{ t('yc.garden.harvested') }}</h2>
         <ul>
@@ -47,6 +50,7 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { getMyGarden, harvestCrop, type GardenCrop, type MyGarden } from '@/api/garden'
+import YcGardenSocial from '@/components/yecai/YcGardenSocial.vue'
 import YcPlant from '@/components/yecai/YcPlant.vue'
 import YcShell from '@/components/yecai/YcShell.vue'
 import { useYcMoney } from '@/composables/useYcMoney'
@@ -101,12 +105,15 @@ async function load() {
   }
 }
 
+// Something a neighbour-side action changed: tries left, the dog, or the balance after a steal.
+const refresh = () => Promise.all([load(), authStore.refreshUser()])
+
 async function harvest(crop: GardenCrop) {
   harvesting.value = crop.id
   try {
     const { amount } = await harvestCrop(crop.id)
     appStore.showSuccess(t('yc.garden.harvestDone', { amount: yuan(amount) }))
-    await Promise.all([load(), authStore.refreshUser()])
+    await refresh()
   } catch (error) {
     console.error('Failed to harvest:', error)
     appStore.showError(t('yc.garden.harvestFailed'))
@@ -130,7 +137,7 @@ onBeforeUnmount(() => clearInterval(ticker))
 .yc-garden-plot.ripe { border-color: var(--yc-ink); box-shadow: 0 6px 0 -1px var(--yc-ink); }
 .yc-garden-plant { width: 112px; height: 112px; }
 .yc-garden-amount { font-size: 26px; line-height: 1.2; letter-spacing: -0.02em; font-weight: 800; }
-.yc-garden-state { font-size: 14px; color: var(--yc-mut); }
+.yc-garden-state, .yc-garden-stolen { font-size: 14px; color: var(--yc-mut); }
 .yc-garden-plot.ripe .yc-garden-state { color: var(--yc-ink); font-weight: 650; }
 .yc-garden-bar { width: 100%; height: 8px; margin-top: 10px; overflow: hidden; border-radius: 999px; background: var(--yc-fill); }
 .yc-garden-bar i { display: block; height: 100%; border-radius: inherit; background: var(--yc-lime); box-shadow: 0 0 0 1px var(--yc-ink) inset; }

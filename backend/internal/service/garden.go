@@ -36,16 +36,45 @@ var (
 type GardenSettings struct {
 	Enabled    bool    `json:"enabled"`
 	RipenHours float64 `json:"ripen_hours"`
+	// ProtectHours: after ripening, only the owner can touch the crop for this long.
+	ProtectHours float64 `json:"protect_hours"`
+	// StealPercent of a crop goes to each successful thief; MaxStolenPercent is the most a crop can lose in total.
+	StealPercent     float64 `json:"steal_percent"`
+	MaxStolenPercent float64 `json:"max_stolen_percent"`
+	DailyStealLimit  int     `json:"daily_steal_limit"`
+	// Each watering by a neighbour ripens the crop WaterMinutes sooner, at most MaxWatersPerCrop times.
+	WaterMinutes     float64 `json:"water_minutes"`
+	MaxWatersPerCrop int     `json:"max_waters_per_crop"`
+	NeighboursPerDay int     `json:"neighbours_per_day"`
+	// A fed dog catches a thief with a chance between DogMinPercent (lowest growth level) and DogMaxPercent (highest).
+	DogMinPercent float64 `json:"dog_min_percent"`
+	DogMaxPercent float64 `json:"dog_max_percent"`
 }
 
 // DefaultGardenSettings is the garden switched off with a one-day ripening time.
 func DefaultGardenSettings() GardenSettings {
-	return GardenSettings{Enabled: false, RipenHours: 24}
+	return GardenSettings{
+		Enabled: false, RipenHours: 24, ProtectHours: 2,
+		StealPercent: 3, MaxStolenPercent: 50, DailyStealLimit: 10,
+		WaterMinutes: 60, MaxWatersPerCrop: 5, NeighboursPerDay: 10,
+		DogMinPercent: 10, DogMaxPercent: 50,
+	}
 }
 
 // Validate reports whether the rules can be saved.
 func (g GardenSettings) Validate() error {
 	if math.IsNaN(g.RipenHours) || g.RipenHours <= 0 || g.RipenHours > gardenMaxRipenHours {
+		return ErrGardenSettingsInvalid
+	}
+	within := func(value, low, high float64) bool { return !math.IsNaN(value) && value >= low && value <= high }
+	switch {
+	case !within(g.ProtectHours, 0, gardenMaxRipenHours),
+		!within(g.StealPercent, 0, 100), !within(g.MaxStolenPercent, 0, 100), g.StealPercent > g.MaxStolenPercent,
+		!within(g.WaterMinutes, 0, 24*60),
+		!within(g.DogMinPercent, 0, 100), !within(g.DogMaxPercent, 0, 100), g.DogMinPercent > g.DogMaxPercent,
+		g.DailyStealLimit < 0 || g.DailyStealLimit > 1000,
+		g.MaxWatersPerCrop < 0 || g.MaxWatersPerCrop > 100,
+		g.NeighboursPerDay < 0 || g.NeighboursPerDay > 50:
 		return ErrGardenSettingsInvalid
 	}
 	return nil
@@ -93,11 +122,15 @@ type GardenService struct {
 	settingRepo   SettingRepository
 	redeemService *RedeemService
 	cache         atomic.Pointer[cachedGardenSettings]
+	// social and growthLevels serve what neighbours do in each other's gardens; rollDice replaces the dog's dice in tests.
+	social       GardenSocialRepository
+	growthLevels *GrowthLevelsService
+	rollDice     func() float64
 }
 
 // NewGardenService creates the garden.
-func NewGardenService(repo GardenRepository, settingRepo SettingRepository, redeemService *RedeemService) *GardenService {
-	return &GardenService{repo: repo, settingRepo: settingRepo, redeemService: redeemService}
+func NewGardenService(repo GardenRepository, social GardenSocialRepository, settingRepo SettingRepository, redeemService *RedeemService, growthLevels *GrowthLevelsService) *GardenService {
+	return &GardenService{repo: repo, social: social, settingRepo: settingRepo, redeemService: redeemService, growthLevels: growthLevels}
 }
 
 // Settings returns the saved rules, or the garden switched off when none are saved or they cannot be read.
@@ -111,7 +144,8 @@ func (s *GardenService) Settings(ctx context.Context) GardenSettings {
 	settings := DefaultGardenSettings()
 	raw, err := s.settingRepo.GetValue(context.WithoutCancel(ctx), SettingKeyGarden)
 	if err == nil && strings.TrimSpace(raw) != "" {
-		var saved GardenSettings
+		// 旧版本存的设置没有后加的字段，从默认值上叠加。
+		saved := DefaultGardenSettings()
 		if json.Unmarshal([]byte(raw), &saved) == nil && saved.Validate() == nil {
 			settings = saved
 		}

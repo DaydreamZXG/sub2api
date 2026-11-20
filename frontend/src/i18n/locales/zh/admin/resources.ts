@@ -380,6 +380,21 @@ export default {
       ripenHoursHint: '只影响之后种下的菜，已经种下的不变。',
       rules: '没有配置充值赠送时不会种菜。订单退款时，还没收的菜会先退回余额，再按原来的规则扣减。关闭后已种下的菜仍然可以收。修改后约一分钟内生效。',
       errorHours: '成熟时间要大于 0，最多 {max} 小时',
+      social: '邻居、偷菜和旺财',
+      socialHint: '全站用户互为邻居：每人每天随机分到几家，邀请关系固定在前。被偷走的部分由菜的主人少拿，站里不额外出钱。',
+      dogHint: '旺财要主人当天喂过才看门。抓人几率跟主人的成长等级走：最低一级用“最低”，最高一级用“最高”，中间按级数平均；没开成长等级时都用“最低”。被抓的人空手而归，当天次数照扣。',
+      errorSocial: '有数字超出范围：百分比 0 到 100，每次偷的比例不能大于上限，旺财最低几率不能大于最高，次数要填整数。',
+      fields: {
+        protect_hours: '成熟后只有主人能收（小时）',
+        steal_percent: '每次偷走（%）',
+        max_stolen_percent: '一棵菜最多被偷（%）',
+        daily_steal_limit: '每人每天能偷几次',
+        water_minutes: '浇一次水早熟（分钟）',
+        max_waters_per_crop: '一棵菜最多被浇几次',
+        neighbours_per_day: '每天随机邻居数',
+        dog_min_percent: '旺财抓人几率，最低（%）',
+        dog_max_percent: '旺财抓人几率，最高（%）'
+      },
       saved: '已保存',
       failedToSave: '保存失败',
       failedToLoad: '读取菜园设置失败'

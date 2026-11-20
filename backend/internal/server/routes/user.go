@@ -130,6 +130,12 @@ func RegisterUserRoutes(
 		authenticated.GET("/user/growth", h.Growth.Get)
 		authenticated.GET("/user/garden", h.Garden.Get)
 		authenticated.POST("/user/garden/crops/:id/harvest", h.Garden.Harvest)
+		authenticated.GET("/user/garden/neighbours", h.Garden.Neighbours)
+		authenticated.GET("/user/garden/neighbours/:id", h.Garden.Neighbour)
+		authenticated.POST("/user/garden/crops/:id/steal", h.Garden.Steal)
+		authenticated.POST("/user/garden/crops/:id/water", h.Garden.Water)
+		authenticated.POST("/user/garden/dog/feed", h.Garden.FeedDog)
+		authenticated.GET("/user/garden/feed", h.Garden.Feed)
 		tickets := authenticated.Group("/tickets")
 		{
 			tickets.GET("", h.Ticket.List)
