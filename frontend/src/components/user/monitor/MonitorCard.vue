@@ -1,7 +1,8 @@
 <template>
   <button
     type="button"
-    class="group text-left p-5 rounded-2xl min-h-[280px] w-full bg-white/70 backdrop-blur-xl border border-gray-200/80 shadow-card dark:bg-dark-800/60 dark:border-dark-700/70 hover:-translate-y-1 hover:shadow-card-hover dark:hover:border-primary-500/30 hover:border-gray-300 transition-all duration-300 ease-out flex flex-col"
+    data-test="mon-card"
+    class="ych-card group"
     @click="emit('click')"
   >
     <!-- Header: icon + name/model + status chip -->
@@ -13,7 +14,7 @@
         <ProviderIcon :provider="item.provider" :size="20" />
       </span>
       <div class="flex-1 min-w-0">
-        <div class="text-base font-semibold truncate text-gray-900 dark:text-gray-100">
+        <div class="ych-card-name">
           {{ item.name }}
         </div>
         <div class="mt-0.5 flex items-center gap-1.5 min-w-0">
@@ -24,12 +25,12 @@
             {{ providerLabel(item.provider) }}
           </span>
           <!-- 纯配额模式主模型是占位符 "quota"，展示层替换为本地化「配额」标签 -->
-          <span class="font-mono text-xs truncate text-gray-500 dark:text-gray-400">
+          <span class="ych-card-model">
             {{ formatMonitorModel(item.primary_model) }}
           </span>
           <span
             v-if="item.group_name"
-            class="inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-medium bg-gray-100 text-gray-600 dark:bg-dark-700 dark:text-gray-300 flex-shrink-0"
+            class="ych-card-group"
           >
             {{ item.group_name }}
           </span>
@@ -59,7 +60,7 @@
     <MonitorQuotaView v-if="quotaVisible" :snapshot="item.latest_quota" class="mt-2" />
 
     <!-- Divider -->
-    <div class="mt-4 border-t border-gray-100 dark:border-dark-700/60"></div>
+    <div class="ych-card-rule"></div>
 
     <!-- Availability row -->
     <MonitorAvailabilityRow
@@ -144,3 +145,17 @@ const extraModelsCountLabel = computed(() => {
   return t('monitorCommon.extraModelsCount', { n: count })
 })
 </script>
+
+<style scoped>
+.ych-card { display: block; width: 100%; min-height: 280px; padding: 20px; border: 1px solid var(--yc-line); border-radius: 22px; background: var(--yc-paper); text-align: left; transition: border-color 0.15s, transform 0.15s; }
+.ych-card:hover { border-color: var(--yc-ink); transform: translateY(-2px); }
+.ych-card:focus-visible { outline: 2px solid var(--yc-ink); outline-offset: 2px; }
+.ych-card-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 16px; font-weight: 700; color: var(--yc-ink); }
+.ych-card-model { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: var(--yc-mut); }
+.ych-card-group { flex-shrink: 0; padding: 2px 6px; border-radius: 6px; background: var(--yc-fill); font-size: 10px; font-weight: 600; color: var(--yc-mut); }
+.ych-card-rule { margin-top: 16px; border-top: 1px solid var(--yc-line); }
+@media (prefers-reduced-motion: reduce) {
+  .ych-card { transition: none; }
+  .ych-card:hover { transform: none; }
+}
+</style>

@@ -566,11 +566,11 @@ export default {
     latencyEmpty: '-',
     availabilityPrefix: 'Availability',
     dialogLatency: 'Dialog Latency',
-    endpointPing: 'Endpoint PING',
+    endpointPing: 'Network delay',
     history60pts: 'HISTORY ({n} PTS)',
-    nextUpdateIn: 'NEXT UPDATE IN {n}s',
-    past: 'PAST',
-    now: 'NOW',
+    nextUpdateIn: 'Next update in {n}s',
+    past: 'Earlier',
+    now: 'Now',
     maintenancePaused: 'Maintenance · timeline paused',
     extraModelsCount: '+ {n} models',
     pollEvery: '{n}s polling',
@@ -585,6 +585,14 @@ export default {
   channelStatus: {
     title: 'Channel Status',
     description: 'Inspect channel availability, latency and recent status',
+    headline: {
+      operational: 'Everything is working',
+      degraded: 'Some lines are unstable'
+    },
+    headlineHint: {
+      operational: 'Every line passed its latest check.',
+      degraded: 'Avoid the lines marked degraded or failed for now and use a working one.'
+    },
     searchPlaceholder: 'Search channels...',
     allProviders: 'All Providers',
     loadError: 'Failed to load channel status',

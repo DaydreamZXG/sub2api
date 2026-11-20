@@ -1,42 +1,37 @@
 <template>
-  <section class="py-3 md:py-4">
-    <div class="flex items-center justify-end gap-3 flex-wrap">
-      <div
-        role="tablist"
-        class="inline-flex p-0.5 rounded-xl bg-gray-100 dark:bg-dark-800 border border-gray-200/60 dark:border-dark-700/60 text-xs"
-      >
+  <section class="ych-hero" :class="'ych-hero-' + overallStatus">
+    <div class="ych-state">
+      <span class="ych-badge" aria-hidden="true">
+        <Icon :name="overallStatus === 'operational' ? 'check' : 'exclamationTriangle'" size="md" />
+      </span>
+      <div class="ych-state-text">
+        <h2 data-test="mon-headline">{{ t(`channelStatus.headline.${overallStatus}`) }}</h2>
+        <p>{{ t(`channelStatus.headlineHint.${overallStatus}`) }}</p>
+      </div>
+    </div>
+
+    <div class="ych-tools">
+      <div role="tablist" class="ych-tabs">
         <button
           v-for="opt in windowOptions"
           :key="opt.value"
           type="button"
           role="tab"
           :aria-selected="window === opt.value"
-          class="px-3 py-1 rounded-lg transition-colors"
-          :class="window === opt.value
-            ? 'bg-white dark:bg-dark-700 shadow-sm text-gray-900 dark:text-white font-semibold'
-            : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'"
+          class="ych-tab"
+          :class="{ 'ych-tab-on': window === opt.value }"
           @click="emit('update:window', opt.value)"
         >
           {{ opt.label }}
         </button>
       </div>
 
-      <span
-        class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold tracking-wider uppercase"
-        :class="overallChipClass"
-      >
-        <span
-          class="w-1.5 h-1.5 rounded-full mr-1.5"
-          :class="overallDotClass"
-        ></span>
-        {{ overallLabel }}
-      </span>
-
       <button
         type="button"
-        class="h-8 w-8 rounded-lg flex items-center justify-center text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-dark-700 transition-colors disabled:opacity-50"
+        class="ych-refresh"
         :disabled="loading"
         :title="t('common.refresh')"
+        :aria-label="t('common.refresh')"
         @click="emit('refresh')"
       >
         <Icon name="refresh" size="md" :class="loading ? 'animate-spin' : ''" />
@@ -63,7 +58,7 @@ import AutoRefreshButton from '@/components/common/AutoRefreshButton.vue'
 export type MonitorWindow = '7d' | '15d' | '30d'
 export type OverallStatus = 'operational' | 'degraded'
 
-const props = defineProps<{
+defineProps<{
   overallStatus: OverallStatus
   intervalSeconds: number
   window: MonitorWindow
@@ -90,27 +85,25 @@ const windowOptions = computed<{ value: MonitorWindow; label: string }[]>(() => 
   { value: '15d', label: t('channelStatus.windowTab.15d') },
   { value: '30d', label: t('channelStatus.windowTab.30d') },
 ])
-
-const overallLabel = computed(() => t(`channelStatus.overall.${props.overallStatus}`))
-
-const overallChipClass = computed(() => {
-  switch (props.overallStatus) {
-    case 'operational':
-      return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300'
-    case 'degraded':
-    default:
-      return 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300'
-  }
-})
-
-const overallDotClass = computed(() => {
-  switch (props.overallStatus) {
-    case 'operational':
-      return 'bg-emerald-500 animate-pulse'
-    case 'degraded':
-    default:
-      return 'bg-amber-500 animate-pulse'
-  }
-})
-
 </script>
+
+<style scoped>
+.ych-hero { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px 24px; margin-bottom: 20px; padding: 20px 24px; border: 1px solid var(--yc-line); border-radius: 22px; background: var(--yc-paper); }
+.ych-state { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.ych-badge { display: grid; place-items: center; flex-shrink: 0; width: 44px; height: 44px; border-radius: 50%; background: var(--yc-lime); color: var(--yc-on-lime); }
+.ych-hero-degraded .ych-badge { background: #f59e0b; color: #1c1300; }
+.ych-state-text h2 { font-size: 20px; font-weight: 760; line-height: 1.25; color: var(--yc-ink); }
+.ych-state-text p { margin-top: 2px; font-size: 13px; color: var(--yc-mut); }
+.ych-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.ych-tabs { display: inline-flex; padding: 3px; border-radius: 999px; background: var(--yc-fill); }
+.ych-tab { padding: 5px 14px; border-radius: 999px; font-size: 13px; color: var(--yc-mut); }
+.ych-tab:hover { color: var(--yc-ink); }
+.ych-tab-on { background: var(--yc-ink); color: var(--yc-paper); font-weight: 650; }
+.ych-tab-on:hover { color: var(--yc-paper); }
+.ych-refresh { display: grid; place-items: center; width: 34px; height: 34px; border: 1px solid var(--yc-line); border-radius: 50%; color: var(--yc-ink); }
+.ych-refresh:not(:disabled):hover { background: var(--yc-fill); }
+.ych-refresh:disabled { opacity: 0.5; cursor: not-allowed; }
+@media (max-width: 640px) {
+  .ych-hero { padding: 18px; }
+}
+</style>
