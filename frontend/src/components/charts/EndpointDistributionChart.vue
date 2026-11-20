@@ -108,13 +108,13 @@
                   {{ formatTokens(item.total_tokens) }}
                 </td>
                 <td class="py-1.5 text-right text-green-600 dark:text-green-400">
-                  ${{ formatCost(item.actual_cost) }}
+                  {{ currency }}{{ formatCost(item.actual_cost) }}
                 </td>
                 <td v-if="showAccountCost" class="py-1.5 text-right text-orange-500 dark:text-orange-400">
-                  ${{ formatCost(item.account_cost ?? 0) }}
+                  {{ currency }}{{ formatCost(item.account_cost ?? 0) }}
                 </td>
                 <td class="py-1.5 text-right text-gray-400 dark:text-gray-500">
-                  ${{ formatCost(item.cost) }}
+                  {{ currency }}{{ formatCost(item.cost) }}
                 </td>
               </tr>
               <tr v-if="expandedKey === item.endpoint">
@@ -170,6 +170,8 @@ const props = withDefaults(
     startDate?: string
     endDate?: string
     filters?: Record<string, any>
+    /** Sign printed before money amounts. */
+    currency?: string
   }>(),
   {
     upstreamEndpointStats: () => [],
@@ -181,7 +183,8 @@ const props = withDefaults(
     showMetricToggle: false,
     showSourceToggle: false,
     enableBreakdown: true,
-    showAccountCost: true
+    showAccountCost: true,
+    currency: '$'
   }
 )
 
@@ -276,7 +279,7 @@ const doughnutOptions = computed(() => ({
           const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0)
           const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0'
           const formattedValue = props.metric === 'actual_cost'
-            ? `$${formatCost(value)}`
+            ? `${props.currency}${formatCost(value)}`
             : formatTokens(value)
           return `${context.label}: ${formattedValue} (${percentage}%)`
         }

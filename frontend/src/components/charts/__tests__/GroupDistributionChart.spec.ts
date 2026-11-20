@@ -54,6 +54,19 @@ describe('GroupDistributionChart', () => {
     },
   ]
 
+  it('prints money with a dollar sign unless a currency is given', () => {
+    const stubs = { LoadingSpinner: true }
+    const admin = mount(GroupDistributionChart, { props: { groupStats }, global: { stubs } })
+    expect(admin.find('tbody').text()).toContain('$')
+
+    const user = mount(GroupDistributionChart, {
+      props: { groupStats, currency: '¥' },
+      global: { stubs },
+    })
+    expect(user.find('tbody').text()).toContain('¥')
+    expect(user.find('tbody').text()).not.toContain('$')
+  })
+
   it('uses total_tokens and token ordering by default', () => {
     const wrapper = mount(GroupDistributionChart, {
       props: {
