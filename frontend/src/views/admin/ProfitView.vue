@@ -213,6 +213,7 @@
       </template>
 
       <ProfitAgentsTab v-else-if="tab === 'agents'" />
+      <ProfitResellersTab v-else-if="tab === 'resellers'" />
 
       <!-- Cost packs -->
       <template v-else>
@@ -408,8 +409,9 @@ import AppLayout from '@/components/layout/AppLayout.vue'
 import BaseDialog from '@/components/common/BaseDialog.vue'
 import Toggle from '@/components/common/Toggle.vue'
 import ProfitAgentsTab from '@/components/admin/profit/ProfitAgentsTab.vue'
+import ProfitResellersTab from '@/components/admin/profit/ProfitResellersTab.vue'
 
-const TABS = ['report', 'packs', 'agents'] as const
+const TABS = ['report', 'packs', 'agents', 'resellers'] as const
 const PRESETS = ['thisMonth', 'lastMonth', 'last30', 'last90'] as const
 const KINDS = ['once', 'cycle'] as const
 type Preset = (typeof PRESETS)[number]

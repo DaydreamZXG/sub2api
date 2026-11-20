@@ -377,7 +377,7 @@ export default {
     profit: {
       title: 'Profit',
       description: 'What upstream capacity cost, what users paid, and what is left',
-      tabs: { report: 'Report', packs: 'Cost packs', agents: 'Agents' },
+      tabs: { report: 'Report', packs: 'Cost packs', agents: 'Agents', resellers: 'Resellers' },
       presets: { thisMonth: 'This month', lastMonth: 'Last month', last30: 'Last 30 days', last90: 'Last 90 days' },
       from: 'From',
       to: 'To',
@@ -397,6 +397,20 @@ export default {
       giftedNote: 'Another {amount} was paid with gifted balance (top-up bonus, garden, invite rebate and the like). That is not money received and is not counted as income.',
       cashNote: 'Top-up orders brought in {received} in this period, and {refunded} was refunded.',
       agentNote: 'Agents were credited {amount} in this period. It is already taken off the profit above (off the total only, not off the tables by month and by line below).',
+      resellers: {
+        intro: 'A reseller hands out keys to their own clients from their own balance, at their own price. Each call is paid from the reseller\'s balance as usual, so their spending is already in the report\'s income; the margin they make is between them and their clients and does not pass through the site.',
+        addTitle: 'Add a reseller',
+        userPlaceholder: 'Search by email or username',
+        add: 'Add',
+        listTitle: 'Resellers',
+        listEmpty: 'No resellers yet.',
+        since: 'since {date}',
+        columns: { reseller: 'Reseller', balance: 'Balance', keys: 'Client keys', clientUsed: 'Used by clients (client price)', cost: 'Charged to them' },
+        remove: 'Remove',
+        removeConfirm: 'Stop {email} being a reseller? Client keys they already made keep working; they just cannot make new ones.',
+        note: 'To give a reseller a lower buying price, set a rate of their own under Users.',
+        failed: 'That did not work, please try again'
+      },
       agents: {
         intro: 'An agent is an inviter you pick: for every amount of real money their users spend, a share is credited to them. An agent no longer gets the rebate on those users\' top-ups. The share goes into their invite quota, which they can ask to have paid out or move into their balance.',
         pendingTitle: 'Payout requests waiting',
