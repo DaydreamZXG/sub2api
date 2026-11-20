@@ -154,4 +154,21 @@ describe('ProfitAgentsTab', () => {
     await flushPromises()
     expect(set).toHaveBeenLastCalledWith(7, 5, [{ from: 100.01, percent: 8 }, { from: 120, percent: 9 }])
   })
+
+  it('lets an agent with a threshold under a cent be saved', async () => {
+    // 0.004 units is a fifth of a cent here: it must not show as 0, nor be refused by the field.
+    list.mockResolvedValue([
+      { ...agent, share_percent: 5, tiers: [{ from: 0.004, percent: 8 }], month_spent: 0, current_percent: 5 }
+    ])
+    const wrapper = await mountTab()
+    await wrapper.find('[data-test="agents-row"] button:nth-of-type(2)').trigger('click')
+    const field = wrapper.get('[data-test="agents-tier-from"]').element as HTMLInputElement
+    expect(field.value).toBe('0.002')
+    expect(field.checkValidity()).toBe(true)
+
+    await wrapper.find('[data-test="agents-share"]').setValue('6')
+    await wrapper.find('[data-test="agents-save"]').trigger('submit')
+    await flushPromises()
+    expect(set).toHaveBeenCalledWith(7, 6, [{ from: 0.004, percent: 8 }])
+  })
 })
