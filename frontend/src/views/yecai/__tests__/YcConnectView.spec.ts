@@ -2,6 +2,8 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { connectDeepLink } from '@/api/desktop'
+import { keysAPI } from '@/api/keys'
+import type { ApiKey } from '@/types'
 import YcConnectView from '../YcConnectView.vue'
 
 const { issueConnectCode, stationOrigin, openDesktopApp, showError, showInfo } = vi.hoisted(() => ({
@@ -23,6 +25,7 @@ vi.mock('@/api/groups', () => ({ userGroupsAPI: { getAvailable: vi.fn().mockReso
 vi.mock('@/stores', () => ({
   useAppStore: () => ({ cachedPublicSettings: null, showError, showInfo, showSuccess: vi.fn() })
 }))
+vi.mock('@/stores/app', () => ({ useAppStore: () => ({ showError, showInfo }) }))
 vi.mock('@/composables/useClipboard', () => ({ useClipboard: () => ({ copyToClipboard: vi.fn() }) }))
 vi.mock('vue-i18n', async (importOriginal) => ({
   ...(await importOriginal<typeof import('vue-i18n')>()),
@@ -78,5 +81,23 @@ describe('YcConnectView connect to app', () => {
     expect(connectDeepLink({ code: 'abc-DEF_123', origin: 'https://yeschoy.test' })).toBe(
       'yeschoy://connect?origin=https%3A%2F%2Fyeschoy.test&code=abc-DEF_123'
     )
+  })
+})
+
+describe('YcConnectView filling a tool in by hand', () => {
+  it('offers the address with and without /v1 and the key, and keeps the command line folded away', async () => {
+    const key = { id: 1, name: 'first', key: 'sk-0123456789abcdef', status: 'active', group: null } as unknown as ApiKey
+    vi.mocked(keysAPI.list).mockResolvedValueOnce({ items: [key] } as never)
+    const wrapper = mount(YcConnectView, {
+      global: { stubs: { YcShell: { template: '<div><slot /></div>' }, UseKeyModal: true } }
+    })
+    await flushPromises()
+
+    const origin = window.location.origin
+    expect(wrapper.findAll('.yc-fill dd').map((dd) => dd.text())).toEqual([
+      origin, `${origin}/v1`, 'sk-0123…cdef', 'yc.connect.modelIdHint'
+    ])
+    expect(wrapper.get('details').attributes('open')).toBeUndefined()
+    wrapper.unmount()
   })
 })

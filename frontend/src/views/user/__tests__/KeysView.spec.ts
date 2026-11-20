@@ -7,6 +7,8 @@ import { keysAPI } from '@/api'
 import KeysView from '../KeysView.vue'
 
 const {
+  issueConnectCode,
+  openDesktopApp,
   listKeys,
   updateKey,
   getPublicSettings,
@@ -19,6 +21,8 @@ const {
   isCurrentStep,
   nextStep,
 } = vi.hoisted(() => ({
+  issueConnectCode: vi.fn(),
+  openDesktopApp: vi.fn(),
   listKeys: vi.fn(),
   updateKey: vi.fn(),
   getPublicSettings: vi.fn(),
@@ -82,7 +86,14 @@ vi.mock('@/stores/app', () => ({
   useAppStore: () => ({
     showError,
     showSuccess,
+    showInfo: vi.fn(),
   }),
+}))
+
+vi.mock('@/api/desktop', () => ({
+  issueConnectCode,
+  openDesktopApp,
+  stationOrigin: () => 'https://yeschoy.test',
 }))
 
 vi.mock('@/stores/onboarding', () => ({
@@ -227,6 +238,8 @@ const mountView = async () => {
   const wrapper = mount(KeysView, {
     global: {
       stubs: {
+        teleport: true,
+        RouterLink: { props: ['to'], template: '<a :data-to="JSON.stringify(to)"><slot /></a>' },
         AppLayout: AppLayoutStub,
         TablePageLayout: TablePageLayoutStub,
         DataTable: DataTableStub,
@@ -312,6 +325,7 @@ describe('user KeysView column settings', () => {
     listKeys.mockResolvedValueOnce({ items: [key], total: 1, page: 1, page_size: 20, pages: 1 })
     updateKey.mockResolvedValue({ ...key, status, quota_used: 0 })
     const wrapper = await mountView()
+    await wrapper.get('[data-test="key-more"]').trigger('click')
     await getButtonByText(wrapper, 'common.edit').trigger('click')
     await wrapper.get('[data-tour="key-form-name"]').setValue('Unsaved name')
     const statusSelect = wrapper.findAllComponents({ name: 'Select' })
@@ -334,6 +348,59 @@ describe('user KeysView column settings', () => {
     await wrapper.get('#key-form').trigger('submit')
     await flushPromises()
     expect(updateKey).toHaveBeenNthCalledWith(2, key.id, expect.objectContaining({ name: 'Unsaved name', status: formStatus }))
+    wrapper.unmount()
+  })
+
+  it('hands the account to the desktop app from a key row', async () => {
+    const connect = { code: 'c'.repeat(43), origin: 'https://yeschoy.test', expiresAt: 0, ttlSeconds: 300 }
+    issueConnectCode.mockResolvedValue(connect)
+    const wrapper = await mountView()
+
+    await wrapper.get('[data-test="key-app"]').trigger('click')
+    await flushPromises()
+
+    expect(openDesktopApp).toHaveBeenCalledWith(connect)
+    wrapper.unmount()
+  })
+
+  it('shows the API address without a trailing slash and copies it', async () => {
+    getPublicSettings.mockResolvedValue({ api_base_url: 'https://api.yeschoy.test/' })
+    const wrapper = await mountView()
+    const bar = wrapper.get('[data-test="api-address"]')
+
+    expect(bar.get('code').text()).toBe('https://api.yeschoy.test')
+    await bar.get('button').trigger('click')
+    expect(copyToClipboard).toHaveBeenCalledWith('https://api.yeschoy.test', 'keys.copied')
+    wrapper.unmount()
+  })
+
+  it('keeps the guide, disable, edit, delete and command-line setup in the more menu and closes it once one is chosen', async () => {
+    const wrapper = await mountView()
+    expect(wrapper.find('[data-test="key-delete"]').exists()).toBe(false)
+
+    await wrapper.get('[data-test="key-more"]').trigger('click')
+    expect(wrapper.get('[role="menu"]').findAll('[role="menuitem"]').map((item) => item.attributes('data-test')))
+      .toEqual(['key-guide', 'key-toggle', 'key-edit', 'key-delete', 'key-manual'])
+
+    await wrapper.get('[data-test="key-delete"]').trigger('click')
+    expect(wrapper.find('[role="menu"]').exists()).toBe(false)
+    expect(wrapper.findAllComponents({ name: 'ConfirmDialog' }).some((dialog) => dialog.props('show'))).toBe(true)
+    wrapper.unmount()
+  })
+
+  it('closes the more menu on Escape and on a click elsewhere', async () => {
+    const wrapper = await mountView()
+    const more = wrapper.get('[data-test="key-more"]')
+
+    await more.trigger('click')
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
+    await flushPromises()
+    expect(wrapper.find('[role="menu"]').exists()).toBe(false)
+
+    await more.trigger('click')
+    document.body.click()
+    await flushPromises()
+    expect(wrapper.find('[role="menu"]').exists()).toBe(false)
     wrapper.unmount()
   })
 
@@ -652,6 +719,7 @@ describe('user KeysView column settings', () => {
       expect(optionIds(wrapper)).toEqual([1])
       expect(groupSelect(wrapper).props('modelValue')).toBeNull()
       await wrapper.get('[data-test="close-dialog"]').trigger('click')
+      await wrapper.get('[data-test="key-more"]').trigger('click')
       await getButtonByText(wrapper, 'common.edit').trigger('click')
       expect(wrapper.find('[data-tour="key-form-provider"]').exists()).toBe(false)
       expect(optionIds(wrapper)).toHaveLength(12)

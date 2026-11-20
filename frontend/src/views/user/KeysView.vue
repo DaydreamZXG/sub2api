@@ -3,6 +3,21 @@
     <TablePageLayout>
       <template #filters>
         <div class="flex flex-col gap-3">
+          <div
+            data-test="api-address"
+            class="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-gray-200 bg-white px-4 py-3 dark:border-dark-700 dark:bg-dark-800"
+          >
+            <span class="text-sm font-medium text-gray-900 dark:text-white">{{ t('yc.connect.baseUrl') }}</span>
+            <code class="break-all rounded-lg bg-gray-100 px-2.5 py-1 font-mono text-sm text-gray-900 dark:bg-dark-700 dark:text-gray-100">{{ apiAddress }}</code>
+            <button class="btn btn-secondary btn-sm" @click="clipboardCopy(apiAddress, t('keys.copied'))">
+              <Icon name="copy" size="sm" />
+              {{ t('yc.connect.copyShort') }}
+            </button>
+            <span class="text-sm text-gray-500 dark:text-gray-400">
+              {{ t('keys.addressHint') }}
+              <router-link to="/help/guide" class="font-medium text-gray-900 underline decoration-2 underline-offset-2 dark:text-white">{{ t('yc.connect.toolGuide') }} →</router-link>
+            </span>
+          </div>
           <div class="flex flex-wrap items-center gap-3">
             <SearchInput
               v-model="filterSearch"
@@ -400,53 +415,35 @@
           </template>
 
           <template #cell-actions="{ row }">
-            <div class="flex items-center gap-1">
-              <!-- Use Key Button -->
+            <div class="flex items-center gap-2">
               <button
-                @click="openUseKeyModal(row)"
-                class="flex flex-col items-center gap-0.5 rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-green-50 hover:text-green-600 dark:hover:bg-green-900/20 dark:hover:text-green-400"
+                data-test="key-app"
+                class="btn btn-primary btn-sm whitespace-nowrap"
+                :disabled="handingOver"
+                @click="connectApp"
               >
-                <Icon name="terminal" size="sm" />
-                <span class="text-xs">{{ t('keys.useKey') }}</span>
+                {{ t('keys.connectApp') }}
               </button>
-              <!-- Import to CC Switch Button -->
               <button
                 v-if="!publicSettings?.hide_ccs_import_button"
+                data-test="key-ccs"
+                class="btn btn-secondary btn-sm whitespace-nowrap"
                 @click="importToCcswitch(row)"
-                class="flex flex-col items-center gap-0.5 rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-900/20 dark:hover:text-blue-400"
               >
                 <Icon name="upload" size="sm" />
-                <span class="text-xs">{{ t('keys.importToCcSwitch') }}</span>
+                {{ t('keys.importToCcSwitch') }}
               </button>
-              <!-- Toggle Status Button -->
               <button
-                @click="toggleKeyStatus(row)"
-                :class="[
-                  'flex flex-col items-center gap-0.5 rounded-lg p-1.5 transition-colors',
-                  row.status === 'active'
-                    ? 'text-gray-500 hover:bg-yellow-50 hover:text-yellow-600 dark:hover:bg-yellow-900/20 dark:hover:text-yellow-400'
-                    : 'text-gray-500 hover:bg-green-50 hover:text-green-600 dark:hover:bg-green-900/20 dark:hover:text-green-400'
-                ]"
+                data-test="key-more"
+                class="action-menu-trigger btn btn-ghost btn-sm px-2"
+                :class="{ 'bg-gray-100 dark:bg-dark-800': activeMenuId === row.id }"
+                :aria-label="t('common.more')"
+                :title="t('common.more')"
+                aria-haspopup="menu"
+                :aria-expanded="activeMenuId === row.id"
+                @click="openActionMenu(row, $event)"
               >
-                <Icon v-if="row.status === 'active'" name="ban" size="sm" />
-                <Icon v-else name="checkCircle" size="sm" />
-                <span class="text-xs">{{ row.status === 'active' ? t('keys.disable') : t('keys.enable') }}</span>
-              </button>
-              <!-- Edit Button -->
-              <button
-                @click="editKey(row)"
-                class="flex flex-col items-center gap-0.5 rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-gray-100 hover:text-primary-600 dark:hover:bg-dark-700 dark:hover:text-primary-400"
-              >
-                <Icon name="edit" size="sm" />
-                <span class="text-xs">{{ t('common.edit') }}</span>
-              </button>
-              <!-- Delete Button -->
-              <button
-                @click="confirmDelete(row)"
-                class="flex flex-col items-center gap-0.5 rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-400"
-              >
-                <Icon name="trash" size="sm" />
-                <span class="text-xs">{{ t('common.delete') }}</span>
+                <Icon name="more" size="sm" />
               </button>
             </div>
           </template>
@@ -1089,6 +1086,65 @@
       @close="closeUseKeyModal"
     />
 
+    <!-- Less used key actions, teleported so the table's scroll area cannot clip them -->
+    <Teleport to="body">
+      <div
+        v-if="menuKey && menuPosition"
+        role="menu"
+        class="action-menu-content fixed z-[9999] w-44 overflow-hidden rounded-xl bg-white py-1 shadow-lg ring-1 ring-black/5 dark:bg-dark-800 dark:ring-white/10"
+        :style="{ top: menuPosition.top + 'px', left: menuPosition.left + 'px' }"
+      >
+        <router-link
+          role="menuitem"
+          data-test="key-guide"
+          to="/help/guide"
+          class="flex w-full items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-dark-700"
+          @click="closeActionMenu"
+        >
+          <Icon name="book" size="sm" />
+          {{ t('yc.connect.toolGuide') }}
+        </router-link>
+        <button
+          role="menuitem"
+          data-test="key-toggle"
+          class="flex w-full items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-dark-700"
+          @click="runMenuAction(toggleKeyStatus)"
+        >
+          <Icon :name="menuKey.status === 'active' ? 'ban' : 'checkCircle'" size="sm" />
+          {{ menuKey.status === 'active' ? t('keys.disable') : t('keys.enable') }}
+        </button>
+        <button
+          role="menuitem"
+          data-test="key-edit"
+          class="flex w-full items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-dark-700"
+          @click="runMenuAction(editKey)"
+        >
+          <Icon name="edit" size="sm" />
+          {{ t('common.edit') }}
+        </button>
+        <div class="my-1 border-t border-gray-100 dark:border-dark-700"></div>
+        <button
+          role="menuitem"
+          data-test="key-delete"
+          class="flex w-full items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
+          @click="runMenuAction(confirmDelete)"
+        >
+          <Icon name="trash" size="sm" />
+          {{ t('common.delete') }}
+        </button>
+        <div class="my-1 border-t border-gray-100 dark:border-dark-700"></div>
+        <button
+          role="menuitem"
+          data-test="key-manual"
+          class="flex w-full items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-dark-700"
+          @click="runMenuAction(openUseKeyModal)"
+        >
+          <Icon name="terminal" size="sm" />
+          {{ t('keys.useKeyAdvanced') }}
+        </button>
+      </div>
+    </Teleport>
+
     <!-- CCS Client Selection Dialog for Antigravity -->
     <BaseDialog
       :show="showCcsClientSelect"
@@ -1213,6 +1269,7 @@
 	import { useAppStore } from '@/stores/app'
 	import { useOnboardingStore } from '@/stores/onboarding'
 	import { useClipboard } from '@/composables/useClipboard'
+	import { useYcAppConnect } from '@/composables/useYcAppConnect'
 import { getPersistedPageSize } from '@/composables/usePersistedPageSize'
 
 const { t } = useI18n()
@@ -2030,6 +2087,51 @@ const resetRateLimitUsage = async () => {
   }
 }
 
+const { handingOver, connectApp } = useYcAppConnect()
+// What a tool's settings ask for next to the key; shown without a trailing slash.
+const apiAddress = computed(() => (publicSettings.value?.api_base_url || window.location.origin).replace(/\/+$/, ''))
+
+const activeMenuId = ref<number | null>(null)
+const menuPosition = ref<{ top: number; left: number } | null>(null)
+const menuKey = computed(() => apiKeys.value.find((key) => key.id === activeMenuId.value) ?? null)
+
+const closeActionMenu = () => {
+  activeMenuId.value = null
+  menuPosition.value = null
+}
+
+const openActionMenu = (key: ApiKey, event: MouseEvent) => {
+  if (activeMenuId.value === key.id) {
+    closeActionMenu()
+    return
+  }
+  const rect = (event.currentTarget as HTMLElement).getBoundingClientRect()
+  const menuWidth = 176
+  const menuHeight = 212
+  const padding = 8
+  const below = rect.bottom + 4
+  menuPosition.value = {
+    left: Math.max(padding, Math.min(rect.right - menuWidth, window.innerWidth - menuWidth - padding)),
+    top: below + menuHeight > window.innerHeight - padding ? Math.max(padding, rect.top - menuHeight - 4) : below
+  }
+  activeMenuId.value = key.id
+}
+
+const runMenuAction = (action: (key: ApiKey) => void | Promise<void>) => {
+  const key = menuKey.value
+  closeActionMenu()
+  if (key) void action(key)
+}
+
+const closeActionMenuOnOutsideClick = (event: MouseEvent) => {
+  const target = event.target as HTMLElement
+  if (!target.closest('.action-menu-trigger') && !target.closest('.action-menu-content')) closeActionMenu()
+}
+
+const closeActionMenuOnEscape = (event: KeyboardEvent) => {
+  if (event.key === 'Escape') closeActionMenu()
+}
+
 const importToCcswitch = (row: ApiKey) => {
   const platform = row.group?.platform || 'anthropic'
 
@@ -2106,11 +2208,17 @@ onMounted(() => {
   loadUserGroupRates()
   loadPublicSettings()
   document.addEventListener('click', closeGroupSelector)
+  document.addEventListener('click', closeActionMenuOnOutsideClick)
+  document.addEventListener('keydown', closeActionMenuOnEscape)
+  window.addEventListener('scroll', closeActionMenu, true)
   resetTimer = setInterval(() => { now.value = new Date() }, 60000)
 })
 
 onUnmounted(() => {
   document.removeEventListener('click', closeGroupSelector)
+  document.removeEventListener('click', closeActionMenuOnOutsideClick)
+  document.removeEventListener('keydown', closeActionMenuOnEscape)
+  window.removeEventListener('scroll', closeActionMenu, true)
   if (resetTimer) clearInterval(resetTimer)
 })
 </script>

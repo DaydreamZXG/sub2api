@@ -110,7 +110,7 @@ export default {
     created: '创建时间',
     copyToClipboard: '复制到剪贴板',
     copied: '已复制！',
-    importToCcSwitch: '导入到 CCS',
+    importToCcSwitch: '导入 CC Switch',
     enable: '启用',
     disable: '禁用',
     nameLabel: '名称',
@@ -155,6 +155,9 @@ export default {
     lastUsedAt: '上次使用时间',
     lastUsedIP: '最近使用 IP',
     useKey: '使用密钥',
+    useKeyAdvanced: '命令行配置',
+    connectApp: '接入野菜客户端',
+    addressHint: '把它和下面的密钥填进软件的设置里就能用。',
     useKeyModal: {
       title: '使用 API 密钥',
       description: '将以下环境变量添加到您的终端配置文件或直接在终端中运行。',
