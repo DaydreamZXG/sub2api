@@ -329,7 +329,7 @@ export default {
     empty: '还没有使用记录。接入工具并发出第一次请求后，这里会显示每一笔的明细。',
     expandTip: '点任意一行可以展开，看这次请求的全部细节。',
     dModel: '模型', dInput: '输入', dOutput: '输出', dCacheWrite: '缓存写入', dCacheRead: '缓存读取',
-    dTiming: '首字 / 总用时', dListCost: '标准价', dMultiplier: '倍率'
+    dTiming: '首字 / 总用时', dListCost: '标准价', dMultiplier: '折扣'
   },
   final: { title: '现在就把它接上' }
 }

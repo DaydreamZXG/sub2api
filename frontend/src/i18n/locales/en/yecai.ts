@@ -329,7 +329,7 @@ export default {
     empty: 'No usage yet. After you connect a tool and send a request, each one is listed here.',
     expandTip: 'Select a row to see every detail of that request.',
     dModel: 'Model', dInput: 'Input', dOutput: 'Output', dCacheWrite: 'Cache write', dCacheRead: 'Cache read',
-    dTiming: 'First token / total', dListCost: 'List price', dMultiplier: 'Multiplier'
+    dTiming: 'First token / total', dListCost: 'List price', dMultiplier: 'Discount'
   },
   final: { title: 'Connect it now' }
 }
