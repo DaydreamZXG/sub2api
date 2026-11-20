@@ -6,7 +6,7 @@
         <b>{{ config.site_name }}</b>
       </div>
       <div class="pt-top-right">
-        <button v-if="usage" type="button" class="pt-link" data-test="portal-switch" @click="signOut">{{ say('switchKey') }}</button>
+        <button v-if="usage" type="button" class="pt-link" data-test="portal-switch" @click="signOut()">{{ say('switchKey') }}</button>
         <button type="button" class="pt-link" data-test="portal-locale" @click="toggleLocale">{{ locale === 'zh' ? 'English' : '中文' }}</button>
       </div>
     </header>
