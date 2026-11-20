@@ -276,6 +276,47 @@ func (s *ProfitService) Rebuild(ctx context.Context) error {
 	return s.repo.RebuildSummary(ctx)
 }
 
+// Setting keys read by the hourly summary: whether balance an admin grants by hand, and balance from
+// redeem codes, was paid for. Both are off unless set to "true".
+const (
+	SettingKeyProfitManualIsPaid = "profit_manual_is_paid"
+	SettingKeyProfitRedeemIsPaid = "profit_redeem_is_paid"
+)
+
+// ProfitSettings says which credits besides paid orders count as real money.
+type ProfitSettings struct {
+	ManualIsPaid bool `json:"manual_is_paid"`
+	RedeemIsPaid bool `json:"redeem_is_paid"`
+}
+
+func (s *ProfitService) GetSettings(ctx context.Context) ProfitSettings {
+	var out ProfitSettings
+	if s.settingRepo == nil {
+		return out
+	}
+	if v, err := s.settingRepo.GetValue(ctx, SettingKeyProfitManualIsPaid); err == nil {
+		out.ManualIsPaid = v == "true"
+	}
+	if v, err := s.settingRepo.GetValue(ctx, SettingKeyProfitRedeemIsPaid); err == nil {
+		out.RedeemIsPaid = v == "true"
+	}
+	return out
+}
+
+// UpdateSettings saves the settings and counts the hours whose logs are still kept again with them.
+func (s *ProfitService) UpdateSettings(ctx context.Context, in ProfitSettings) error {
+	for key, on := range map[string]bool{SettingKeyProfitManualIsPaid: in.ManualIsPaid, SettingKeyProfitRedeemIsPaid: in.RedeemIsPaid} {
+		value := "false"
+		if on {
+			value = "true"
+		}
+		if err := s.settingRepo.Set(ctx, key, value); err != nil {
+			return err
+		}
+	}
+	return s.repo.RebuildSummary(ctx)
+}
+
 func parseProfitDate(v string) (time.Time, bool) {
 	t, err := time.Parse(profitDateLayout, strings.TrimSpace(v))
 	return t, err == nil

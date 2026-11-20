@@ -52,6 +52,23 @@ func (h *ProfitHandler) Rebuild(c *gin.Context) {
 	response.Success(c, gin.H{"rebuilt": true})
 }
 
+func (h *ProfitHandler) GetSettings(c *gin.Context) {
+	response.Success(c, h.profitService.GetSettings(c.Request.Context()))
+}
+
+func (h *ProfitHandler) UpdateSettings(c *gin.Context) {
+	var req service.ProfitSettings
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.BadRequest(c, "Invalid request: "+err.Error())
+		return
+	}
+	if err := h.profitService.UpdateSettings(c.Request.Context(), req); err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+	response.Success(c, req)
+}
+
 func (h *ProfitHandler) ListPacks(c *gin.Context) {
 	packs, err := h.profitService.ListPacks(c.Request.Context())
 	if err != nil {

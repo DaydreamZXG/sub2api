@@ -459,6 +459,8 @@ func registerGrowthRoutes(admin *gin.RouterGroup, h *handler.Handlers) {
 func registerProfitRoutes(admin *gin.RouterGroup, h *handler.Handlers) {
 	admin.GET("/profit/report", h.Admin.Profit.Report)
 	admin.POST("/profit/rebuild", h.Admin.Profit.Rebuild)
+	admin.GET("/profit/settings", h.Admin.Profit.GetSettings)
+	admin.PUT("/profit/settings", h.Admin.Profit.UpdateSettings)
 	packs := admin.Group("/cost-packs")
 	{
 		packs.GET("", h.Admin.Profit.ListPacks)
