@@ -1,50 +1,35 @@
 <template>
   <AppLayout>
-    <TablePageLayout>
-      <template #filters>
-        <div class="flex flex-col justify-between gap-4 lg:flex-row lg:items-start">
-          <div class="flex flex-1 flex-wrap items-center gap-3">
-            <div class="relative w-full sm:w-80">
-              <Icon
-                name="search"
-                size="md"
-                class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"
-              />
-              <input
-                v-model="searchQuery"
-                type="text"
-                :placeholder="t('availableChannels.searchPlaceholder')"
-                class="input pl-10"
-              />
-            </div>
-          </div>
+    <div class="yav">
+      <div class="yav-bar">
+        <label class="yav-search">
+          <Icon name="search" size="md" />
+          <input
+            v-model="searchQuery"
+            type="text"
+            :placeholder="t('availableChannels.searchPlaceholder')"
+            :aria-label="t('availableChannels.searchPlaceholder')"
+          />
+        </label>
+        <span v-if="!loading && channels.length > 0" class="yav-count" data-test="channels-count">
+          {{ t('availableChannels.count', { n: filteredChannels.length }) }}
+        </span>
+        <button type="button" class="yav-refresh" :disabled="loading" data-test="channels-refresh" @click="loadChannels">
+          <Icon name="refresh" size="sm" :class="loading ? 'animate-spin' : ''" />
+          {{ t('common.refresh') }}
+        </button>
+      </div>
 
-          <div class="flex w-full flex-shrink-0 flex-wrap items-center justify-end gap-3 lg:w-auto">
-            <button
-              @click="loadChannels"
-              :disabled="loading"
-              class="btn btn-secondary"
-              :title="t('common.refresh', 'Refresh')"
-            >
-              <Icon name="refresh" size="md" :class="loading ? 'animate-spin' : ''" />
-            </button>
-          </div>
-        </div>
-      </template>
-
-      <template #table>
-        <AvailableChannelsTable
-          :columns="columnLabels"
-          :rows="filteredChannels"
-          :loading="loading"
-          :user-group-rates="userGroupRates"
-          pricing-key-prefix="availableChannels.pricing"
-          :no-pricing-label="t('availableChannels.noPricing')"
-          :no-models-label="t('availableChannels.noModels')"
-          :empty-label="t('availableChannels.empty')"
-        />
-      </template>
-    </TablePageLayout>
+      <AvailableChannelsList
+        :rows="filteredChannels"
+        :loading="loading"
+        :user-group-rates="userGroupRates"
+        pricing-key-prefix="availableChannels.pricing"
+        :no-pricing-label="t('availableChannels.noPricing')"
+        :no-models-label="t('availableChannels.noModels')"
+        :empty-label="searchQuery.trim() && channels.length > 0 ? t('availableChannels.noMatch') : t('availableChannels.empty')"
+      />
+    </div>
   </AppLayout>
 </template>
 
@@ -52,9 +37,8 @@
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppLayout from '@/components/layout/AppLayout.vue'
-import TablePageLayout from '@/components/layout/TablePageLayout.vue'
 import Icon from '@/components/icons/Icon.vue'
-import AvailableChannelsTable from '@/components/channels/AvailableChannelsTable.vue'
+import AvailableChannelsList from '@/components/channels/AvailableChannelsList.vue'
 import userChannelsAPI, { type UserAvailableChannel } from '@/api/channels'
 import userGroupsAPI from '@/api/groups'
 import { useAppStore } from '@/stores/app'
@@ -67,14 +51,6 @@ const channels = ref<UserAvailableChannel[]>([])
 const userGroupRates = ref<Record<number, number>>({})
 const loading = ref(false)
 const searchQuery = ref('')
-
-const columnLabels = computed(() => ({
-  name: t('availableChannels.columns.name'),
-  description: t('availableChannels.columns.description'),
-  platform: t('availableChannels.columns.platform'),
-  groups: t('availableChannels.columns.groups'),
-  supportedModels: t('availableChannels.columns.supportedModels'),
-}))
 
 /**
  * 搜索过滤：
@@ -125,3 +101,16 @@ async function loadChannels() {
 
 onMounted(loadChannels)
 </script>
+
+<style scoped>
+.yav { display: grid; gap: 16px; min-width: 0; }
+.yav-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.yav-search { display: flex; flex: 1 1 260px; align-items: center; gap: 8px; max-width: 420px; height: 44px; padding: 0 16px; border: 1px solid var(--yc-line); border-radius: 999px; background: var(--yc-paper); color: var(--yc-mut); }
+.yav-search:focus-within { border-color: var(--yc-ink); }
+.yav-search input { flex: 1; min-width: 0; border: 0; background: transparent; padding: 0; font-size: 14px; color: var(--yc-ink); outline: none; box-shadow: none; }
+.yav-search input::placeholder { color: var(--yc-mut); }
+.yav-count { font-size: 13px; color: var(--yc-mut); }
+.yav-refresh { display: inline-flex; align-items: center; gap: 6px; height: 44px; margin-left: auto; padding: 0 18px; border: 1px solid var(--yc-line); border-radius: 999px; font-size: 13px; font-weight: 600; color: var(--yc-ink); white-space: nowrap; }
+.yav-refresh:not(:disabled):hover { background: var(--yc-fill); }
+.yav-refresh:disabled { opacity: 0.5; cursor: not-allowed; }
+</style>

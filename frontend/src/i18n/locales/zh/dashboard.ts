@@ -644,23 +644,24 @@ export default {
   // Available Channels (user-facing)
   availableChannels: {
     title: '可用渠道',
-    description: '查看您可访问的渠道与其支持的模型、定价',
-    searchPlaceholder: '搜索渠道或模型...',
-    empty: '暂无可用渠道',
-    noModels: '未配置模型',
-    noPricing: '未配置定价',
+    description: '你能用哪些渠道、每个渠道有哪些线路和模型',
+    searchPlaceholder: '搜渠道、线路或模型',
+    empty: '还没有可以用的渠道',
+    noMatch: '没有搜到，换个词试试',
+    count: '共 {n} 个渠道',
+    noModels: '还没有配置模型',
+    noPricing: '还没有配置价格',
     exclusive: '专属',
     public: '公开',
-    exclusiveTooltip: '管理员授权给你的专属分组',
-    publicTooltip: '对所有用户公开的分组',
+    subscription: '包月',
+    exclusiveTooltip: '管理员单独开给你的线路',
+    publicTooltip: '所有用户都能用的线路',
     columns: {
-      name: '渠道名',
-      description: '描述',
-      platform: '平台',
-      groups: '我可访问的分组',
-      supportedModels: '支持模型'
+      groups: '你能用的线路',
+      supportedModels: '支持的模型（点一下看价格）'
     },
     pricing: {
+      standardNote: '这是标准价，实际按你所用线路的折扣计算',
       billingMode: '计费模式',
       billingModeToken: '按 Token',
       billingModePerRequest: '按次',

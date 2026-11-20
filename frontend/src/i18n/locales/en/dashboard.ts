@@ -639,23 +639,24 @@ export default {
   // Available Channels (user-facing)
   availableChannels: {
     title: 'Available Channels',
-    description: 'Channels you can access, along with their supported models and pricing',
-    searchPlaceholder: 'Search channels or models...',
-    empty: 'No available channels',
+    description: 'The channels you can use, with the lines and models on each',
+    searchPlaceholder: 'Search channels, lines or models',
+    empty: 'No channels are available yet',
+    noMatch: 'Nothing matches; try another word',
+    count: '{n} channels',
     noModels: 'No models configured',
     noPricing: 'Pricing not configured',
     exclusive: 'Exclusive',
     public: 'Public',
-    exclusiveTooltip: 'Exclusive groups granted to you by an admin',
-    publicTooltip: 'Groups open to all users',
+    subscription: 'Monthly plan',
+    exclusiveTooltip: 'A line an admin opened for you',
+    publicTooltip: 'A line open to every user',
     columns: {
-      name: 'Channel',
-      description: 'Description',
-      platform: 'Platform',
-      groups: 'Your Accessible Groups',
-      supportedModels: 'Supported Models'
+      groups: 'Lines you can use',
+      supportedModels: 'Models (tap one for prices)'
     },
     pricing: {
+      standardNote: 'Standard price; the discount of the line you use applies on top',
       billingMode: 'Billing Mode',
       billingModeToken: 'Per Token',
       billingModePerRequest: 'Per Request',
