@@ -132,8 +132,9 @@ type ProfitRepository interface {
 	DeletePayment(ctx context.Context, packID, paymentID int64) error
 	// Usage sums the summary between two days (both included), in the given timezone.
 	Usage(ctx context.Context, from, to, tz string) ([]ProfitUsageRow, error)
-	// Received is the money paid orders brought in and the money refunded, in the period, in currency.
-	Received(ctx context.Context, from, to, tz string) (received, refunded float64, err error)
+	// Received is the money paid orders brought in and the money refunded in the period, one entry per
+	// currency paid in: amounts in different currencies are not added up.
+	Received(ctx context.Context, from, to, tz string) ([]ProfitCash, error)
 	// AgentShare sums what agents were credited in the period, in balance units.
 	AgentShare(ctx context.Context, from, to, tz string) (float64, error)
 	PackUsage(ctx context.Context, tz string) (map[int64]ProfitPackUsage, error)
@@ -194,13 +195,19 @@ type ProfitAccountLine struct {
 }
 
 // ProfitReport is income, cost and profit between two days, in yuan.
+// ProfitCash is money received and refunded in one currency, in that currency.
+type ProfitCash struct {
+	Currency string  `json:"currency"`
+	Received float64 `json:"received"`
+	Refunded float64 `json:"refunded"`
+}
+
 type ProfitReport struct {
 	From         string  `json:"from"`
 	To           string  `json:"to"`
 	UnitsPerYuan float64 `json:"units_per_yuan"`
-	// Received and Refunded are what payment orders brought in and gave back in the period, as paid.
-	Received float64 `json:"received"`
-	Refunded float64 `json:"refunded"`
+	// Cash is what payment orders brought in and gave back in the period, as paid, per currency.
+	Cash []ProfitCash `json:"cash"`
 	// AgentShare is what agents were credited in the period. It is taken off the profit in Totals only.
 	AgentShare float64             `json:"agent_share"`
 	Totals     ProfitFigures       `json:"totals"`
@@ -519,7 +526,7 @@ func (s *ProfitService) Report(ctx context.Context, from, to string) (*ProfitRep
 	}
 	rate := s.unitsPerYuan(ctx)
 	report := buildProfitReport(rows, packs, from, to, s.today(), rate)
-	if report.Received, report.Refunded, err = s.repo.Received(ctx, from, to, timezone.Name()); err != nil {
+	if report.Cash, err = s.repo.Received(ctx, from, to, timezone.Name()); err != nil {
 		return nil, err
 	}
 	agentShare, err := s.repo.AgentShare(ctx, from, to, timezone.Name())

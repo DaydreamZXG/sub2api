@@ -42,8 +42,11 @@ const report = {
   from: '2026-11-01',
   to: '2026-11-20',
   units_per_yuan: 1,
-  received: 900,
-  refunded: 50,
+  cash: [
+    { currency: 'CNY', received: 900, refunded: 50 },
+    { currency: 'USD', received: 12.5, refunded: 0 },
+    { currency: 'JPY', received: 0, refunded: 3000 }
+  ],
   totals: figures({ requests: 57, income: 1520.5, gifted: 210, plan_usage: 25, rate_cost: 150, pack_cost: 346, profit: 1024.5 }),
   months: [],
   groups: [
@@ -97,8 +100,9 @@ describe('ProfitView', () => {
     expect(wrapper.get('[data-test="profit-plan-note"]').text()).toContain('¥25.00')
     expect(wrapper.get('[data-test="profit-gifted-note"]').text()).toContain('¥210.00')
     const cash = wrapper.get('[data-test="profit-cash-note"]').text()
-    expect(cash).toContain('¥900.00')
-    expect(cash).toContain('¥50.00')
+    // each currency on its own, never added up into one yuan figure
+    expect(cash).toContain('"received":"¥900.00 + USD 12.50"')
+    expect(cash).toContain('"refunded":"¥50.00 + JPY 3,000"')
 
     const groups = wrapper.get('[data-test="profit-by-group"]').text()
     expect(groups).toContain('admin.profit.unallocated')
