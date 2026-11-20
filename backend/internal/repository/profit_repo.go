@@ -30,10 +30,11 @@ const profitHourlyUpsertSQL = `
 		requests = EXCLUDED.requests,
 		standard_cost = EXCLUDED.standard_cost,
 		actual_cost = EXCLUDED.actual_cost,
-		account_cost = EXCLUDED.account_cost`
+		account_cost = EXCLUDED.account_cost
+	WHERE EXCLUDED.requests >= profit_hourly.requests`
 
-// upsertProfitHourly refreshes the profit summary for whole hours. It never deletes: hours whose logs
-// have since been purged keep the figures they had.
+// upsertProfitHourly refreshes the profit summary for whole hours. Saved figures only ever grow: an hour
+// whose logs have since been purged, in full or in part, keeps what it had, because that money was charged.
 func (r *dashboardAggregationRepository) upsertProfitHourly(ctx context.Context, hourStart, hourEnd time.Time) error {
 	_, err := r.sql.ExecContext(ctx, profitHourlyUpsertSQL, hourStart, hourEnd)
 	return err
