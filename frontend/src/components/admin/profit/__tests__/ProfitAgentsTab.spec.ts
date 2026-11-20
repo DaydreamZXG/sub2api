@@ -133,4 +133,25 @@ describe('ProfitAgentsTab', () => {
     await flushPromises()
     expect(set).toHaveBeenCalledWith(7, 5, [{ from: 10000, percent: 8 }, { from: 40000, percent: 10 }])
   })
+
+  it('sends back thresholds that were not retyped exactly as they were stored', async () => {
+    // 2 balance units to the yuan: 100.01 and 100.02 units both show as ¥50.01.
+    list.mockResolvedValue([
+      { ...agent, share_percent: 5, tiers: [{ from: 100.01, percent: 8 }, { from: 100.02, percent: 9 }], month_spent: 0, current_percent: 5 }
+    ])
+    const wrapper = await mountTab()
+    await wrapper.find('[data-test="agents-row"] button:nth-of-type(2)').trigger('click')
+    await wrapper.find('[data-test="agents-share"]').setValue('6')
+    await wrapper.find('[data-test="agents-save"]').trigger('submit')
+    await flushPromises()
+    expect(set).toHaveBeenCalledWith(7, 6, [{ from: 100.01, percent: 8 }, { from: 100.02, percent: 9 }])
+
+    // A retyped amount is sent as typed.
+    await wrapper.find('[data-test="agents-row"] button:nth-of-type(2)').trigger('click')
+    const rows = wrapper.findAll('[data-test="agents-tier-row"]')
+    await rows[1].get('[data-test="agents-tier-from"]').setValue('60')
+    await wrapper.find('[data-test="agents-save"]').trigger('submit')
+    await flushPromises()
+    expect(set).toHaveBeenLastCalledWith(7, 5, [{ from: 100.01, percent: 8 }, { from: 120, percent: 9 }])
+  })
 })

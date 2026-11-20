@@ -228,8 +228,15 @@ async function load() {
 const formOpen = ref(false)
 const editing = ref<AgentEntry | null>(null)
 const sharePercent = ref(10)
-// Thresholds are typed and shown in yuan, and sent in balance units.
-const tiers = ref<{ from: number; percent: number }[]>([])
+// Thresholds are typed and shown in yuan, and sent in balance units. A stored threshold may not be a
+// whole number of yuan cents, so `kept` remembers what was loaded: a row whose amount was not retyped
+// goes back exactly as it came.
+interface TierRow {
+  from: number
+  percent: number
+  kept?: { shown: number; units: number }
+}
+const tiers = ref<TierRow[]>([])
 const query = ref('')
 const found = ref<SimpleUser[]>([])
 const picked = ref<SimpleUser | null>(null)
@@ -238,7 +245,10 @@ let searchSeq = 0
 function openForm(agent: AgentEntry | null) {
   editing.value = agent
   sharePercent.value = agent?.share_percent ?? 10
-  tiers.value = (agent?.tiers ?? []).map((tier) => ({ from: Number(toYuan(tier.from).toFixed(2)), percent: tier.percent }))
+  tiers.value = (agent?.tiers ?? []).map((tier) => {
+    const shown = Number(toYuan(tier.from).toFixed(2))
+    return { from: shown, percent: tier.percent, kept: { shown, units: tier.from } }
+  })
   query.value = ''
   found.value = []
   picked.value = null
@@ -250,13 +260,18 @@ function addTier() {
   tiers.value.push({ from: last ? last.from * 2 : 5000, percent: Math.min((last?.percent ?? sharePercent.value) + 2, 100) })
 }
 
+function tierUnits(tier: TierRow): number {
+  return tier.kept && tier.from === tier.kept.shown ? tier.kept.units : toUnits(tier.from)
+}
+
 // Each tier has to start later and pay more than the one before it.
 function tiersValid(): boolean {
   let from = 0
   let percent = sharePercent.value
   return tiers.value.every((tier) => {
-    const ok = tier.from > from && tier.percent > percent && tier.percent <= 100
-    from = tier.from
+    const units = tierUnits(tier)
+    const ok = units > from && tier.percent > percent && tier.percent <= 100
+    from = units
     percent = tier.percent
     return ok
   })
@@ -297,7 +312,7 @@ async function saveAgent() {
     await agentsAPI.set(
       userId,
       sharePercent.value,
-      tiers.value.map((tier) => ({ from: toUnits(tier.from), percent: tier.percent }))
+      tiers.value.map((tier) => ({ from: tierUnits(tier), percent: tier.percent }))
     )
     formOpen.value = false
     appStore.showSuccess(t('admin.profit.agents.saved'))
