@@ -47,8 +47,9 @@ const BLOOMS: number[][][] = [[], [], [], [[48, 34, 6]], [[48, 26, 6], [34, 34, 
 </script>
 
 <style scoped>
-.yc-plant .soil { fill: var(--yc-fill); }
-.yc-plant .stem { fill: none; stroke: var(--yc-ink); stroke-width: 3; stroke-linecap: round; }
-.yc-plant .leaf { fill: var(--yc-lime); stroke: var(--yc-ink); stroke-width: 2; stroke-linejoin: round; }
-.yc-plant .bloom { fill: var(--yc-paper); stroke: var(--yc-ink); stroke-width: 2; }
+/* Whoever draws the plant on a coloured ground (the garden field) sets these. */
+.yc-plant .soil { fill: var(--yc-plant-soil, var(--yc-fill)); }
+.yc-plant .stem { fill: none; stroke: var(--yc-plant-stem, var(--yc-ink)); stroke-width: 3; stroke-linecap: round; }
+.yc-plant .leaf { fill: var(--yc-lime); stroke: var(--yc-plant-line, var(--yc-ink)); stroke-width: 2; stroke-linejoin: round; }
+.yc-plant .bloom { fill: var(--yc-plant-bloom, var(--yc-paper)); stroke: var(--yc-plant-line, var(--yc-ink)); stroke-width: 2; }
 </style>

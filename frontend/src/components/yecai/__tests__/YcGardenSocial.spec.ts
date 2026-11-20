@@ -135,7 +135,7 @@ describe('YcGardenSocial', () => {
 
     const crops = wrapper.findAll('.yc-nb-crop')
     expect(crops.map((c) => c.find('button').exists() && c.find('button').text())).toEqual(['yc.garden.water', 'yc.garden.steal', false, false])
-    expect(crops.map((c) => c.find('.yc-nb-state').text())).toEqual([
+    expect(crops.map((c) => c.find('.yc-plot-state').text())).toEqual([
       'yc.garden.growing', 'yc.garden.state.open', 'yc.garden.state.protected', 'yc.garden.state.caught'
     ])
   })

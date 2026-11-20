@@ -205,6 +205,7 @@ export default {
     off: 'The garden is closed for now.',
     harvested: 'Harvested',
     stolen: '{amount} taken by neighbours',
+    emptyPlot: 'Empty bed',
     source: { invite: 'Invite reward', gift: 'A gift from us' },
     water: 'Water',
     waterDone: 'Watered. This crop ripens {minutes} minutes sooner.',
