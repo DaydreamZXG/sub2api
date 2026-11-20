@@ -53,8 +53,7 @@
             </label>
             <label>
               <span>{{ t('reseller.form.line') }}</span>
-              <select v-model="form.groupId" data-test="reseller-line">
-                <option :value="null">{{ t('reseller.form.lineDefault') }}</option>
+              <select v-model="form.groupId" :disabled="groups.length === 0" data-test="reseller-line">
                 <option v-for="group in groups" :key="group.id" :value="group.id">{{ group.name }}</option>
               </select>
             </label>
@@ -70,8 +69,9 @@
               <span>{{ t('reseller.form.days') }}</span>
               <input v-model.number="form.days" type="number" min="1" step="1" :placeholder="t('reseller.form.daysPlaceholder')" data-test="reseller-days" />
             </label>
-            <button type="submit" class="yrs-btn yrs-btn-lime" :disabled="creating" data-test="reseller-create">{{ t('reseller.form.create') }}</button>
+            <button type="submit" class="yrs-btn yrs-btn-lime" :disabled="creating || form.groupId === null" data-test="reseller-create">{{ t('reseller.form.create') }}</button>
           </form>
+          <p v-if="groupsLoaded && groups.length === 0" class="yrs-hint yrs-hint-warn" data-test="reseller-no-lines">{{ t('reseller.form.noLines') }}</p>
           <p class="yrs-hint" data-test="reseller-explain">
             {{ markupOk ? t('reseller.form.explain', { client: money(form.markup), margin: money(form.markup - 1), budget: money(form.budget || 0), cost: money((form.budget || 0) / form.markup) }) : t('reseller.form.markupInvalid') }}
           </p>
@@ -86,7 +86,7 @@
               <div class="yrs-key-head">
                 <b>{{ key.name }}</b>
                 <span class="yrs-chip" :class="`is-${key.status}`">{{ t(`reseller.status.${statusName(key.status)}`) }}</span>
-                <span class="yrs-key-line">{{ key.group_name || t('reseller.form.lineDefault') }} · {{ t('reseller.keys.markup', { markup: key.markup }) }}</span>
+                <span class="yrs-key-line">{{ key.group_name || t('reseller.keys.noLine') }} · {{ t('reseller.keys.markup', { markup: key.markup }) }}</span>
               </div>
               <div class="yrs-key-code">
                 <code>{{ key.key }}</code>
@@ -143,6 +143,7 @@ const loading = ref(true)
 const creating = ref(false)
 const reseller = ref<ResellerOverview | null>(null)
 const groups = ref<Group[]>([])
+const groupsLoaded = ref(false)
 const form = reactive<{ name: string; groupId: number | null; budget: number; markup: number; days: number | '' }>({
   name: '',
   groupId: null,
@@ -175,7 +176,7 @@ async function load(): Promise<void> {
 
 async function create(): Promise<void> {
   if (creating.value) return
-  if (!form.name || !(form.budget > 0) || !markupOk.value) {
+  if (!form.name || form.groupId === null || !(form.budget > 0) || !markupOk.value) {
     appStore.showError(t('reseller.form.invalid'))
     return
   }
@@ -224,10 +225,14 @@ async function remove(key: ResellerClientKey): Promise<void> {
 onMounted(async () => {
   await load()
   if (!reseller.value) return
+  // A key on no line cannot make calls, so a client key always gets one: the first is preselected.
   try {
     groups.value = await groupsAPI.getAvailable()
-  } catch {
-    // The key can still be made on the default line.
+    form.groupId = groups.value[0]?.id ?? null
+  } catch (error) {
+    appStore.showError(extractApiErrorMessage(error, t('reseller.loadFailed')))
+  } finally {
+    groupsLoaded.value = true
   }
 })
 </script>
@@ -271,6 +276,7 @@ onMounted(async () => {
 .yrs-form .yrs-btn { height: 40px; }
 .yrs-hint { margin-top: 12px; font-size: 13px; line-height: 1.6; color: var(--yc-mut); }
 .yrs-hint + .yrs-hint { margin-top: 4px; }
+.yrs-hint-warn { color: #d97706; }
 
 .yrs-empty { margin-top: 16px; padding: 28px; border: 1px dashed var(--yc-line); border-radius: 16px; color: var(--yc-mut); font-size: 14px; text-align: center; }
 .yrs-keys { margin: 12px 0 0; padding: 0; list-style: none; }

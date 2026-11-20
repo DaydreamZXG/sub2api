@@ -85,7 +85,8 @@ describe('ResellerView', () => {
     expect(showError).toHaveBeenCalledWith('reseller.form.invalid')
 
     await wrapper.get('[data-test="reseller-name"]').setValue('shop')
-    await wrapper.get('[data-test="reseller-line"]').setValue(3)
+    // The first line is already chosen: a key on no line could not make calls.
+    expect((wrapper.get('[data-test="reseller-line"]').element as HTMLSelectElement).value).toBe('3')
     await wrapper.get('[data-test="reseller-budget"]').setValue('30')
     await wrapper.get('[data-test="reseller-markup"]').setValue('2')
     await wrapper.get('[data-test="reseller-days"]').setValue('30')
@@ -120,5 +121,15 @@ describe('ResellerView', () => {
     vi.spyOn(window, 'confirm').mockReturnValue(false)
     await wrapper.get('[data-test="reseller-delete"]').trigger('click')
     expect(deleteKey).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not let a key be made when the reseller has no line', async () => {
+    getAvailable.mockResolvedValue([])
+    const wrapper = await mountView()
+    expect(wrapper.find('[data-test="reseller-no-lines"]').exists()).toBe(true)
+    expect(wrapper.get('[data-test="reseller-create"]').attributes('disabled')).toBeDefined()
+    await wrapper.get('[data-test="reseller-name"]').setValue('shop')
+    await wrapper.get('[data-test="reseller-form"]').trigger('submit')
+    expect(createClientKey).not.toHaveBeenCalled()
   })
 })

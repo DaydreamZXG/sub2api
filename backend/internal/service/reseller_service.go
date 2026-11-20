@@ -11,7 +11,7 @@ import (
 
 var (
 	ErrResellerOnly       = infraerrors.Forbidden("RESELLER_ONLY", "this account is not a reseller")
-	ErrResellerKeyInvalid = infraerrors.BadRequest("RESELLER_KEY_INVALID", "a client key needs a name, a budget above 0 and a markup from 1 to 100")
+	ErrResellerKeyInvalid = infraerrors.BadRequest("RESELLER_KEY_INVALID", "a client key needs a name, a line, a budget above 0 and a markup from 1 to 100")
 	ErrResellerUserGone   = infraerrors.NotFound("RESELLER_USER_NOT_FOUND", "user not found")
 )
 
@@ -165,7 +165,8 @@ func (s *ResellerService) CreateClientKey(ctx context.Context, userID int64, req
 		return nil, ErrResellerOnly
 	}
 	markup := math.Round(req.Markup*1e4) / 1e4
-	if strings.TrimSpace(req.Name) == "" || math.IsNaN(req.Budget) || math.IsInf(req.Budget, 0) || req.Budget <= 0 ||
+	// A key on no line is refused by the gateway unless the site allows such keys; a client would get a key that does not work.
+	if strings.TrimSpace(req.Name) == "" || req.GroupID == nil || *req.GroupID <= 0 || math.IsNaN(req.Budget) || math.IsInf(req.Budget, 0) || req.Budget <= 0 ||
 		math.IsNaN(markup) || markup < resellerMinMarkup || markup > resellerMaxMarkup {
 		return nil, ErrResellerKeyInvalid
 	}

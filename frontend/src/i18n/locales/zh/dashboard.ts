@@ -776,7 +776,7 @@ export default {
       name: '给谁用（只有你看得到）',
       namePlaceholder: '比如：张三的工作室',
       line: '线路',
-      lineDefault: '默认线路',
+      noLines: '你现在没有可用的线路，建不了客户密钥。请联系我们开通线路。',
       budget: '客户额度（{sign}）',
       markup: '加价倍数',
       days: '有效天数',
@@ -785,12 +785,13 @@ export default {
       explain: '按这个倍数：你的余额每扣 1，客户的额度扣 {client}，你赚 {margin}。客户把 {budget} 用完，你的余额大约扣 {cost}。',
       markupInvalid: '加价倍数要在 1 到 100 之间：1 表示按成本价给客户。',
       locked: '加价倍数建好之后不能改；要换价格就新建一把。额度和线路之后可以在“密钥管理”里改。',
-      invalid: '请填名称、大于 0 的额度，以及 1 到 100 之间的加价倍数',
+      invalid: '请填名称、选线路、填大于 0 的额度，以及 1 到 100 之间的加价倍数',
       created: '建好了，密钥已复制',
       failed: '没有建成，请再试一次'
     },
     keys: {
       title: '客户密钥',
+      noLine: '线路已不存在',
       empty: '还没有客户密钥。在上面建一把，把密钥发给客户就能用。',
       markup: '加价 {markup} 倍',
       copy: '复制密钥',

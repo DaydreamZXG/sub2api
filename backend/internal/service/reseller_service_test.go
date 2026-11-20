@@ -48,12 +48,14 @@ func TestResellerServiceOnlyResellersMakeClientKeys(t *testing.T) {
 func TestResellerServiceChecksTheClientKey(t *testing.T) {
 	keys := &resellerKeyStub{}
 	svc := &ResellerService{repo: &resellerRepoStub{reseller: true}, keys: keys}
+	line := int64(3)
 	for name, req := range map[string]ResellerClientKeyRequest{
-		"no name":           {Name: "  ", Budget: 10, Markup: 1.5},
-		"no budget":         {Name: "a", Budget: 0, Markup: 1.5},
-		"below cost":        {Name: "a", Budget: 10, Markup: 0.99},
-		"markup of nothing": {Name: "a", Budget: 10},
-		"markup over a 100": {Name: "a", Budget: 10, Markup: 100.01},
+		"no name":           {Name: "  ", GroupID: &line, Budget: 10, Markup: 1.5},
+		"no line":           {Name: "a", Budget: 10, Markup: 1.5},
+		"no budget":         {Name: "a", GroupID: &line, Budget: 0, Markup: 1.5},
+		"below cost":        {Name: "a", GroupID: &line, Budget: 10, Markup: 0.99},
+		"markup of nothing": {Name: "a", GroupID: &line, Budget: 10},
+		"markup over a 100": {Name: "a", GroupID: &line, Budget: 10, Markup: 100.01},
 	} {
 		_, err := svc.CreateClientKey(context.Background(), 7, req)
 		require.ErrorIs(t, err, ErrResellerKeyInvalid, name)

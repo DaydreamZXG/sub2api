@@ -772,7 +772,7 @@ export default {
       name: 'Who it is for (only you see this)',
       namePlaceholder: "e.g. Sam's studio",
       line: 'Line',
-      lineDefault: 'Default line',
+      noLines: 'You have no line to use right now, so a client key cannot be made. Please get in touch.',
       budget: 'Client budget ({sign})',
       markup: 'Markup',
       days: 'Valid for (days)',
@@ -781,12 +781,13 @@ export default {
       explain: "At this markup: for every 1 taken from your balance, the client's budget goes down by {client} and you keep {margin}. When the client has used {budget}, about {cost} has left your balance.",
       markupInvalid: 'The markup must be from 1 to 100: 1 gives the client your own cost.',
       locked: 'The markup cannot be changed once the key exists; make a new key for another price. Budget and line can be changed later under API keys.',
-      invalid: 'Fill in a name, a budget above 0 and a markup from 1 to 100',
+      invalid: 'Fill in a name, pick a line, a budget above 0 and a markup from 1 to 100',
       created: 'Created, the key is copied',
       failed: 'Could not create the key, please try again'
     },
     keys: {
       title: 'Client keys',
+      noLine: 'line no longer exists',
       empty: 'No client keys yet. Make one above and send the key to your client.',
       markup: 'markup {markup}×',
       copy: 'Copy key',
