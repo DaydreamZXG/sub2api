@@ -7,7 +7,7 @@ const config = { portal: true as const, site_name: 'Keys', portal_logo: '', cont
 const usage = {
   status: 'active',
   quota: { limit: 100, used: 36, remaining: 64 },
-  expires_at: '2026-12-20T00:00:00Z',
+  expires_at: '2099-12-20T00:00:00Z',
   days_until_expiry: 30,
   usage: { today: { requests: 2, total_tokens: 1500, actual_cost: 6 }, total: { requests: 9, total_tokens: 9000, actual_cost: 36 } },
   daily_usage: [
@@ -107,5 +107,35 @@ describe('PortalApp', () => {
     await wrapper.get('[data-test="portal-locale"]').trigger('click')
     expect(wrapper.text()).toContain('输入你的密钥')
     expect(localStorage.getItem('portal_locale')).toBe('zh')
+  })
+
+  it('does not call a key active once its date has passed or its budget is gone', async () => {
+    localStorage.setItem('portal_key', 'sk-0123456789abcdef')
+    fetchMock.mockImplementation(async () => json({ ...usage, status: 'active', expires_at: '2020-01-01T00:00:00Z', days_until_expiry: 0 }))
+    const expired = await mountApp()
+    expect(expired.get('[data-test="portal-status"]').text()).toBe('Expired')
+    expect(expired.find('[data-test="portal-status-help"]').exists()).toBe(true)
+
+    fetchMock.mockImplementation(async () => json({ ...usage, status: 'active', expires_at: null, quota: { limit: 100, used: 100, remaining: 0 } }))
+    const usedUp = await mountApp()
+    expect(usedUp.get('[data-test="portal-status"]').text()).toBe('Budget used up')
+  })
+
+  it('says so when a refresh fails, and keeps the last figures', async () => {
+    localStorage.setItem('portal_key', 'sk-0123456789abcdef')
+    const wrapper = await mountApp()
+    expect(wrapper.find('[data-test="portal-refresh-error"]').exists()).toBe(false)
+
+    fetchMock.mockImplementation(async () => json({}, 502))
+    await wrapper.get('[data-test="portal-refresh"]').trigger('click')
+    await flushPromises()
+    expect(wrapper.get('[data-test="portal-refresh-error"]').text()).toContain('try again later')
+    expect(wrapper.get('[data-test="portal-remaining"]').text()).toBe('¥64.00')
+
+    // The next refresh that works clears it.
+    fetchMock.mockImplementation(async (url: string) => (url.startsWith('/v1/models') ? json({ data: [] }) : json(usage)))
+    await wrapper.get('[data-test="portal-refresh"]').trigger('click')
+    await flushPromises()
+    expect(wrapper.find('[data-test="portal-refresh-error"]').exists()).toBe(false)
   })
 })

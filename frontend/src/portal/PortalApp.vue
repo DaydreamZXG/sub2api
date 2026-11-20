@@ -41,7 +41,8 @@
             ·
             {{ expiryText }}
           </p>
-          <p v-if="status !== 'active'" class="pt-error">{{ say('statusHelp') }}</p>
+          <p v-if="status !== 'active'" class="pt-error" data-test="portal-status-help">{{ say('statusHelp') }}</p>
+          <p v-if="error" class="pt-error" data-test="portal-refresh-error">{{ say(error) }}</p>
         </section>
 
         <div class="pt-two">
@@ -171,8 +172,16 @@ function toggleLocale() {
 const money = (value: number | null | undefined) => `${props.config.sign}${(value ?? 0).toFixed(2)}`
 const count = (value: number | null | undefined) => (value ?? 0).toLocaleString('en-US')
 
+// The stored status only changes when a call is refused, so a key can still say active after its
+// date has passed or its budget is gone, while the gateway already turns it away.
 const status = computed(() => {
   const value = usage.value?.status ?? 'inactive'
+  if (value === 'active') {
+    const at = usage.value?.expires_at
+    if (at && new Date(at).getTime() <= Date.now()) return 'expired'
+    const quota = usage.value?.quota
+    if (quota && quota.limit > 0 && quota.remaining <= 0) return 'quota_exhausted'
+  }
   return ['active', 'inactive', 'quota_exhausted', 'expired'].includes(value) ? value : 'inactive'
 })
 const usedPercent = computed(() => {
