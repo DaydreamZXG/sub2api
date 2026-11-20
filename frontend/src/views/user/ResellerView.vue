@@ -214,7 +214,7 @@ async function toggle(key: ResellerClientKey): Promise<void> {
 async function remove(key: ResellerClientKey): Promise<void> {
   if (!window.confirm(t('reseller.keys.deleteConfirm', { name: key.name }))) return
   try {
-    await keysAPI.deleteKey(key.id)
+    await keysAPI.delete(key.id)
     await load()
   } catch (error) {
     appStore.showError(extractApiErrorMessage(error, t('reseller.keys.failed')))
@@ -243,7 +243,7 @@ onMounted(async () => {
 .yrs-btn-lime { background: var(--yc-lime); color: var(--yc-on-lime); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12); }
 .yrs-btn-lime:not(:disabled):hover { filter: brightness(0.96); }
 .yrs-btn-line { margin-top: 14px; border: 1px solid var(--yc-line); color: var(--yc-ink); }
-.yrs-link { font-size: 13px; color: var(--yc-ink); text-decoration: underline; text-underline-offset: 3px; }
+.yrs-link { flex: none; white-space: nowrap; font-size: 13px; color: var(--yc-ink); text-decoration: underline; text-underline-offset: 3px; }
 .yrs-link.is-danger { color: #dc2626; }
 
 .yrs-hero { display: flex; align-items: center; justify-content: space-between; gap: 28px; padding: 28px; border-radius: 22px; background: var(--yc-ink); color: var(--yc-paper); }

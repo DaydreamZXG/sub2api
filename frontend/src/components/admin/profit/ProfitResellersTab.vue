@@ -54,7 +54,7 @@
             <tr v-for="reseller in resellers" :key="reseller.user_id" data-test="resellers-row">
               <td class="py-2.5">
                 <p class="font-medium text-gray-900 dark:text-white">{{ reseller.email || `#${reseller.user_id}` }}</p>
-                <p class="text-xs text-gray-400 dark:text-dark-500">{{ t('admin.profit.resellers.since', { date: formatDate(reseller.since) }) }}</p>
+                <p class="text-xs text-gray-400 dark:text-dark-500">{{ t('admin.profit.resellers.since', { date: formatDateOnly(reseller.since) }) }}</p>
               </td>
               <td class="py-2.5 text-right tabular-nums text-gray-900 dark:text-white">{{ yuan(reseller.balance) }}</td>
               <td class="py-2.5 text-right tabular-nums text-gray-600 dark:text-dark-300">{{ reseller.keys }}</td>
@@ -84,7 +84,7 @@ import { lookupUsers } from '@/api/admin/affiliates'
 import type { SimpleUser } from '@/api/admin/affiliates'
 import { useYcMoney } from '@/composables/useYcMoney'
 import { extractApiErrorMessage } from '@/utils/apiError'
-import { formatDate } from '@/utils/format'
+import { formatDateOnly } from '@/utils/format'
 
 const { t } = useI18n()
 const appStore = useAppStore()

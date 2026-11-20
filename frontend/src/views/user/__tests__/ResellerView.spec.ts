@@ -15,7 +15,7 @@ const { getReseller, createClientKey, getAvailable, toggleStatus, deleteKey, sho
 
 vi.mock('@/api/reseller', () => ({ default: { getReseller, createClientKey } }))
 vi.mock('@/api/groups', () => ({ default: { getAvailable } }))
-vi.mock('@/api/keys', () => ({ default: { toggleStatus, deleteKey } }))
+vi.mock('@/api/keys', () => ({ default: { toggleStatus, delete: deleteKey } }))
 vi.mock('@/stores/app', () => ({ useAppStore: () => ({ showError }) }))
 vi.mock('@/composables/useClipboard', () => ({ useClipboard: () => ({ copyToClipboard }) }))
 vi.mock('@/composables/ycMoneyState', () => ({ ycSign: { value: '¥' } }))
