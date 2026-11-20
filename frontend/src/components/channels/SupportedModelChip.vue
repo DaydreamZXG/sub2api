@@ -2,12 +2,7 @@
   <div class="relative inline-block">
     <span
       ref="triggerEl"
-      :class="[
-        'inline-flex cursor-help items-center gap-1 rounded-md border px-2 py-0.5 text-xs font-medium transition-colors',
-        effectivePlatform
-          ? platformBadgeClass(effectivePlatform)
-          : 'border-gray-200 bg-gray-50 text-gray-700 dark:border-dark-600 dark:bg-dark-800 dark:text-gray-300',
-      ]"
+      class="ysc-chip"
       @mouseenter="onEnter"
       @mouseleave="onLeave"
       @focusin="onEnter"
@@ -60,6 +55,9 @@
           </div>
 
           <div v-else class="space-y-2 text-gray-700 dark:text-gray-300">
+            <p class="text-[11px] leading-4 text-gray-500 dark:text-gray-400" data-test="chip-standard-note">
+              {{ t(prefixKey('standardNote')) }}
+            </p>
             <div class="flex justify-between">
               <span class="text-gray-500 dark:text-gray-400">{{ t(prefixKey('billingMode')) }}</span>
               <span>{{ billingModeLabel }}</span>
@@ -183,7 +181,8 @@
 import { computed, nextTick, onBeforeUnmount, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import PricingRow from './PricingRow.vue'
-import { formatScaled, resolveIntervalPrices } from '@/utils/pricing'
+import { resolveIntervalPrices, yuanText } from '@/utils/pricing'
+import { unitsPerYuan } from '@/composables/ycMoneyState'
 import {
   BILLING_MODE_TOKEN,
   BILLING_MODE_PER_REQUEST,
@@ -195,7 +194,7 @@ import {
 import type { UserPricingInterval, UserSupportedModel, UserSupportedModelPricing } from '@/api/channels'
 import PlatformIcon from '@/components/common/PlatformIcon.vue'
 import type { GroupPlatform } from '@/types'
-import { platformBadgeClass, platformBorderClass, platformBadgeLightClass } from '@/utils/platformColors'
+import { platformBorderClass, platformBadgeLightClass } from '@/utils/platformColors'
 
 const props = withDefaults(
   defineProps<{
@@ -265,15 +264,20 @@ function formatRange(min: number, max: number | null): string {
 
 function formatInterval(iv: UserPricingInterval, pricing: UserSupportedModelPricing): string {
   if (pricing.billing_mode === BILLING_MODE_VIDEO) {
-    return `${formatScaled(iv.per_request_price, 1)} ${t(prefixKey('unitPerSecond'))}`
+    return `${yuan(iv.per_request_price, 1)} ${t(prefixKey('unitPerSecond'))}`
   }
   if (pricing.billing_mode === BILLING_MODE_PER_REQUEST || pricing.billing_mode === BILLING_MODE_IMAGE) {
-    return formatScaled(iv.per_request_price, 1)
+    return yuan(iv.per_request_price, 1)
   }
   const resolved = resolveIntervalPrices(iv, pricing)
-  const input = formatScaled(resolved.input_price, perMillionScale)
-  const output = formatScaled(resolved.output_price, perMillionScale)
+  const input = yuan(resolved.input_price, perMillionScale)
+  const output = yuan(resolved.output_price, perMillionScale)
   return `${input} / ${output}`
+}
+
+/** A price in balance units, restated in yuan. */
+function yuan(value: number | null, scale: number): string {
+  return value == null ? '-' : yuanText((value * scale) / unitsPerYuan.value)
 }
 
 // ── Popover positioning ─────────────────────────────────────────────
@@ -334,3 +338,8 @@ onBeforeUnmount(() => {
   window.removeEventListener('resize', updatePosition)
 })
 </script>
+
+<style scoped>
+.ysc-chip { display: inline-flex; align-items: center; gap: 5px; max-width: 100%; padding: 4px 10px; border: 1px solid var(--yc-line); border-radius: 999px; background: var(--yc-paper); color: var(--yc-ink); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; cursor: help; overflow-wrap: anywhere; transition: border-color 0.15s ease, background-color 0.15s ease; }
+.ysc-chip:hover, .ysc-chip:focus-visible { border-color: var(--yc-ink); background: var(--yc-fill); outline: none; }
+</style>

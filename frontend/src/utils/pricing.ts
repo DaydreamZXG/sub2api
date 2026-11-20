@@ -23,6 +23,12 @@ export function formatScaled(value: number | null, scale: number, minFractionDig
   return `$${s}`
 }
 
+/** An amount in yuan with at least two decimals; conversion noise past four decimals is dropped. */
+export function yuanText(amount: number): string {
+  const rounded = amount >= 0.01 ? Number(amount.toFixed(4)) : Number(amount.toPrecision(4))
+  return `¥${formatScaled(rounded, 1, 2).slice(1)}`
+}
+
 import type { UserPricingInterval } from '@/api/channels'
 
 type TokenPrices = Pick<UserPricingInterval, 'input_price' | 'output_price' | 'cache_write_price' | 'cache_write_1h_price' | 'cache_write_12h_price' | 'cache_read_price'>

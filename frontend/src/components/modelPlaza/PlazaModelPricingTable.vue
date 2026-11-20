@@ -221,7 +221,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { formatScaled, resolveIntervalPrices } from '@/utils/pricing'
+import { resolveIntervalPrices, yuanText } from '@/utils/pricing'
 import { platformLabel } from '@/utils/platformColors'
 import { priceChangeLabel } from '@/utils/ycPriceWords'
 import { cnyPerUsd, unitsPerYuan } from '@/composables/ycMoneyState'
@@ -307,9 +307,6 @@ function billingModeLabel(m: PlazaModel): string {
     : t('modelPlaza.table.perRequest')
 }
 
-/** 价格统一保底 2 位小数,更长的有效小数原样保留。 */
-const MIN_DECIMALS = 2
-
 /** 表格行:每个模型一行标准价;配置了分时倍率的模型再按时段各加一行。 */
 interface PlazaRow {
   model: PlazaModel
@@ -367,12 +364,6 @@ function paidRequestPrice(m: PlazaModel, value: number | null | undefined): stri
 function official(value: number | null | undefined): string {
   if (value == null) return '-'
   return yuanText(value * PER_MILLION * cnyPerUsd.value)
-}
-
-/** ¥ with at least two decimals; conversion noise past four decimals is dropped. */
-function yuanText(amount: number): string {
-  const rounded = amount >= 0.01 ? Number(amount.toFixed(4)) : Number(amount.toPrecision(4))
-  return `¥${formatScaled(rounded, 1, MIN_DECIMALS).slice(1)}`
 }
 
 /** A multiplier in words; the standard price has its own label. */
