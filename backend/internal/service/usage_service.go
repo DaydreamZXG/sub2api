@@ -393,11 +393,16 @@ func (s *UsageService) GetGroupStatsWithFilters(ctx context.Context, startTime, 
 	return stats, nil
 }
 
-// GetAPIKeyModelStats returns per-model usage stats for a specific API Key.
+// GetAPIKeyModelStats returns per-model usage stats for a specific API Key, as shown to whoever holds
+// the key (GET /v1/usage). What the calls cost the site upstream is the site's business: like the
+// user-facing usage pages, this leaves the account cost out.
 func (s *UsageService) GetAPIKeyModelStats(ctx context.Context, apiKeyID int64, startTime, endTime time.Time) ([]usagestats.ModelStat, error) {
 	stats, err := s.usageRepo.GetModelStatsWithFilters(ctx, startTime, endTime, 0, apiKeyID, 0, 0, nil, nil, nil)
 	if err != nil {
 		return nil, fmt.Errorf("get api key model stats: %w", err)
+	}
+	for i := range stats {
+		stats[i].AccountCost = 0
 	}
 	return stats, nil
 }
