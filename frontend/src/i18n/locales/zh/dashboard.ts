@@ -781,6 +781,36 @@ export default {
       empty: '现在没有可转入的返利',
       success: '已转入余额：{amount}'
     },
+    agent: {
+      title: '代理分润',
+      rule: '你是代理：你邀请的用户每花掉 100 元自己充值的钱，你拿 {rate} 的分润（赠送的余额不算）。分润和返利记在同一个额度里。',
+      monthShared: '本月分润',
+      shared: '累计分润',
+      fromSpent: '来自名下用户 {amount} 的消费',
+      available: '可提现',
+      availableNote: '也可以用上面的按钮转进余额',
+      payout: {
+        open: '申请提现',
+        pending: '有一笔 {amount} 的提现申请在等处理，处理完才能再申请。',
+        amount: '提现金额',
+        payee: '收款方式',
+        payeePlaceholder: '比如：支付宝 138****0000 张三',
+        submit: '提交申请',
+        hint: '提交后由站长线下打款，打款后这笔钱会从可提现额度里扣掉。',
+        history: '提现记录',
+        status: { pending: '等待处理', paid: '已打款', rejected: '已驳回' },
+        amountInvalid: '金额要大于 0，最多 {max}',
+        payeeRequired: '请填写收款方式',
+        sent: '申请已提交',
+        failed: '申请没有提交成功'
+      },
+      users: {
+        title: '名下用户',
+        empty: '还没有用户通过你的链接注册。',
+        spent: '计入分润的消费 {amount}',
+        share: '分润 {amount}'
+      }
+    },
     invitees: {
       title: '已邀请用户',
       empty: '暂无邀请记录',

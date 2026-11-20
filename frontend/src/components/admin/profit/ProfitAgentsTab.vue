@@ -186,7 +186,9 @@ const handled = computed(() => payouts.value.filter((item) => item.status !== 'p
 async function load() {
   loading.value = true
   try {
-    ;[agents.value, payouts.value] = await Promise.all([agentsAPI.list(), agentsAPI.listPayouts()])
+    const [agentList, payoutList] = await Promise.all([agentsAPI.list(), agentsAPI.listPayouts()])
+    agents.value = agentList
+    payouts.value = payoutList
   } catch (error) {
     appStore.showError(extractApiErrorMessage(error, t('admin.profit.failedToLoad')))
   } finally {
