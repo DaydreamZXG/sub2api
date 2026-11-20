@@ -1,254 +1,96 @@
 <template>
   <AppLayout>
-    <div class="space-y-6">
-      <!-- Loading State -->
-      <div v-if="loading" class="flex justify-center py-12">
-        <div
-          class="h-8 w-8 animate-spin rounded-full border-2 border-primary-500 border-t-transparent"
-        ></div>
+    <div class="ysb">
+      <div v-if="loading" class="ysb-loading">
+        <span class="ysb-spin"></span>
       </div>
 
-      <!-- Empty State -->
-      <div v-else-if="subscriptions.length === 0" class="card p-12 text-center">
-        <div
-          class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 dark:bg-dark-700"
+      <div v-else-if="subscriptions.length === 0" data-test="subs-empty" class="ysb-empty">
+        <span class="ysb-empty-icon"><Icon name="creditCard" size="lg" /></span>
+        <h3>{{ t('userSubscriptions.noActiveSubscriptions') }}</h3>
+        <p>{{ t(canBuy ? 'userSubscriptions.noActiveSubscriptionsBuy' : 'userSubscriptions.noActiveSubscriptionsDesc') }}</p>
+        <router-link
+          v-if="canBuy"
+          :to="{ path: '/purchase', query: { tab: 'subscription' } }"
+          class="ysb-btn ysb-btn-lime"
         >
-          <Icon name="creditCard" size="xl" class="text-gray-400" />
-        </div>
-        <h3 class="mb-2 text-lg font-semibold text-gray-900 dark:text-white">
-          {{ t('userSubscriptions.noActiveSubscriptions') }}
-        </h3>
-        <p class="text-gray-500 dark:text-dark-400">
-          {{ t('userSubscriptions.noActiveSubscriptionsDesc') }}
-        </p>
+          {{ t('userSubscriptions.browsePlans') }}
+        </router-link>
       </div>
 
-      <!-- Subscriptions Grid -->
-      <div v-else class="grid gap-6 lg:grid-cols-2">
-        <div
+      <div v-else class="ysb-grid">
+        <article
           v-for="subscription in subscriptions"
           :key="subscription.id"
-          class="overflow-hidden rounded-2xl border bg-white dark:bg-dark-800"
-          :class="platformBorderClass(subscription.group?.platform || '')"
+          data-test="sub-card"
+          class="ysb-card"
+          :class="{ 'ysb-card-off': subscription.status !== 'active' }"
         >
-          <!-- Header -->
-          <div
-            class="flex items-center justify-between border-b border-gray-100 p-4 dark:border-dark-700"
-          >
-            <div class="flex items-center gap-3">
-              <div :class="['h-1.5 w-1.5 shrink-0 rounded-full', platformAccentDotClass(subscription.group?.platform || '')]" />
-              <div>
-                <div class="flex items-center gap-2">
-                  <h3 class="font-semibold text-gray-900 dark:text-white">
-                    {{ subscription.group?.name || `Group #${subscription.group_id}` }}
-                  </h3>
-                  <span :class="['rounded-md border px-2 py-0.5 text-[11px] font-medium', platformBadgeClass(subscription.group?.platform || '')]">
-                    {{ platformLabel(subscription.group?.platform || '') }}
-                  </span>
-                </div>
-                <p v-if="subscription.group?.description" class="mt-0.5 text-xs text-gray-500 dark:text-dark-400">
-                  {{ subscription.group.description }}
-                </p>
-                <div class="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-gray-400 dark:text-gray-500">
-                  <span>{{ t('payment.planCard.rate') }}: ×{{ subscription.group?.rate_multiplier ?? 1 }}</span>
-                  <span v-if="subscriptionHasPeakRate(subscription)" class="text-amber-700 dark:text-amber-300">
-                    {{ t('payment.planCard.peakRate') }}: {{ subscriptionPeakRateLabel(subscription) }}
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div class="flex items-center gap-2">
-              <span
-                :class="[
-                  'rounded-full px-2 py-0.5 text-xs font-medium',
-                  subscription.status === 'active'
-                    ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300'
-                    : subscription.status === 'expired'
-                      ? 'bg-gray-100 text-gray-600 dark:bg-dark-700 dark:text-gray-400'
-                      : 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300'
-                ]"
-              >
+          <header class="ysb-head">
+            <div class="ysb-title">
+              <h3>{{ subscription.group?.name || `Group #${subscription.group_id}` }}</h3>
+              <span class="ysb-tag" :class="'ysb-tag-' + subscription.status">
                 {{ t(`userSubscriptions.status.${subscription.status}`) }}
               </span>
-              <button
-                v-if="subscription.status === 'active'"
-                :class="['rounded-lg px-3 py-1.5 text-xs font-semibold text-white transition-colors', platformButtonClass(subscription.group?.platform || '')]"
-                @click="router.push({ path: '/purchase', query: { tab: 'subscription', group: String(subscription.group_id) } })"
-              >
-                {{ t('payment.renewNow') }}
-              </button>
             </div>
-          </div>
-
-          <!-- Usage Progress -->
-          <div class="space-y-4 p-4">
-            <!-- Expiration Info -->
-            <div v-if="subscription.expires_at" class="flex items-center justify-between text-sm">
-              <span class="text-gray-500 dark:text-dark-400">{{
-                t('userSubscriptions.expires')
-              }}</span>
-              <span :class="getExpirationClass(subscription.expires_at)">
-                {{ formatExpirationDate(subscription.expires_at) }}
-              </span>
-            </div>
-            <div v-else class="flex items-center justify-between text-sm">
-              <span class="text-gray-500 dark:text-dark-400">{{
-                t('userSubscriptions.expires')
-              }}</span>
-              <span class="text-gray-700 dark:text-gray-300">{{
-                t('userSubscriptions.noExpiration')
-              }}</span>
-            </div>
-
-            <!-- Daily Usage -->
-            <div v-if="subscription.group?.daily_limit_usd" class="space-y-2">
-              <div class="flex items-center justify-between">
-                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  {{ t('userSubscriptions.daily') }}
-                </span>
-                <span class="text-sm text-gray-500 dark:text-dark-400">
-                  {{ sign }}{{ (subscription.daily_usage_usd || 0).toFixed(2) }} / {{ sign }}{{
-                    subscription.group.daily_limit_usd.toFixed(2)
-                  }}
-                </span>
-              </div>
-              <div class="relative h-2 overflow-hidden rounded-full bg-gray-200 dark:bg-dark-600">
-                <div
-                  class="absolute inset-y-0 left-0 rounded-full transition-all duration-300"
-                  :class="
-                    getProgressBarClass(
-                      subscription.daily_usage_usd,
-                      subscription.group.daily_limit_usd
-                    )
-                  "
-                  :style="{
-                    width: getProgressWidth(
-                      subscription.daily_usage_usd,
-                      subscription.group.daily_limit_usd
-                    )
-                  }"
-                ></div>
-              </div>
-              <p
-                v-if="subscription.daily_window_start"
-                class="text-xs text-gray-500 dark:text-dark-400"
-              >
-                {{ formatDailyUsageWindow(subscription) }}
-              </p>
-            </div>
-
-            <!-- Weekly Usage -->
-            <div v-if="subscription.group?.weekly_limit_usd" class="space-y-2">
-              <div class="flex items-center justify-between">
-                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  {{ t('userSubscriptions.weekly') }}
-                </span>
-                <span class="text-sm text-gray-500 dark:text-dark-400">
-                  {{ sign }}{{ (subscription.weekly_usage_usd || 0).toFixed(2) }} / {{ sign }}{{
-                    subscription.group.weekly_limit_usd.toFixed(2)
-                  }}
-                </span>
-              </div>
-              <div class="relative h-2 overflow-hidden rounded-full bg-gray-200 dark:bg-dark-600">
-                <div
-                  class="absolute inset-y-0 left-0 rounded-full transition-all duration-300"
-                  :class="
-                    getProgressBarClass(
-                      subscription.weekly_usage_usd,
-                      subscription.group.weekly_limit_usd
-                    )
-                  "
-                  :style="{
-                    width: getProgressWidth(
-                      subscription.weekly_usage_usd,
-                      subscription.group.weekly_limit_usd
-                    )
-                  }"
-                ></div>
-              </div>
-              <p
-                v-if="subscription.weekly_window_start"
-                class="text-xs text-gray-500 dark:text-dark-400"
-              >
-                {{
-                  t('userSubscriptions.resetIn', {
-                    time: formatResetTime(subscription.weekly_window_start, 168)
-                  })
-                }}
-              </p>
-            </div>
-
-            <!-- Monthly Usage -->
-            <div v-if="subscription.group?.monthly_limit_usd" class="space-y-2">
-              <div class="flex items-center justify-between">
-                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  {{ t('userSubscriptions.monthly') }}
-                </span>
-                <span class="text-sm text-gray-500 dark:text-dark-400">
-                  {{ sign }}{{ (subscription.monthly_usage_usd || 0).toFixed(2) }} / {{ sign }}{{
-                    subscription.group.monthly_limit_usd.toFixed(2)
-                  }}
-                </span>
-              </div>
-              <div class="relative h-2 overflow-hidden rounded-full bg-gray-200 dark:bg-dark-600">
-                <div
-                  class="absolute inset-y-0 left-0 rounded-full transition-all duration-300"
-                  :class="
-                    getProgressBarClass(
-                      subscription.monthly_usage_usd,
-                      subscription.group.monthly_limit_usd
-                    )
-                  "
-                  :style="{
-                    width: getProgressWidth(
-                      subscription.monthly_usage_usd,
-                      subscription.group.monthly_limit_usd
-                    )
-                  }"
-                ></div>
-              </div>
-              <p
-                v-if="subscription.monthly_window_start"
-                class="text-xs text-gray-500 dark:text-dark-400"
-              >
-                {{
-                  t('userSubscriptions.resetIn', {
-                    time: formatResetTime(subscription.monthly_window_start, 720)
-                  })
-                }}
-              </p>
-            </div>
-
-            <!-- No limits configured - Unlimited badge -->
-            <div
-              v-if="
-                !subscription.group?.daily_limit_usd &&
-                !subscription.group?.weekly_limit_usd &&
-                !subscription.group?.monthly_limit_usd
-              "
-              class="flex items-center justify-center rounded-xl bg-gradient-to-r from-emerald-50 to-teal-50 py-6 dark:from-emerald-900/20 dark:to-teal-900/20"
+            <button
+              v-if="subscription.status === 'active'"
+              type="button"
+              class="ysb-btn ysb-btn-lime"
+              @click="router.push({ path: '/purchase', query: { tab: 'subscription', group: String(subscription.group_id) } })"
             >
-              <div class="flex items-center gap-3">
-                <span class="text-4xl text-emerald-600 dark:text-emerald-400">∞</span>
-                <div>
-                  <p class="text-sm font-medium text-emerald-700 dark:text-emerald-300">
-                    {{ t('userSubscriptions.unlimited') }}
-                  </p>
-                  <p class="text-xs text-emerald-600/70 dark:text-emerald-400/70">
-                    {{ t('userSubscriptions.unlimitedDesc') }}
-                  </p>
-                </div>
+              {{ t('payment.renewNow') }}
+            </button>
+          </header>
+
+          <p v-if="subscription.group?.description" class="ysb-desc">{{ subscription.group.description }}</p>
+
+          <ul class="ysb-chips">
+            <li v-if="subscription.group?.platform">{{ platformLabel(subscription.group.platform) }}</li>
+            <li data-test="sub-pricing">{{ pricingLabel(subscription) }}</li>
+            <li v-if="subscriptionHasPeakRate(subscription)" data-test="sub-peak" class="ysb-chip-peak">
+              <Icon name="clock" size="xs" />{{ subscriptionPeakRateLabel(subscription) }}
+            </li>
+          </ul>
+
+          <dl class="ysb-expiry">
+            <dt>{{ t('userSubscriptions.expires') }}</dt>
+            <dd v-if="subscription.expires_at" :class="getExpirationClass(subscription.expires_at)">
+              {{ formatExpirationDate(subscription.expires_at) }}
+            </dd>
+            <dd v-else>{{ t('userSubscriptions.noExpiration') }}</dd>
+          </dl>
+
+          <div v-if="meters(subscription).length" class="ysb-meters">
+            <div v-for="meter in meters(subscription)" :key="meter.key" data-test="sub-meter" class="ysb-meter">
+              <div class="ysb-meter-top">
+                <span class="ysb-meter-name">{{ t(meter.label) }}</span>
+                <span class="ysb-meter-nums">
+                  {{ sign }}{{ meter.used.toFixed(2) }} / {{ sign }}{{ meter.limit.toFixed(2) }}
+                </span>
               </div>
+              <div class="ysb-bar">
+                <span :class="getProgressBarClass(meter.used, meter.limit)" :style="{ width: getProgressWidth(meter.used, meter.limit) }"></span>
+              </div>
+              <p v-if="meter.note" class="ysb-meter-note">{{ meter.note }}</p>
             </div>
           </div>
-        </div>
+
+          <div v-else data-test="sub-unlimited" class="ysb-unlimited">
+            <span class="ysb-unlimited-mark">∞</span>
+            <div>
+              <b>{{ t('userSubscriptions.unlimited') }}</b>
+              <p>{{ t('userSubscriptions.unlimitedDesc') }}</p>
+            </div>
+          </div>
+        </article>
       </div>
     </div>
   </AppLayout>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useAppStore } from '@/stores/app'
@@ -257,8 +99,10 @@ import type { UserSubscription } from '@/types'
 import AppLayout from '@/components/layout/AppLayout.vue'
 import Icon from '@/components/icons/Icon.vue'
 import { formatDateTimeToMinute } from '@/utils/format'
-import { hasPeakRate, formatPeakRateWindow, serverTimezoneLabel } from '@/utils/peak-rate'
-import { platformBorderClass, platformBadgeClass, platformButtonClass, platformLabel } from '@/utils/platformColors'
+import { hasPeakRate, serverTimezoneLabel } from '@/utils/peak-rate'
+import { platformLabel } from '@/utils/platformColors'
+import { FeatureFlags, isFeatureFlagEnabled } from '@/utils/featureFlags'
+import { priceChangeLabel } from '@/utils/ycPriceWords'
 import {
   getExpirationDateRelation,
   getRemainingDurationParts,
@@ -267,16 +111,6 @@ import {
 } from '@/utils/subscriptionQuota'
 import { ycSign as sign } from '@/composables/ycMoneyState'
 
-
-function platformAccentDotClass(p: string): string {
-  switch (p) {
-    case 'anthropic': return 'bg-orange-500'
-    case 'openai': return 'bg-emerald-500'
-    case 'antigravity': return 'bg-purple-500'
-    case 'gemini': return 'bg-blue-500'
-    default: return 'bg-gray-400'
-  }
-}
 
 const { t } = useI18n()
 const router = useRouter()
@@ -289,8 +123,69 @@ function subscriptionHasPeakRate(subscription: UserSubscription): boolean {
   return hasPeakRate(subscription.group)
 }
 
+// "高峰时段 14:00-18:00 (UTC+8) 贵 20%": the same words the model plaza uses.
 function subscriptionPeakRateLabel(subscription: UserSubscription): string {
-  return formatPeakRateWindow(subscription.group, serverTimezoneLabel(appStore.cachedPublicSettings?.server_utc_offset))
+  const group = subscription.group
+  if (!group) return ''
+  const zone = serverTimezoneLabel(appStore.cachedPublicSettings?.server_utc_offset)
+  const hours = `${group.peak_start}-${group.peak_end}`
+  return t('modelPlaza.detail.peakNote', {
+    window: zone ? `${hours} (${zone})` : hours,
+    change: priceChangeLabel(t, group.peak_rate_multiplier)
+  })
+}
+
+// The plans are sold on the top-up page, which only exists while payment is on.
+const canBuy = computed(() => isFeatureFlagEnabled(FeatureFlags.payment))
+
+function pricingLabel(subscription: UserSubscription): string {
+  const change = priceChangeLabel(t, subscription.group?.rate_multiplier ?? 1)
+  return t('userSubscriptions.pricing', { change: change || t('userSubscriptions.standardPrice') })
+}
+
+interface Meter {
+  key: string
+  label: string
+  used: number
+  limit: number
+  note: string
+}
+
+function meters(subscription: UserSubscription): Meter[] {
+  const group = subscription.group
+  const list: Meter[] = []
+  if (group?.daily_limit_usd) {
+    list.push({
+      key: 'daily',
+      label: 'userSubscriptions.daily',
+      used: subscription.daily_usage_usd || 0,
+      limit: group.daily_limit_usd,
+      note: subscription.daily_window_start ? formatDailyUsageWindow(subscription) : ''
+    })
+  }
+  if (group?.weekly_limit_usd) {
+    list.push({
+      key: 'weekly',
+      label: 'userSubscriptions.weekly',
+      used: subscription.weekly_usage_usd || 0,
+      limit: group.weekly_limit_usd,
+      note: subscription.weekly_window_start
+        ? t('userSubscriptions.resetIn', { time: formatResetTime(subscription.weekly_window_start, 168) })
+        : ''
+    })
+  }
+  if (group?.monthly_limit_usd) {
+    list.push({
+      key: 'monthly',
+      label: 'userSubscriptions.monthly',
+      used: subscription.monthly_usage_usd || 0,
+      limit: group.monthly_limit_usd,
+      note: subscription.monthly_window_start
+        ? t('userSubscriptions.resetIn', { time: formatResetTime(subscription.monthly_window_start, 720) })
+        : ''
+    })
+  }
+  return list
 }
 
 async function loadSubscriptions() {
@@ -312,11 +207,11 @@ function getProgressWidth(used: number | undefined, limit: number | null | undef
 }
 
 function getProgressBarClass(used: number | undefined, limit: number | null | undefined): string {
-  if (!limit || limit === 0) return 'bg-gray-400'
+  if (!limit || limit === 0) return ''
   const percentage = ((used || 0) / limit) * 100
-  if (percentage >= 90) return 'bg-red-500'
-  if (percentage >= 70) return 'bg-orange-500'
-  return 'bg-green-500'
+  if (percentage >= 90) return 'ysb-bar-bad'
+  if (percentage >= 70) return 'ysb-bar-warn'
+  return ''
 }
 
 function formatExpirationDate(expiresAt: string): string {
@@ -350,22 +245,22 @@ function getExpirationClass(expiresAt: string): string {
   const diff = expires.getTime() - now.getTime()
   const days = Math.ceil(diff / (1000 * 60 * 60 * 24))
 
-  if (diff <= 0) return 'text-red-600 dark:text-red-400 font-medium'
-  if (days <= 3) return 'text-red-600 dark:text-red-400'
-  if (days <= 7) return 'text-orange-600 dark:text-orange-400'
-  return 'text-gray-700 dark:text-gray-300'
+  if (diff <= 0) return 'ysb-bad'
+  if (days <= 3) return 'ysb-bad'
+  if (days <= 7) return 'ysb-warn'
+  return ''
 }
 
 function formatDurationParts(parts: RemainingDurationParts): string {
   if (parts.days > 0) {
-    return `${parts.days}d ${parts.hours}h`
+    return t('userSubscriptions.duration.daysHours', { d: parts.days, h: parts.hours })
   }
 
   if (parts.hours > 0) {
-    return `${parts.hours}h ${parts.minutes}m`
+    return t('userSubscriptions.duration.hoursMinutes', { h: parts.hours, m: parts.minutes })
   }
 
-  return `${parts.minutes}m`
+  return t('userSubscriptions.duration.minutes', { m: parts.minutes })
 }
 
 function formatDailyUsageWindow(subscription: UserSubscription): string {
@@ -394,3 +289,103 @@ onMounted(() => {
   loadSubscriptions()
 })
 </script>
+
+<style scoped>
+.ysb { max-width: 1040px; }
+.ysb-loading { display: grid; place-items: center; padding: 64px 0; }
+.ysb-spin {
+  width: 28px;
+  height: 28px;
+  border: 2px solid var(--yc-line);
+  border-top-color: var(--yc-ink);
+  border-radius: 50%;
+  animation: ysb-spin 0.8s linear infinite;
+}
+@keyframes ysb-spin { to { transform: rotate(360deg); } }
+
+.ysb-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 18px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+.ysb-btn-lime { background: var(--yc-lime); color: var(--yc-on-lime); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12); }
+.ysb-btn-lime:hover { filter: brightness(0.96); }
+
+.ysb-empty {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding: 56px 24px;
+  border: 1px dashed var(--yc-line);
+  border-radius: 22px;
+  background: var(--yc-paper);
+  text-align: center;
+}
+.ysb-empty-icon { display: grid; place-items: center; width: 56px; height: 56px; border-radius: 18px; background: var(--yc-fill); color: var(--yc-mut); }
+.ysb-empty h3 { font-size: 18px; font-weight: 720; color: var(--yc-ink); }
+.ysb-empty p { max-width: 420px; font-size: 14px; color: var(--yc-mut); }
+.ysb-empty .ysb-btn { margin-top: 8px; }
+
+.ysb-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; align-items: start; }
+.ysb-card {
+  display: grid;
+  gap: 16px;
+  padding: 24px;
+  border: 1px solid var(--yc-line);
+  border-radius: 22px;
+  background: var(--yc-paper);
+}
+.ysb-card-off { opacity: 0.72; }
+.ysb-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.ysb-title { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-width: 0; }
+.ysb-title h3 { min-width: 0; overflow-wrap: anywhere; font-size: 20px; font-weight: 750; letter-spacing: -0.01em; color: var(--yc-ink); }
+.ysb-tag { padding: 2px 10px; border-radius: 999px; background: var(--yc-fill); color: var(--yc-mut); font-size: 12px; font-weight: 650; white-space: nowrap; }
+.ysb-tag-active { background: var(--yc-lime); color: var(--yc-on-lime); }
+.ysb-tag-revoked, .ysb-tag-suspended { background: color-mix(in srgb, #ef4444 16%, transparent); color: #dc2626; }
+.ysb-desc { margin-top: -8px; font-size: 14px; color: var(--yc-mut); }
+
+.ysb-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.ysb-chips li {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border: 1px solid var(--yc-line);
+  border-radius: 999px;
+  color: var(--yc-mut);
+  font-size: 12px;
+}
+.ysb-chips .ysb-chip-peak { border-color: color-mix(in srgb, #f59e0b 50%, transparent); color: #b45309; }
+:global(.dark) .ysb-chips .ysb-chip-peak { color: #fbbf24; }
+
+.ysb-expiry { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 0; padding: 12px 16px; border-radius: 14px; background: var(--yc-fill); font-size: 14px; }
+.ysb-expiry dt { color: var(--yc-mut); white-space: nowrap; }
+.ysb-expiry dd { margin: 0; color: var(--yc-ink); font-weight: 650; text-align: right; }
+.ysb-expiry .ysb-warn { color: #d97706; }
+.ysb-expiry .ysb-bad { color: #dc2626; }
+
+.ysb-meters { display: grid; gap: 14px; }
+.ysb-meter-top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; font-size: 14px; }
+.ysb-meter-name { font-weight: 650; color: var(--yc-ink); }
+.ysb-meter-nums { color: var(--yc-mut); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ysb-bar { height: 8px; margin-top: 8px; overflow: hidden; border-radius: 999px; background: var(--yc-fill); }
+.ysb-bar span { display: block; height: 100%; border-radius: inherit; background: var(--yc-ink); transition: width 0.3s; }
+.ysb-bar .ysb-bar-warn { background: #f59e0b; }
+.ysb-bar .ysb-bar-bad { background: #ef4444; }
+.ysb-meter-note { margin-top: 6px; font-size: 12px; color: var(--yc-mut); }
+
+.ysb-unlimited { display: flex; align-items: center; gap: 14px; padding: 16px; border-radius: 14px; background: var(--yc-fill); }
+.ysb-unlimited-mark { font-size: 34px; line-height: 1; color: var(--yc-ink); }
+.ysb-unlimited b { font-size: 14px; color: var(--yc-ink); }
+.ysb-unlimited p { font-size: 12px; color: var(--yc-mut); }
+
+@media (max-width: 900px) {
+  .ysb-grid { grid-template-columns: minmax(0, 1fr); }
+  .ysb-card { padding: 20px; }
+}
+</style>
