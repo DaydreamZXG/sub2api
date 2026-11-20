@@ -80,6 +80,9 @@ type Group struct {
 	// Claude Code 客户端限制
 	ClaudeCodeOnly  bool
 	FallbackGroupID *int64
+	// 仅限野菜 app：没带 app 凭证的请求改用 AppFallbackGroupID（为空则拒绝）
+	AppOnly            bool
+	AppFallbackGroupID *int64
 	// 无效请求兜底分组（仅 anthropic 平台使用）
 	FallbackGroupIDOnInvalidRequest *int64
 

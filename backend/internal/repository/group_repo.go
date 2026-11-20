@@ -131,7 +131,10 @@ func createGroupRecord(ctx context.Context, client *dbent.Client, groupIn *servi
 		SetModelPricing(modelPricing).
 		SetDefaultValidityDays(groupIn.DefaultValidityDays).
 		SetClaudeCodeOnly(groupIn.ClaudeCodeOnly).
+		SetAppOnly(groupIn.AppOnly).
 		SetNillableFallbackGroupID(groupIn.FallbackGroupID).
+		SetAppOnly(groupIn.AppOnly).
+		SetNillableAppFallbackGroupID(groupIn.AppFallbackGroupID).
 		SetNillableFallbackGroupIDOnInvalidRequest(groupIn.FallbackGroupIDOnInvalidRequest).
 		SetModelRoutingEnabled(groupIn.ModelRoutingEnabled).
 		SetMcpXMLInject(groupIn.MCPXMLInject).
@@ -319,6 +322,7 @@ func (r *groupRepository) Update(ctx context.Context, groupIn *service.Group) er
 		SetModelPricing(modelPricing).
 		SetDefaultValidityDays(groupIn.DefaultValidityDays).
 		SetClaudeCodeOnly(groupIn.ClaudeCodeOnly).
+		SetAppOnly(groupIn.AppOnly).
 		SetModelRoutingEnabled(groupIn.ModelRoutingEnabled).
 		SetMcpXMLInject(groupIn.MCPXMLInject).
 		SetAllowMessagesDispatch(groupIn.AllowMessagesDispatch).
@@ -416,6 +420,11 @@ func (r *groupRepository) Update(ctx context.Context, groupIn *service.Group) er
 		builder = builder.ClearAudioSttPricePerHour()
 	}
 
+	if groupIn.AppFallbackGroupID != nil {
+		builder = builder.SetAppFallbackGroupID(*groupIn.AppFallbackGroupID)
+	} else {
+		builder = builder.ClearAppFallbackGroupID()
+	}
 	// 处理 FallbackGroupID：nil 时清除，否则设置
 	if groupIn.FallbackGroupID != nil {
 		builder = builder.SetFallbackGroupID(*groupIn.FallbackGroupID)

@@ -1227,6 +1227,15 @@ export default {
           detector: '内置识别'
         }
       },
+      appLine: {
+        title: '仅限野菜 app（种菜线路）',
+        enabled: '只有通过野菜 app 发出的请求按这条线路计费',
+        disabled: '任何工具都可以使用',
+        hint: '开启后，app 用户按这条线路的价格扣费。没有通过 app 发出的请求，按下面选择的线路处理。',
+        fallbackGroup: '不是从 app 发出的请求改用',
+        noFallback: '不改用，直接拒绝',
+        fallbackHint: '选一条普通价线路，这类请求会按它的价格继续使用；不选则直接拒绝。'
+      },
       claudeCode: {
         title: 'Claude Code 客户端限制',
         tooltip:

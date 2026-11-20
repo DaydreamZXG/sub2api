@@ -516,6 +516,19 @@ func (s *adminServiceImpl) CreateGroup(ctx context.Context, input *CreateGroupIn
 			return nil, err
 		}
 	}
+	// 订阅分组不支持“仅限 app”：改用普通价分组会把订阅用户变成按余额扣费。
+	if subscriptionType == SubscriptionTypeSubscription {
+		input.AppOnly = false
+		input.AppFallbackGroupID = nil
+	}
+	if input.AppFallbackGroupID != nil && *input.AppFallbackGroupID <= 0 {
+		input.AppFallbackGroupID = nil
+	}
+	if input.AppFallbackGroupID != nil {
+		if err := s.validateAppFallbackGroup(ctx, 0, platform, *input.AppFallbackGroupID); err != nil {
+			return nil, err
+		}
+	}
 	fallbackOnInvalidRequest := input.FallbackGroupIDOnInvalidRequest
 	if fallbackOnInvalidRequest != nil && *fallbackOnInvalidRequest <= 0 {
 		fallbackOnInvalidRequest = nil
@@ -620,6 +633,8 @@ func (s *adminServiceImpl) CreateGroup(ctx context.Context, input *CreateGroupIn
 		AudioSTTPricePerHour:            audioSTTPricePerHour,
 		ClaudeCodeOnly:                  input.ClaudeCodeOnly,
 		FallbackGroupID:                 input.FallbackGroupID,
+		AppOnly:                         input.AppOnly,
+		AppFallbackGroupID:              input.AppFallbackGroupID,
 		FallbackGroupIDOnInvalidRequest: fallbackOnInvalidRequest,
 		ModelRouting:                    input.ModelRouting,
 		MCPXMLInject:                    mcpXMLInject,
@@ -742,6 +757,25 @@ func (s *adminServiceImpl) validateFallbackGroup(ctx context.Context, currentGro
 // currentGroupID: 当前分组 ID（新建时为 0）
 // platform/subscriptionType: 当前分组的有效平台/订阅类型
 // fallbackGroupID: 兜底分组 ID
+// validateAppFallbackGroup 校验“非 app 请求改用的分组”：必须是同平台、启用中的普通（非订阅）分组，
+// 且自身不是仅限 app 的分组，这样一次请求最多只换一次分组。
+func (s *adminServiceImpl) validateAppFallbackGroup(ctx context.Context, currentGroupID int64, platform string, fallbackGroupID int64) error {
+	if currentGroupID > 0 && currentGroupID == fallbackGroupID {
+		return infraerrors.BadRequest("INVALID_APP_FALLBACK_GROUP", "cannot set self as app fallback group")
+	}
+	fallback, err := s.groupRepo.GetByIDLite(ctx, fallbackGroupID)
+	if err != nil {
+		return infraerrors.BadRequest("INVALID_APP_FALLBACK_GROUP", "app fallback group not found")
+	}
+	if !AppFallbackGroupUsable(fallback) {
+		return infraerrors.BadRequest("INVALID_APP_FALLBACK_GROUP", "app fallback group must be an active standard group that is not app-only")
+	}
+	if fallback.Platform != platform {
+		return infraerrors.BadRequest("INVALID_APP_FALLBACK_GROUP", "app fallback group must be on the same platform")
+	}
+	return nil
+}
+
 func (s *adminServiceImpl) validateFallbackGroupOnInvalidRequest(ctx context.Context, currentGroupID int64, platform, subscriptionType string, fallbackGroupID int64) error {
 	if platform != PlatformAnthropic && platform != PlatformAntigravity {
 		return fmt.Errorf("invalid request fallback only supported for anthropic or antigravity groups")
@@ -765,6 +799,9 @@ func (s *adminServiceImpl) validateFallbackGroupOnInvalidRequest(ctx context.Con
 	}
 	if fallbackGroup.FallbackGroupIDOnInvalidRequest != nil {
 		return fmt.Errorf("fallback group cannot have invalid request fallback configured")
+	}
+	if fallbackGroup.AppOnly {
+		return fmt.Errorf("fallback group cannot be app-only")
 	}
 	return nil
 }
@@ -979,6 +1016,25 @@ func (s *adminServiceImpl) UpdateGroup(ctx context.Context, id int64, input *Upd
 			// 传入 0 或负数表示清除降级分组
 			group.FallbackGroupID = nil
 		}
+	}
+	if input.AppOnly != nil {
+		group.AppOnly = *input.AppOnly
+	}
+	if input.AppFallbackGroupID != nil {
+		// 传入 0 或负数表示清除
+		if *input.AppFallbackGroupID > 0 {
+			if err := s.validateAppFallbackGroup(ctx, id, group.Platform, *input.AppFallbackGroupID); err != nil {
+				return nil, err
+			}
+			group.AppFallbackGroupID = input.AppFallbackGroupID
+		} else {
+			group.AppFallbackGroupID = nil
+		}
+	}
+	// 订阅分组不支持“仅限 app”（含由普通分组改成订阅分组的情况）。
+	if group.SubscriptionType == SubscriptionTypeSubscription {
+		group.AppOnly = false
+		group.AppFallbackGroupID = nil
 	}
 	fallbackOnInvalidRequest := group.FallbackGroupIDOnInvalidRequest
 	if input.FallbackGroupIDOnInvalidRequest != nil {

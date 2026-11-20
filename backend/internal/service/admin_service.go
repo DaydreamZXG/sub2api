@@ -282,6 +282,8 @@ type CreateGroupInput struct {
 	AudioSTTPricePerHour         *float64
 	ClaudeCodeOnly               bool   // 仅允许 Claude Code 客户端
 	FallbackGroupID              *int64 // 降级分组 ID
+	AppOnly                      bool   // 仅限野菜 app
+	AppFallbackGroupID           *int64 // 非 app 请求改用的分组 ID
 	// 无效请求兜底分组 ID（仅 anthropic 平台使用）
 	FallbackGroupIDOnInvalidRequest *int64
 	// 模型路由配置（仅 anthropic 平台使用）
@@ -366,6 +368,8 @@ type UpdateGroupInput struct {
 	AudioSTTPricePerHour         *float64
 	ClaudeCodeOnly               *bool  // 仅允许 Claude Code 客户端
 	FallbackGroupID              *int64 // 降级分组 ID
+	AppOnly                      *bool  // 仅限野菜 app
+	AppFallbackGroupID           *int64 // 非 app 请求改用的分组 ID
 	// 无效请求兜底分组 ID（仅 anthropic 平台使用）
 	FallbackGroupIDOnInvalidRequest *int64
 	// 模型路由配置（仅 anthropic 平台使用）

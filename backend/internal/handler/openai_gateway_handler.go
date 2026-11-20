@@ -2215,6 +2215,11 @@ type openAIWSTurnAPIKeyLookup interface {
 	GetByKey(ctx context.Context, key string) (*service.APIKey, error)
 }
 
+// openAIWSTurnAppLineResolver 是 APIKeyService.ResolveAppLine：给走了普通价分组的连接重取该分组。
+type openAIWSTurnAppLineResolver interface {
+	ResolveAppLine(ctx context.Context, apiKey *service.APIKey, appToken string) (*service.APIKey, error)
+}
+
 // openAIWSTurnBillingAPIKeys 按 turn 号保存每个 turn 计费用的 API Key 快照。
 //
 // API Key 认证快照只在建连时取一次。若连接内所有 turn 共用它，分组定价（倍率、
@@ -2277,8 +2282,20 @@ func refreshOpenAIWSTurnBillingAPIKey(ctx context.Context, lookup openAIWSTurnAP
 		return conn
 	}
 	latest, err := lookup.GetByKey(ctx, conn.Key)
-	if err != nil || latest == nil || latest.ID != conn.ID || latest.GroupID == nil || *latest.GroupID != *conn.GroupID {
+	if err != nil || latest == nil || latest.ID != conn.ID || latest.GroupID == nil {
 		return conn
+	}
+	if *latest.GroupID != *conn.GroupID {
+		// 建连时 Key 所在的“仅限 app”线路把非 app 请求换到了普通价分组：按同样的规则
+		// 重新解析，仍落在同一个分组才采用，否则视为 Key 换了分组。
+		resolver, ok := lookup.(openAIWSTurnAppLineResolver)
+		if !ok {
+			return conn
+		}
+		latest, err = resolver.ResolveAppLine(ctx, latest, "")
+		if err != nil || latest == nil || latest.GroupID == nil || *latest.GroupID != *conn.GroupID {
+			return conn
+		}
 	}
 	group := latest.Group
 	if group == nil || group.ID != conn.Group.ID ||

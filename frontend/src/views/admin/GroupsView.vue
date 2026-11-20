@@ -1454,6 +1454,37 @@
           </div>
         </div>
 
+        <!-- 种菜线路：仅限野菜 app（订阅分组不适用） -->
+        <div v-if="createForm.subscription_type !== 'subscription'" class="border-t pt-4">
+          <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            {{ t("admin.groups.appLine.title") }}
+          </label>
+          <div class="flex items-center gap-3">
+            <Toggle v-model="createForm.app_only" />
+            <span class="text-sm text-gray-500 dark:text-gray-400">
+              {{
+                createForm.app_only
+                  ? t("admin.groups.appLine.enabled")
+                  : t("admin.groups.appLine.disabled")
+              }}
+            </span>
+          </div>
+          <p class="input-hint">{{ t("admin.groups.appLine.hint") }}</p>
+          <div v-if="createForm.app_only" class="mt-3">
+            <label class="input-label">{{
+              t("admin.groups.appLine.fallbackGroup")
+            }}</label>
+            <Select
+              v-model="createForm.app_fallback_group_id"
+              :options="appFallbackGroupOptions"
+              :placeholder="t('admin.groups.appLine.noFallback')"
+            />
+            <p class="input-hint">
+              {{ t("admin.groups.appLine.fallbackHint") }}
+            </p>
+          </div>
+        </div>
+
         <!-- Codex 网页搜索按次计费（仅 openai 平台） -->
         <div
           v-if="createForm.platform === 'openai'"
@@ -3121,6 +3152,37 @@
           </div>
         </div>
 
+        <!-- 种菜线路：仅限野菜 app（订阅分组不适用） -->
+        <div v-if="editForm.subscription_type !== 'subscription'" class="border-t pt-4">
+          <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            {{ t("admin.groups.appLine.title") }}
+          </label>
+          <div class="flex items-center gap-3">
+            <Toggle v-model="editForm.app_only" />
+            <span class="text-sm text-gray-500 dark:text-gray-400">
+              {{
+                editForm.app_only
+                  ? t("admin.groups.appLine.enabled")
+                  : t("admin.groups.appLine.disabled")
+              }}
+            </span>
+          </div>
+          <p class="input-hint">{{ t("admin.groups.appLine.hint") }}</p>
+          <div v-if="editForm.app_only" class="mt-3">
+            <label class="input-label">{{
+              t("admin.groups.appLine.fallbackGroup")
+            }}</label>
+            <Select
+              v-model="editForm.app_fallback_group_id"
+              :options="appFallbackGroupOptionsForEdit"
+              :placeholder="t('admin.groups.appLine.noFallback')"
+            />
+            <p class="input-hint">
+              {{ t("admin.groups.appLine.fallbackHint") }}
+            </p>
+          </div>
+        </div>
+
         <!-- Codex 网页搜索按次计费（仅 openai 平台） -->
         <div
           v-if="editForm.platform === 'openai'"
@@ -4728,6 +4790,31 @@ const subscriptionTypeOptions = computed(() => [
   { value: "subscription", label: t("admin.groups.subscription.subscription") },
 ]);
 
+// 非 app 请求改用的普通价分组：同平台、启用中、非订阅、自身不是仅限 app
+function appFallbackOptions(platform: string, excludeId?: number) {
+  const options: { value: number | null; label: string }[] = [
+    { value: null, label: t("admin.groups.appLine.noFallback") },
+  ];
+  for (const g of groups.value) {
+    if (
+      g.platform === platform &&
+      g.status === "active" &&
+      g.subscription_type !== "subscription" &&
+      !g.app_only &&
+      g.id !== excludeId
+    ) {
+      options.push({ value: g.id, label: g.name });
+    }
+  }
+  return options;
+}
+const appFallbackGroupOptions = computed(() =>
+  appFallbackOptions(createForm.platform),
+);
+const appFallbackGroupOptionsForEdit = computed(() =>
+  appFallbackOptions(editForm.platform, editingGroup.value?.id),
+);
+
 // 降级分组选项（创建时）- 仅包含 anthropic 平台且未启用 claude_code_only 的分组
 const fallbackGroupOptions = computed(() => {
   const options: { value: number | null; label: string }[] = [
@@ -5050,6 +5137,8 @@ const createForm = reactive({
   // Claude Code 客户端限制（仅 anthropic 平台使用）
   claude_code_only: false,
   fallback_group_id: null as number | null,
+  app_only: false,
+  app_fallback_group_id: null as number | null,
   fallback_group_id_on_invalid_request: null as number | null,
   // OpenAI Messages 调度配置（仅 openai 平台使用）
   allow_messages_dispatch: false,
@@ -5418,6 +5507,8 @@ const editForm = reactive({
   // Claude Code 客户端限制（仅 anthropic 平台使用）
   claude_code_only: false,
   fallback_group_id: null as number | null,
+  app_only: false,
+  app_fallback_group_id: null as number | null,
   fallback_group_id_on_invalid_request: null as number | null,
   // OpenAI Messages 调度配置（仅 openai 平台使用）
   allow_messages_dispatch: false,
@@ -5889,6 +5980,8 @@ const closeCreateModal = () => {
   createForm.profit_safety_buffer_percent = 0;
   createForm.claude_code_only = false;
   createForm.fallback_group_id = null;
+  createForm.app_only = false;
+  createForm.app_fallback_group_id = null;
   createForm.fallback_group_id_on_invalid_request = null;
   resetMessagesDispatchFormState(createForm);
   createForm.allow_live = false;
@@ -5995,6 +6088,13 @@ const handleCreateGroup = async () => {
     // 构建请求数据，包含模型路由配置
     const requestData = {
       ...createGroupForm,
+      // 订阅分组不支持“仅限 app”，开关在表单里也是隐藏的
+      app_only:
+        createForm.subscription_type !== "subscription" && createForm.app_only,
+      app_fallback_group_id:
+        createForm.subscription_type !== "subscription" && createForm.app_only
+          ? createForm.app_fallback_group_id
+          : null,
       force_openai_fast: normalizeGroupOpenAIFast(
         createForm.platform,
         createForm.force_openai_fast,
@@ -6193,6 +6293,8 @@ const handleEdit = async (group: AdminGroup) => {
   );
   editForm.claude_code_only = group.claude_code_only || false;
   editForm.fallback_group_id = group.fallback_group_id;
+  editForm.app_only = group.app_only || false;
+  editForm.app_fallback_group_id = group.app_fallback_group_id ?? null;
   editForm.fallback_group_id_on_invalid_request =
     group.fallback_group_id_on_invalid_request;
   const messagesDispatchFormState = messagesDispatchConfigToFormState(
@@ -6375,6 +6477,16 @@ const handleUpdateGroup = async () => {
       ),
       fallback_group_id:
         editForm.fallback_group_id === null ? 0 : editForm.fallback_group_id,
+      // null -> 0：后端用 0 表示清除；关掉开关时一并清除
+      // 订阅分组不支持“仅限 app”：改成订阅分组时一并关掉
+      app_only:
+        editForm.subscription_type !== "subscription" && editForm.app_only,
+      app_fallback_group_id:
+        editForm.subscription_type !== "subscription" &&
+        editForm.app_only &&
+        editForm.app_fallback_group_id !== null
+          ? editForm.app_fallback_group_id
+          : 0,
       fallback_group_id_on_invalid_request:
         editForm.fallback_group_id_on_invalid_request === null
           ? 0

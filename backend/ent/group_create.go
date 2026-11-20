@@ -628,6 +628,34 @@ func (_c *GroupCreate) SetNillableFallbackGroupID(v *int64) *GroupCreate {
 	return _c
 }
 
+// SetAppOnly sets the "app_only" field.
+func (_c *GroupCreate) SetAppOnly(v bool) *GroupCreate {
+	_c.mutation.SetAppOnly(v)
+	return _c
+}
+
+// SetNillableAppOnly sets the "app_only" field if the given value is not nil.
+func (_c *GroupCreate) SetNillableAppOnly(v *bool) *GroupCreate {
+	if v != nil {
+		_c.SetAppOnly(*v)
+	}
+	return _c
+}
+
+// SetAppFallbackGroupID sets the "app_fallback_group_id" field.
+func (_c *GroupCreate) SetAppFallbackGroupID(v int64) *GroupCreate {
+	_c.mutation.SetAppFallbackGroupID(v)
+	return _c
+}
+
+// SetNillableAppFallbackGroupID sets the "app_fallback_group_id" field if the given value is not nil.
+func (_c *GroupCreate) SetNillableAppFallbackGroupID(v *int64) *GroupCreate {
+	if v != nil {
+		_c.SetAppFallbackGroupID(*v)
+	}
+	return _c
+}
+
 // SetFallbackGroupIDOnInvalidRequest sets the "fallback_group_id_on_invalid_request" field.
 func (_c *GroupCreate) SetFallbackGroupIDOnInvalidRequest(v int64) *GroupCreate {
 	_c.mutation.SetFallbackGroupIDOnInvalidRequest(v)
@@ -1169,6 +1197,10 @@ func (_c *GroupCreate) defaults() error {
 		v := group.DefaultClaudeCodeOnly
 		_c.mutation.SetClaudeCodeOnly(v)
 	}
+	if _, ok := _c.mutation.AppOnly(); !ok {
+		v := group.DefaultAppOnly
+		_c.mutation.SetAppOnly(v)
+	}
 	if _, ok := _c.mutation.ModelRoutingEnabled(); !ok {
 		v := group.DefaultModelRoutingEnabled
 		_c.mutation.SetModelRoutingEnabled(v)
@@ -1391,6 +1423,9 @@ func (_c *GroupCreate) check() error {
 	}
 	if _, ok := _c.mutation.ClaudeCodeOnly(); !ok {
 		return &ValidationError{Name: "claude_code_only", err: errors.New(`ent: missing required field "Group.claude_code_only"`)}
+	}
+	if _, ok := _c.mutation.AppOnly(); !ok {
+		return &ValidationError{Name: "app_only", err: errors.New(`ent: missing required field "Group.app_only"`)}
 	}
 	if _, ok := _c.mutation.ModelRoutingEnabled(); !ok {
 		return &ValidationError{Name: "model_routing_enabled", err: errors.New(`ent: missing required field "Group.model_routing_enabled"`)}
@@ -1679,6 +1714,14 @@ func (_c *GroupCreate) createSpec() (*Group, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.FallbackGroupID(); ok {
 		_spec.SetField(group.FieldFallbackGroupID, field.TypeInt64, value)
 		_node.FallbackGroupID = &value
+	}
+	if value, ok := _c.mutation.AppOnly(); ok {
+		_spec.SetField(group.FieldAppOnly, field.TypeBool, value)
+		_node.AppOnly = value
+	}
+	if value, ok := _c.mutation.AppFallbackGroupID(); ok {
+		_spec.SetField(group.FieldAppFallbackGroupID, field.TypeInt64, value)
+		_node.AppFallbackGroupID = &value
 	}
 	if value, ok := _c.mutation.FallbackGroupIDOnInvalidRequest(); ok {
 		_spec.SetField(group.FieldFallbackGroupIDOnInvalidRequest, field.TypeInt64, value)
@@ -2691,6 +2734,42 @@ func (u *GroupUpsert) AddFallbackGroupID(v int64) *GroupUpsert {
 // ClearFallbackGroupID clears the value of the "fallback_group_id" field.
 func (u *GroupUpsert) ClearFallbackGroupID() *GroupUpsert {
 	u.SetNull(group.FieldFallbackGroupID)
+	return u
+}
+
+// SetAppOnly sets the "app_only" field.
+func (u *GroupUpsert) SetAppOnly(v bool) *GroupUpsert {
+	u.Set(group.FieldAppOnly, v)
+	return u
+}
+
+// UpdateAppOnly sets the "app_only" field to the value that was provided on create.
+func (u *GroupUpsert) UpdateAppOnly() *GroupUpsert {
+	u.SetExcluded(group.FieldAppOnly)
+	return u
+}
+
+// SetAppFallbackGroupID sets the "app_fallback_group_id" field.
+func (u *GroupUpsert) SetAppFallbackGroupID(v int64) *GroupUpsert {
+	u.Set(group.FieldAppFallbackGroupID, v)
+	return u
+}
+
+// UpdateAppFallbackGroupID sets the "app_fallback_group_id" field to the value that was provided on create.
+func (u *GroupUpsert) UpdateAppFallbackGroupID() *GroupUpsert {
+	u.SetExcluded(group.FieldAppFallbackGroupID)
+	return u
+}
+
+// AddAppFallbackGroupID adds v to the "app_fallback_group_id" field.
+func (u *GroupUpsert) AddAppFallbackGroupID(v int64) *GroupUpsert {
+	u.Add(group.FieldAppFallbackGroupID, v)
+	return u
+}
+
+// ClearAppFallbackGroupID clears the value of the "app_fallback_group_id" field.
+func (u *GroupUpsert) ClearAppFallbackGroupID() *GroupUpsert {
+	u.SetNull(group.FieldAppFallbackGroupID)
 	return u
 }
 
@@ -3958,6 +4037,48 @@ func (u *GroupUpsertOne) UpdateFallbackGroupID() *GroupUpsertOne {
 func (u *GroupUpsertOne) ClearFallbackGroupID() *GroupUpsertOne {
 	return u.Update(func(s *GroupUpsert) {
 		s.ClearFallbackGroupID()
+	})
+}
+
+// SetAppOnly sets the "app_only" field.
+func (u *GroupUpsertOne) SetAppOnly(v bool) *GroupUpsertOne {
+	return u.Update(func(s *GroupUpsert) {
+		s.SetAppOnly(v)
+	})
+}
+
+// UpdateAppOnly sets the "app_only" field to the value that was provided on create.
+func (u *GroupUpsertOne) UpdateAppOnly() *GroupUpsertOne {
+	return u.Update(func(s *GroupUpsert) {
+		s.UpdateAppOnly()
+	})
+}
+
+// SetAppFallbackGroupID sets the "app_fallback_group_id" field.
+func (u *GroupUpsertOne) SetAppFallbackGroupID(v int64) *GroupUpsertOne {
+	return u.Update(func(s *GroupUpsert) {
+		s.SetAppFallbackGroupID(v)
+	})
+}
+
+// AddAppFallbackGroupID adds v to the "app_fallback_group_id" field.
+func (u *GroupUpsertOne) AddAppFallbackGroupID(v int64) *GroupUpsertOne {
+	return u.Update(func(s *GroupUpsert) {
+		s.AddAppFallbackGroupID(v)
+	})
+}
+
+// UpdateAppFallbackGroupID sets the "app_fallback_group_id" field to the value that was provided on create.
+func (u *GroupUpsertOne) UpdateAppFallbackGroupID() *GroupUpsertOne {
+	return u.Update(func(s *GroupUpsert) {
+		s.UpdateAppFallbackGroupID()
+	})
+}
+
+// ClearAppFallbackGroupID clears the value of the "app_fallback_group_id" field.
+func (u *GroupUpsertOne) ClearAppFallbackGroupID() *GroupUpsertOne {
+	return u.Update(func(s *GroupUpsert) {
+		s.ClearAppFallbackGroupID()
 	})
 }
 
@@ -5446,6 +5567,48 @@ func (u *GroupUpsertBulk) UpdateFallbackGroupID() *GroupUpsertBulk {
 func (u *GroupUpsertBulk) ClearFallbackGroupID() *GroupUpsertBulk {
 	return u.Update(func(s *GroupUpsert) {
 		s.ClearFallbackGroupID()
+	})
+}
+
+// SetAppOnly sets the "app_only" field.
+func (u *GroupUpsertBulk) SetAppOnly(v bool) *GroupUpsertBulk {
+	return u.Update(func(s *GroupUpsert) {
+		s.SetAppOnly(v)
+	})
+}
+
+// UpdateAppOnly sets the "app_only" field to the value that was provided on create.
+func (u *GroupUpsertBulk) UpdateAppOnly() *GroupUpsertBulk {
+	return u.Update(func(s *GroupUpsert) {
+		s.UpdateAppOnly()
+	})
+}
+
+// SetAppFallbackGroupID sets the "app_fallback_group_id" field.
+func (u *GroupUpsertBulk) SetAppFallbackGroupID(v int64) *GroupUpsertBulk {
+	return u.Update(func(s *GroupUpsert) {
+		s.SetAppFallbackGroupID(v)
+	})
+}
+
+// AddAppFallbackGroupID adds v to the "app_fallback_group_id" field.
+func (u *GroupUpsertBulk) AddAppFallbackGroupID(v int64) *GroupUpsertBulk {
+	return u.Update(func(s *GroupUpsert) {
+		s.AddAppFallbackGroupID(v)
+	})
+}
+
+// UpdateAppFallbackGroupID sets the "app_fallback_group_id" field to the value that was provided on create.
+func (u *GroupUpsertBulk) UpdateAppFallbackGroupID() *GroupUpsertBulk {
+	return u.Update(func(s *GroupUpsert) {
+		s.UpdateAppFallbackGroupID()
+	})
+}
+
+// ClearAppFallbackGroupID clears the value of the "app_fallback_group_id" field.
+func (u *GroupUpsertBulk) ClearAppFallbackGroupID() *GroupUpsertBulk {
+	return u.Update(func(s *GroupUpsert) {
+		s.ClearAppFallbackGroupID()
 	})
 }
 
