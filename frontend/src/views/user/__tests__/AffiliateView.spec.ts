@@ -67,6 +67,7 @@ describe('AffiliateView', () => {
         stubs: {
           AppLayout: { template: '<main><slot /></main>' },
           Icon: true,
+          RouterLink: { props: ['to'], template: '<a :href="to"><slot /></a>' },
         },
       },
     })

@@ -33,12 +33,12 @@ describe('YcAgentGuideView', () => {
 
   it('shows how to reach the site, or sends the reader to Help when no contact is set', () => {
     const apply = mountView().get('[data-test="agent-guide-apply"]')
-    expect(apply.find('.yc-help-contact').exists()).toBe(false)
+    expect(apply.find('[data-test="agent-guide-contact"]').exists()).toBe(false)
     expect(apply.get('a').attributes('href')).toBe('/help')
 
     settings.value = { contact_info: 'WeChat: yecai' }
     const withContact = mountView().get('[data-test="agent-guide-apply"]')
-    expect(withContact.get('.yc-help-contact').text()).toBe('WeChat: yecai')
+    expect(withContact.get('[data-test="agent-guide-contact"]').text()).toBe('WeChat: yecai')
     expect(withContact.find('a').exists()).toBe(false)
   })
 })

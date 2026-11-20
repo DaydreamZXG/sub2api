@@ -778,6 +778,8 @@ export default {
       success: '{amount} has been transferred to your balance'
     },
     agent: {
+      guide: 'Want to bring customers in and earn a share of what they spend? See how agents work',
+      guideForAgent: 'The rules for agents',
       title: 'Agent share',
       rule: 'You are an agent: when the users you invited spend money they topped up themselves, you get {rate} of it (spending gifted balance does not count). The share goes into the same quota as the rebate.',
       nextTier: 'Once your users spend {left} more this month, what comes after earns {rate}. Every month starts again from the lowest tier.',
