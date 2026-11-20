@@ -891,6 +891,7 @@ var ProviderSet = wire.NewSet(
 	NewGrowthLevelsService,
 	NewGardenService,
 	NewAgentService,
+	NewResellerService,
 	NewAdminService,
 	NewGatewayService,
 	NewOpenAIGatewayService,
