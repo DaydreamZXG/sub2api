@@ -174,7 +174,7 @@
                     <td class="num">{{ row.requests.toLocaleString() }}</td>
                     <td class="num">{{ money(row.income) }}</td>
                     <td class="num muted">{{ money(row.plan_usage) }}</td>
-                    <td class="num">{{ row.pack_id ? '–' : money(row.rate_cost) }}</td>
+                    <td class="num">{{ row.pack_id && !(row.rate_cost > 0) ? '–' : money(row.rate_cost) }}</td>
                   </tr>
                 </tbody>
               </table>

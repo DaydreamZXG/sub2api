@@ -398,7 +398,7 @@ export default {
       byGroupHint: '成本包的支出按它的账号在各条线路上的用量分摊。',
       byMonth: '按月',
       byAccount: '按账号',
-      byAccountHint: '挂了成本包的账号不单独算成本，看它所在的包。',
+      byAccountHint: '挂了成本包的账号不单独算成本，看它所在的包；成本包开始之前的调用仍按倍率算。',
       cols: {
         pack: '成本包', group: '线路', month: '月份', account: '账号', costBy: '成本方式', requests: '调用次数',
         income: '收入', planUsage: '包月用量', packCost: '成本包支出', rateCost: '按量成本', profit: '利润'

@@ -401,7 +401,7 @@ export default {
       byGroupHint: 'A pack is split between lines by how much its accounts were used on each.',
       byMonth: 'By month',
       byAccount: 'By account',
-      byAccountHint: 'An account under a pack has no cost of its own; look at its pack.',
+      byAccountHint: 'An account under a pack has no cost of its own; look at its pack. Its usage before the pack started is still costed by rate.',
       cols: {
         pack: 'Cost pack', group: 'Line', month: 'Month', account: 'Account', costBy: 'Costed by', requests: 'Requests',
         income: 'Income', planUsage: 'Plan usage', packCost: 'Paid for packs', rateCost: 'Cost by use', profit: 'Profit'
