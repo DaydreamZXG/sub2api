@@ -1,14 +1,19 @@
 <template>
-  <section class="yc-surface yc-dog" :class="{ hungry: !garden.dog_fed_today }">
-    <svg class="yc-dog-face" viewBox="0 0 64 64" role="img" :aria-label="t('yc.garden.dog.name')">
-      <path class="ear" d="M14 12 8 34l12-6zM50 12l6 22-12-6z" />
-      <rect class="head" x="12" y="14" width="40" height="38" rx="16" />
-      <template v-if="garden.dog_fed_today">
-        <circle class="eye" cx="25" cy="30" r="3" /><circle class="eye" cx="39" cy="30" r="3" />
-      </template>
-      <path v-else class="line" d="M21 30h8M35 30h8" />
-      <ellipse class="eye" cx="32" cy="39" rx="4" ry="3" />
-      <path class="line" :d="garden.dog_fed_today ? 'M25 44q7 6 14 0' : 'M26 47q6-4 12 0'" />
+  <section class="yc-dog" :class="{ hungry: !garden.dog_fed_today }">
+    <svg class="yc-dog-yard" viewBox="0 0 132 84" role="img" :aria-label="t('yc.garden.dog.name')">
+      <path class="roof" d="M4 40 38 10l34 30z" />
+      <path class="wall" d="M12 40h52v40H12z" />
+      <path class="door" d="M28 80V60a10 10 0 0 1 20 0v20z" />
+      <g :transform="garden.dog_fed_today ? 'translate(78 22)' : 'translate(78 34)'">
+        <path class="ear" d="M6 6 2 24l10-5zM42 6l4 18-10-5z" />
+        <rect class="head" x="4" y="8" width="40" height="38" rx="16" />
+        <template v-if="garden.dog_fed_today">
+          <circle class="eye" cx="17" cy="24" r="3" /><circle class="eye" cx="31" cy="24" r="3" />
+        </template>
+        <path v-else class="line" d="M13 24h8M27 24h8" />
+        <ellipse class="eye" cx="24" cy="33" rx="4" ry="3" />
+        <path class="line" :d="garden.dog_fed_today ? 'M17 38q7 6 14 0' : 'M18 41q6-4 12 0'" />
+      </g>
     </svg>
     <div class="yc-dog-text">
       <h2>{{ t('yc.garden.dog.name') }}</h2>
@@ -40,13 +45,18 @@
           <span v-else-if="n.pinned" class="yc-badge">{{ t('yc.garden.neighbours.pinned') }}</span>
           <span class="yc-nb-count">{{ t('yc.garden.neighbours.crops', { count: n.crops }) }}</span>
         </button>
-        <div v-if="open === n.id" class="yc-nb-crops">
+        <div v-if="open === n.id" class="yc-nb-crops yc-field-inset">
           <p v-if="!visiting" class="yc-nb-none">{{ t('yc.garden.neighbours.loading') }}</p>
           <p v-else-if="!visiting.crops.length" class="yc-nb-none">{{ t('yc.garden.neighbours.noCrops') }}</p>
-          <article v-for="crop in visiting?.crops ?? []" :key="crop.id" class="yc-nb-crop">
-            <YcPlant class="yc-nb-plant" :stage="stageOf(crop)" :label="t(`yc.garden.size.${crop.size}`)" />
-            <p class="yc-nb-size">{{ t(`yc.garden.size.${crop.size}`) }}</p>
-            <p class="yc-nb-state">{{ stateOf(crop) }}</p>
+          <article
+            v-for="crop in visiting?.crops ?? []" :key="crop.id" class="yc-nb-crop yc-plot"
+            :class="[{ ripe: crop.can_steal }, fx[crop.id] ? `fx-${fx[crop.id]}` : '']"
+          >
+            <div class="yc-plot-bed">
+              <YcPlant class="yc-plot-plant" :stage="stageOf(crop)" :label="t(`yc.garden.size.${crop.size}`)" />
+            </div>
+            <p class="yc-plot-name">{{ t(`yc.garden.size.${crop.size}`) }}</p>
+            <p class="yc-plot-state">{{ stateOf(crop) }}</p>
             <button v-if="crop.can_water" type="button" class="yc-btn yc-btn-ghost yc-btn-sm" :disabled="busy === crop.id" @click="water(crop)">
               {{ t('yc.garden.water') }}
             </button>
@@ -129,6 +139,15 @@ const open = ref<number | null>(null)
 const visiting = ref<GardenNeighbourGarden | null>(null)
 const feed = ref<GardenFeedItem[]>([])
 const busy = ref<number | 'dog' | null>(null)
+// What just happened to a neighbour's bed, shown for a moment as a small animation.
+const fx = ref<Record<number, 'water' | 'steal' | 'caught'>>({})
+function play(cropId: number, kind: 'water' | 'steal' | 'caught') {
+  fx.value = { ...fx.value, [cropId]: kind }
+  setTimeout(() => {
+    const { [cropId]: _done, ...rest } = fx.value
+    fx.value = rest
+  }, 900)
+}
 const ranks = ref<GardenRanks | null>(null)
 const neighboursEl = ref<HTMLElement | null>(null)
 const affCode = ref('')
@@ -246,10 +265,12 @@ const feedTheDog = () => act('dog', async () => {
 })
 const water = (crop: GardenNeighbourCrop) => act(crop.id, async () => {
   await waterCrop(crop.id)
+  play(crop.id, 'water')
   appStore.showSuccess(t('yc.garden.waterDone', { minutes: props.garden.water_minutes }))
 })
 const steal = (crop: GardenNeighbourCrop) => act(crop.id, async () => {
   const result = await stealCrop(crop.id)
+  play(crop.id, result.caught ? 'caught' : 'steal')
   if (result.caught) appStore.showError(t('yc.garden.stealCaught'))
   else appStore.showSuccess(t('yc.garden.stealDone', { amount: yuan(result.amount) }))
 })
@@ -268,22 +289,25 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.yc-dog { display: flex; align-items: center; gap: 18px; margin-top: 16px; padding: 20px 26px; }
-.yc-dog-face { flex: none; width: 60px; height: 60px; }
-.yc-dog-face .head { fill: var(--yc-lime); stroke: var(--yc-ink); stroke-width: 2; }
-.yc-dog-face .ear, .yc-dog-face .eye { fill: var(--yc-ink); }
-.yc-dog-face .line { fill: none; stroke: var(--yc-ink); stroke-width: 2.4; stroke-linecap: round; }
-.yc-dog.hungry .yc-dog-face .head { fill: var(--yc-fill); }
-.dark .yc .yc-dog-face .head { stroke: none; }
-.dark .yc .yc-dog-face .eye { fill: var(--yc-on-lime); }
-.dark .yc .yc-dog-face .ear { fill: var(--yc-lime); }
-.dark .yc .yc-dog-face .line { stroke: var(--yc-on-lime); }
-.dark .yc .yc-dog.hungry .yc-dog-face .eye { fill: var(--yc-mut); }
-.dark .yc .yc-dog.hungry .yc-dog-face .ear { fill: var(--yc-fill); }
-.dark .yc .yc-dog.hungry .yc-dog-face .line { stroke: var(--yc-mut); }
+/* The yard under the field: the kennel and the dog, on the same dark ground in both themes. */
+.yc-dog { display: flex; align-items: center; gap: 18px; padding: 16px 26px 20px; border-top: 1px dashed rgb(244 246 241 / 0.16); border-radius: 0 0 28px 28px; background: #0b0f0c; color: #f4f6f1; }
+.dark .yc .yc-dog { box-shadow: 0 0 0 1px var(--yc-line); }
+.yc-dog-yard { flex: none; width: 124px; height: 80px; }
+.yc-dog-yard .roof { fill: var(--yc-lime); }
+.yc-dog-yard .wall { fill: #f4f6f1; }
+.yc-dog-yard .door { fill: #0b0f0c; }
+.yc-dog-yard .head { fill: var(--yc-lime); }
+.yc-dog-yard .ear { fill: #f4f6f1; }
+.yc-dog-yard .eye { fill: #0b0f0c; }
+.yc-dog-yard .line { fill: none; stroke: #0b0f0c; stroke-width: 2.4; stroke-linecap: round; }
+.yc-dog.hungry .yc-dog-yard .head { fill: #5d665f; }
+.yc-dog.hungry .yc-dog-yard .ear { fill: #3a423c; }
+.yc-dog:not(.hungry) .yc-dog-yard g { animation: yc-dog-bob 2.8s ease-in-out infinite; }
+@keyframes yc-dog-bob { 50% { translate: 0 -3px; } }
+@media (prefers-reduced-motion: reduce) { .yc-dog .yc-dog-yard g { animation: none; } }
 .yc-dog-text { flex: 1; min-width: 0; }
 .yc-dog-text h2, .yc-nb-head h2, .yc-feed h2, .yc-ranks h2, .yc-invite h2 { font-size: 17px; font-weight: 800; }
-.yc-dog-text p { margin-top: 4px; font-size: 14.5px; line-height: 1.55; color: var(--yc-mut); }
+.yc-dog-text p { margin-top: 4px; font-size: 14.5px; line-height: 1.55; color: rgb(244 246 241 / 0.66); }
 .yc-nb, .yc-feed, .yc-ranks, .yc-invite { margin-top: 16px; padding: 22px 26px; }
 .yc-nb-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
 .yc-nb-head p { font-size: 14px; color: var(--yc-mut); }
@@ -295,13 +319,9 @@ onMounted(async () => {
 .yc-nb-row i { display: grid; place-items: center; flex: none; width: 32px; height: 32px; border-radius: 50%; background: var(--yc-fill); font-style: normal; font-weight: 800; }
 .yc-nb-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 650; }
 .yc-nb-count { margin-left: auto; flex: none; font-size: 14px; color: var(--yc-mut); }
-.yc-nb-crops { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; padding: 4px 0 18px; }
-.yc-nb-crops > .yc-nb-none { grid-column: 1 / -1; padding: 0; }
-.yc-nb-crop { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 16px 12px; border-radius: 16px; background: var(--yc-fill); text-align: center; }
-.yc-nb-plant { width: 72px; height: 72px; }
-.yc-nb-size { font-size: 15px; font-weight: 800; }
-.yc-nb-state { min-height: 20px; font-size: 13.5px; color: var(--yc-mut); }
-.yc-nb-crop .yc-btn { margin-top: 6px; }
+.yc-nb-crops { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin: 2px 0 18px; }
+.yc-nb-crops > .yc-nb-none { grid-column: 1 / -1; padding: 6px 4px; color: rgb(244 246 241 / 0.66); }
+.yc-nb-crop.yc-plot { min-height: 188px; }
 .yc-feed ul { margin-top: 10px; }
 .yc-feed li { display: flex; justify-content: space-between; gap: 16px; padding: 10px 0; border-top: 1px solid var(--yc-line); font-size: 14.5px; }
 .yc-feed time { flex: none; color: var(--yc-mut); }
@@ -319,7 +339,9 @@ onMounted(async () => {
 .yc-invite p { margin-top: 4px; font-size: 14.5px; line-height: 1.55; color: var(--yc-mut); }
 .yc-invite code { display: block; margin-top: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13.5px; }
 @media (max-width: 760px) {
-  .yc-dog { flex-wrap: wrap; padding: 18px 20px; }
+  .yc-dog { flex-wrap: wrap; padding: 14px 18px 18px; }
+  .yc-dog-yard { width: 96px; height: 62px; }
+  .yc-nb-crops { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
   .yc-nb, .yc-feed, .yc-ranks, .yc-invite { padding: 18px 20px; }
   .yc-ranks-cols { grid-template-columns: 1fr; gap: 18px; }
   .yc-invite { flex-direction: column; align-items: stretch; }

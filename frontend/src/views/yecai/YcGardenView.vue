@@ -5,32 +5,32 @@
 
     <p v-if="failed" class="yc-garden-empty">{{ t('yc.garden.failed') }}</p>
     <template v-else-if="garden">
-      <section v-if="growing.length" class="yc-garden-plots">
-        <article v-for="crop in growing" :key="crop.id" class="yc-surface yc-garden-plot" :class="{ ripe: isRipe(crop) }">
-          <YcPlant class="yc-garden-plant" :stage="stageOf(crop)" :label="t(isRipe(crop) ? 'yc.garden.ripe' : 'yc.garden.growing')" />
+      <YcField :class="{ 'has-yard': garden.enabled }">
+        <template v-if="!growing.length" #sign>
+          <p class="yc-garden-none-h">{{ t('yc.garden.emptyTitle') }}</p>
+          <p class="yc-garden-none-p">{{ t(garden.enabled ? 'yc.garden.empty' : 'yc.garden.off') }}</p>
+          <router-link v-if="garden.enabled" to="/topup" class="yc-btn yc-btn-sm">{{ t('yc.shell.topUp') }} →</router-link>
+        </template>
+        <article v-for="crop in growing" :key="crop.id" class="yc-plot" :class="{ ripe: isRipe(crop) }">
           <span v-if="crop.source !== 'order'" class="yc-badge yc-badge-lime">{{ t(`yc.garden.source.${crop.source}`) }}</span>
-          <p class="yc-garden-amount yc-num">{{ yuan(crop.amount - crop.stolen_amount) }}</p>
-          <p v-if="crop.stolen_amount > 0" class="yc-garden-stolen">{{ t('yc.garden.stolen', { amount: yuan(crop.stolen_amount) }) }}</p>
-          <p class="yc-garden-state">
+          <div class="yc-plot-bed">
+            <YcPlant class="yc-plot-plant" :stage="stageOf(crop)" :label="t(isRipe(crop) ? 'yc.garden.ripe' : 'yc.garden.growing')" />
+          </div>
+          <p class="yc-plot-amount yc-num">{{ yuan(crop.amount - crop.stolen_amount) }}</p>
+          <p v-if="crop.stolen_amount > 0" class="yc-plot-state">{{ t('yc.garden.stolen', { amount: yuan(crop.stolen_amount) }) }}</p>
+          <p class="yc-plot-state">
             <template v-if="isRipe(crop)">{{ t('yc.garden.ripe') }}</template>
             <template v-else>{{ t('yc.garden.ripeIn', { time: remaining(crop) }) }}</template>
           </p>
-          <div v-if="!isRipe(crop)" class="yc-garden-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" :aria-valuenow="Math.round(progressOf(crop) * 100)">
+          <div v-if="!isRipe(crop)" class="yc-plot-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" :aria-valuenow="Math.round(progressOf(crop) * 100)">
             <i :style="{ width: `${progressOf(crop) * 100}%` }" />
           </div>
           <button v-else type="button" class="yc-btn yc-btn-lime yc-btn-sm" :disabled="harvesting === crop.id" @click="harvest(crop)">
             {{ t('yc.garden.harvest') }}
           </button>
         </article>
-      </section>
-      <div v-else class="yc-surface yc-garden-none">
-        <YcPlant class="yc-garden-plant" :stage="0" :label="t('yc.garden.title')" />
-        <div>
-          <p class="yc-garden-none-h">{{ t('yc.garden.emptyTitle') }}</p>
-          <p class="yc-garden-none-p">{{ t(garden.enabled ? 'yc.garden.empty' : 'yc.garden.off') }}</p>
-          <router-link v-if="garden.enabled" to="/topup" class="yc-btn yc-btn-lime yc-btn-sm">{{ t('yc.shell.topUp') }} →</router-link>
-        </div>
-      </div>
+        <div v-for="n in emptyPlots" :key="`empty-${n}`" class="yc-plot empty">{{ t('yc.garden.emptyPlot') }}</div>
+      </YcField>
 
       <YcGardenSocial v-if="garden.enabled" :garden="garden" :now="now" @changed="refresh" />
 
@@ -51,6 +51,7 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { getMyGarden, harvestCrop, type GardenCrop, type MyGarden } from '@/api/garden'
+import YcField from '@/components/yecai/YcField.vue'
 import YcGardenSocial from '@/components/yecai/YcGardenSocial.vue'
 import YcPlant from '@/components/yecai/YcPlant.vue'
 import YcShell from '@/components/yecai/YcShell.vue'
@@ -71,6 +72,8 @@ let offset = 0
 let ticker: ReturnType<typeof setInterval> | undefined
 
 const growing = computed(() => (garden.value?.crops ?? []).filter((crop) => crop.status === 'growing'))
+// The field always shows at least a row of beds, so an almost empty garden still reads as a garden.
+const emptyPlots = computed(() => Math.max(0, 4 - growing.value.length))
 const harvested = computed(() => (garden.value?.crops ?? []).filter((crop) => crop.status === 'harvested'))
 
 const isRipe = (crop: GardenCrop) => new Date(crop.ripe_at).getTime() <= now.value
@@ -133,27 +136,11 @@ onBeforeUnmount(() => clearInterval(ticker))
 
 <style scoped>
 .yc-garden-empty { margin-top: 28px; color: var(--yc-mut); }
-.yc-garden-plots { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 16px; margin-top: 28px; }
-.yc-garden-plot { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 22px 20px 24px; text-align: center; }
-.yc-garden-plot.ripe { border-color: var(--yc-ink); box-shadow: 0 6px 0 -1px var(--yc-ink); }
-.yc-garden-plant { width: 112px; height: 112px; }
-.yc-garden-amount { font-size: 26px; line-height: 1.2; letter-spacing: -0.02em; font-weight: 800; }
-.yc-garden-state, .yc-garden-stolen { font-size: 14px; color: var(--yc-mut); }
-.yc-garden-plot.ripe .yc-garden-state { color: var(--yc-ink); font-weight: 650; }
-.yc-garden-bar { width: 100%; height: 8px; margin-top: 10px; overflow: hidden; border-radius: 999px; background: var(--yc-fill); }
-.yc-garden-bar i { display: block; height: 100%; border-radius: inherit; background: var(--yc-lime); box-shadow: 0 0 0 1px var(--yc-ink) inset; }
-.yc-garden-plot .yc-btn { margin-top: 8px; }
-.yc-garden-none { display: flex; align-items: center; gap: 24px; margin-top: 28px; padding: 26px; }
-.yc-garden-none .yc-garden-plant { flex: none; width: 96px; height: 96px; }
 .yc-garden-none-h { font-size: 20px; font-weight: 800; letter-spacing: -0.01em; }
-.yc-garden-none-p { max-width: 520px; margin: 6px 0 14px; font-size: 14.5px; line-height: 1.6; color: var(--yc-mut); }
+.yc-garden-none-p { max-width: 460px; margin: 4px 0 10px; font-size: 14px; line-height: 1.5; }
 .yc-garden-log { margin-top: 16px; padding: 22px 26px; }
 .yc-garden-log h2 { font-size: 17px; font-weight: 800; }
 .yc-garden-log ul { margin-top: 10px; }
 .yc-garden-log li { display: flex; justify-content: space-between; padding: 10px 0; border-top: 1px solid var(--yc-line); font-size: 14.5px; }
 .yc-garden-log li span:first-child { color: var(--yc-mut); }
-@media (max-width: 760px) {
-  .yc-garden-none { align-items: flex-start; gap: 16px; padding: 20px; }
-  .yc-garden-none .yc-garden-plant { width: 72px; height: 72px; }
-}
 </style>
