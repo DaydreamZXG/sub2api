@@ -20,7 +20,8 @@ const data: GuideData = {
     },
     {
       num: 2, name: 'Amp', note: '', status: 'direct', cat: 'cli', new: true, updated: false,
-      lead: '编程 Agent', leadHtml: '<p>编程 Agent</p>', tabs: [{ kind: 'steps', label: '怎么配置', html: '<p>填地址</p>' }], errors: [], refs: ''
+      lead: '编程 Agent', leadHtml: '<p>编程 Agent</p>', errors: [], refs: '',
+      tabs: [{ kind: 'steps', label: '怎么配置', html: '<pre><code>model = "请替换为支持Responses的模型ID"\nalias = "请替换为模型ID"</code></pre>' }]
     }
   ],
   general: { title: '通用报错', rest: '', errors: [{ s: '404 Not Found', c: '地址错了', f: '检查 /v1', t: '404 not found 地址错了 检查 /v1' }] },
@@ -75,6 +76,12 @@ describe('mountGuide', () => {
     expect(code()).toContain('https://api.yeschoy.com"')
     expect(code()).toContain('ANTHROPIC_AUTH_TOKEN="sk-demo"')
     expect(root.querySelector('pre')?.dataset.lang).toBe('Bash')
+  })
+
+  it('fills the model ID into both spellings of the placeholder', () => {
+    open('#/tool/2')
+    type('model', 'gpt-x')
+    expect(root.querySelector('pre code')!.textContent).toBe('model = "gpt-x"\nalias = "gpt-x"')
   })
 
   it('switches tabs on a tool page and keeps the tab in the URL', () => {

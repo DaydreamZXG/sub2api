@@ -301,7 +301,7 @@ function substitute(root) {
     let text = el.dataset.o
     if (state.line === 'global' && !text.includes('api.yeschoy.com')) text = text.replace(/(^|[^\w.-])yeschoy\.com/g, '$1api.yeschoy.com')
     if (state.key) text = text.split('请替换为你的密钥').join(state.key)
-    if (state.model) text = text.split('请替换为模型ID').join(state.model)
+    if (state.model) text = text.replace(/请替换为(?:支持Responses的)?模型ID/g, () => state.model)
     if (el.textContent !== text) el.textContent = text
   })
 }

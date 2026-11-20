@@ -30,6 +30,9 @@ const HERO_ART = `<svg class="hero-art" viewBox="0 0 240 240" aria-hidden="true"
   <path d="M120 186V104" stroke="#c8ff00" stroke-width="9" stroke-linecap="round"/><path d="M120 128c-34 2-52-18-54-46 30-2 52 14 54 46z" fill="#c8ff00"/><path d="M120 110c2-32 22-50 52-50 0 30-18 50-52 50z" fill="#c8ff00"/>
   <path d="M84 190h72" stroke="#f4f6ef" stroke-width="9" stroke-linecap="round" opacity=".9"/><circle cx="182" cy="170" r="5" fill="#c8ff00"/><circle cx="58" cy="150" r="4" fill="#f4f6ef" opacity=".6"/></svg>`
 
+// Codex spells its placeholder out: 请替换为支持Responses的模型ID.
+const MODEL_PLACEHOLDER = /请替换为(?:支持Responses的)?模型ID/g
+
 type FilterKey = 'cat' | 'status'
 
 /** Renders the guide into `root` and follows the URL hash (#/tools, #/tool/5/errors, #/errors, #/p/id). Returns the cleanup. */
@@ -153,7 +156,7 @@ export function mountGuide(root: HTMLElement, D: GuideData): () => void {
       let text = el.dataset.o
       if (state.line === 'global' && !text.includes('api.yeschoy.com')) text = text.replace(/(^|[^\w.-])yeschoy\.com/g, '$1api.yeschoy.com')
       if (state.key) text = text.split('请替换为你的密钥').join(state.key)
-      if (state.model) text = text.split('请替换为模型ID').join(state.model)
+      if (state.model) text = text.replace(MODEL_PLACEHOLDER, () => state.model)
       if (el.textContent !== text) el.textContent = text
     })
   }
