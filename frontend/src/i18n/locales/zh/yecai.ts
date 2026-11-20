@@ -297,6 +297,11 @@ export default {
       other: '没成功，刷新后再试。'
     }
   },
+  priceWords: {
+    cheaper: '约 {zhe} 折',
+    dearer: '贵 {pct}%',
+    free: '免费'
+  },
   prices: {
     title: '价目表',
     lead: '每个模型一个价，直接写人民币。单位是每百万 Token，用多少扣多少。',
@@ -306,13 +311,13 @@ export default {
     none: '价目表暂时没有内容。',
     noMatch: '没有找到这个模型，换个关键词试试。',
     from: ' 起', varies: '这是标准价。超长上下文、特定时段或更高推理强度的请求会按更高的档位计费，每一笔以账单为准。',
-    line: '线路', cacheRead: '缓存读取', multiplier: '倍率',
+    line: '线路', cacheRead: '缓存读取', multiplier: '折扣',
     official: '官方价：输入 ${input}、输出 ${output}（每百万 Token）。划掉的人民币价按 1 美元 ≈ {rate} 元折算，仅供对比。',
     appPrice: '用 app ¥{price}',
     appHeadline: 'app 价',
     appOnly: '仅 app',
     appNote: '“用 app”的价格：通过野菜桌面助手接入时按这个价扣费；把密钥复制到别的工具里用，按普通价。',
-    foot: '点任意一行可以展开，看每条线路的价格、缓存价和倍率。'
+    foot: '点任意一行可以展开，看每条线路的价格、缓存价和折扣。'
   },
   dash: {
     night: '夜深了', morning: '早上好', afternoon: '下午好', evening: '晚上好', comma: '，',

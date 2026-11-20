@@ -297,6 +297,11 @@ export default {
       other: 'That did not work. Refresh and try again.'
     }
   },
+  priceWords: {
+    cheaper: '{pct}% off',
+    dearer: '{pct}% more',
+    free: 'Free'
+  },
   prices: {
     title: 'Prices',
     lead: 'One price per model, in yuan. Prices are per million tokens; you pay for what you use.',
@@ -306,13 +311,13 @@ export default {
     none: 'No prices to show yet.',
     noMatch: 'No model matches. Try another keyword.',
     from: '+', varies: 'This is the standard price. Requests with very long context, at certain hours or with higher reasoning effort are charged at a higher tier; your bill shows each one.',
-    line: 'Line', cacheRead: 'Cache read', multiplier: 'Multiplier',
+    line: 'Line', cacheRead: 'Cache read', multiplier: 'Discount',
     official: 'Official price: ${input} input, ${output} output (per million tokens). Struck-out yuan prices use 1 USD ≈ {rate} CNY, for comparison only.',
     appPrice: '¥{price} with the app',
     appHeadline: 'App price',
     appOnly: 'App only',
     appNote: 'The "with the app" price applies when you connect through the YESCHOY desktop assistant. A key pasted into another tool pays the normal price.',
-    foot: 'Click any row to see each line\'s price, cache price and multiplier.'
+    foot: 'Click any row to see each line\'s price, cache price and discount.'
   },
   dash: {
     night: 'Up late', morning: 'Good morning', afternoon: 'Good afternoon', evening: 'Good evening', comma: ', ',
