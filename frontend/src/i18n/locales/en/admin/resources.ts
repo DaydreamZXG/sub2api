@@ -398,6 +398,19 @@ export default {
       cashNote: 'Top-up orders brought in {received} in this period, and {refunded} was refunded.',
       agentNote: 'Agents were credited {amount} in this period. It is already taken off the profit above (off the total only, not off the tables by month and by line below).',
       agents: {
+        users: {
+          open: 'Users',
+          title: 'Users under {agent}',
+          hint: 'A customer who did not sign up through the invite link can be put under this agent here. The agent earns on what they spend from then on, not on what they spent before.',
+          add: 'Put under agent',
+          addConfirm: 'Put {user} under {agent}? If someone else invited them, they are taken from that inviter.',
+          empty: 'This agent has no users yet.',
+          joinedAt: 'signed up by invite on {date}',
+          attachedAt: 'put here by an admin on {date}',
+          figures: 'spending that counts {spent}, share {share}',
+          remove: 'Take off',
+          removeConfirm: 'Take {user} off this agent? What was already credited stays.'
+        },
         intro: 'An agent is an inviter you pick: for every amount of real money their users spend, a share is credited to them. An agent no longer gets the rebate on those users\' top-ups. The share goes into their invite quota, which they can ask to have paid out or move into their balance.',
         pendingTitle: 'Payout requests waiting',
         pendingHint: 'Pay the agent outside the site, then press "Paid": the amount is taken off what they can have paid out.',

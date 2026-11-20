@@ -32,6 +32,8 @@ const (
 var (
 	ErrAgentNotAgent       = infraerrors.Forbidden("AGENT_NOT_AGENT", "this account is not an agent")
 	ErrAgentShareInvalid   = infraerrors.BadRequest("AGENT_SHARE_INVALID", "share must be between 0 and 100")
+	ErrAgentUserInvalid    = infraerrors.BadRequest("AGENT_USER_INVALID", "this user cannot be put under this agent")
+	ErrAgentUserNotFound   = infraerrors.NotFound("AGENT_USER_NOT_FOUND", "this user is not under this agent")
 	ErrAgentPayoutAmount   = infraerrors.BadRequest("AGENT_PAYOUT_AMOUNT_INVALID", "amount must be more than 0 and no more than what can be paid out")
 	ErrAgentPayoutPending  = infraerrors.Conflict("AGENT_PAYOUT_PENDING", "there is already a payout request waiting")
 	ErrAgentPayoutNotFound = infraerrors.NotFound("AGENT_PAYOUT_NOT_FOUND", "payout request not found")
@@ -56,6 +58,8 @@ type AgentInvitee struct {
 	JoinedAt time.Time `json:"joined_at"`
 	Spent    float64   `json:"spent"`
 	Share    float64   `json:"share"`
+	// Attached is true when an admin put the user under the agent; JoinedAt is then when that was done.
+	Attached bool `json:"attached"`
 }
 
 // AgentOverview is what an agent sees about their own business.
@@ -97,6 +101,14 @@ type AgentRepository interface {
 	GetPayout(ctx context.Context, id int64) (*AgentPayout, error)
 	// FinishPayout moves a pending request to status; false when it was not pending any more.
 	FinishPayout(ctx context.Context, id int64, status, adminNote string) (bool, error)
+	// AgentUsers lists the users under an agent, with what they spent and what it earned the agent.
+	AgentUsers(ctx context.Context, agentID int64) ([]AgentInvitee, error)
+	// AttachUser puts a user under an agent, taking them from whoever invited them, who is credited for
+	// the user's spending up to that moment. The agent earns on their spending from then on.
+	AttachUser(ctx context.Context, agentID, userID int64) error
+	// DetachUser credits the agent for the user's spending so far and takes the user from under them;
+	// false when they were not under this agent.
+	DetachUser(ctx context.Context, agentID, userID int64) (bool, error)
 	// PayPayout marks a pending request paid and runs withdraw in the same transaction; when withdraw
 	// fails the request stays pending. False when the request was not pending any more.
 	PayPayout(ctx context.Context, id int64, adminNote string, withdraw func(txCtx context.Context) error) (bool, error)
@@ -195,6 +207,36 @@ func (s *AgentService) SetAgent(ctx context.Context, userID int64, isAgent bool,
 
 func (s *AgentService) ListAgents(ctx context.Context) ([]AgentEntry, error) {
 	return s.repo.ListAgents(ctx)
+}
+
+// AgentUsers is the admin's view of the users under an agent, with their full e-mail addresses.
+func (s *AgentService) AgentUsers(ctx context.Context, agentID int64) ([]AgentInvitee, error) {
+	return s.repo.AgentUsers(ctx, agentID)
+}
+
+// AttachUser puts an existing user under an agent: for a customer the agent brought in without the
+// invite link. Their spending earns the agent a share from now on, not for what they spent before.
+func (s *AgentService) AttachUser(ctx context.Context, agentID, userID int64) error {
+	if agentID <= 0 || userID <= 0 || agentID == userID {
+		return ErrAgentUserInvalid
+	}
+	// The user may never have opened the invite page, so their row is made here.
+	if _, err := s.affiliate.EnsureUserAffiliate(ctx, userID); err != nil {
+		return err
+	}
+	return s.repo.AttachUser(ctx, agentID, userID)
+}
+
+// DetachUser takes a user from under an agent. What the agent was credited stays.
+func (s *AgentService) DetachUser(ctx context.Context, agentID, userID int64) error {
+	done, err := s.repo.DetachUser(ctx, agentID, userID)
+	if err != nil {
+		return err
+	}
+	if !done {
+		return ErrAgentUserNotFound
+	}
+	return nil
 }
 
 // Overview returns nil for a user who is not an agent.

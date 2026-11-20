@@ -63,6 +63,9 @@
               <td class="py-2.5 text-right tabular-nums text-gray-900 dark:text-white">{{ yuan(agent.shared) }}</td>
               <td class="py-2.5 text-right tabular-nums text-gray-900 dark:text-white">{{ yuan(agent.available) }}</td>
               <td class="whitespace-nowrap py-2.5 text-right">
+                <button type="button" class="mr-3 text-xs text-primary-600 dark:text-primary-400" data-test="agents-users" @click="usersOf = agent">
+                  {{ t('admin.profit.agents.users.open') }}
+                </button>
                 <button type="button" class="text-xs text-primary-600 dark:text-primary-400" @click="openForm(agent)">
                   {{ t('admin.profit.agents.changeShare') }}
                 </button>
@@ -155,6 +158,7 @@
         </div>
       </form>
     </BaseDialog>
+    <AgentUsersDialog :agent="usersOf" @close="usersOf = null" @changed="load" />
   </div>
 </template>
 
@@ -170,6 +174,7 @@ import { useYcMoney } from '@/composables/useYcMoney'
 import { extractApiErrorMessage } from '@/utils/apiError'
 import { formatDate, formatDateTime } from '@/utils/format'
 import BaseDialog from '@/components/common/BaseDialog.vue'
+import AgentUsersDialog from './AgentUsersDialog.vue'
 
 const { t } = useI18n()
 const appStore = useAppStore()
@@ -178,6 +183,8 @@ const { yuan } = useYcMoney()
 
 const loading = ref(false)
 const saving = ref(false)
+// The agent whose users are being looked at, if any.
+const usersOf = ref<AgentEntry | null>(null)
 const agents = ref<AgentEntry[]>([])
 const payouts = ref<AgentPayout[]>([])
 const pending = computed(() => payouts.value.filter((item) => item.status === 'pending'))

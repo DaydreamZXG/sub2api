@@ -56,3 +56,28 @@ export async function markPaid(id: number, adminNote = ''): Promise<void> {
 export async function reject(id: number, adminNote = ''): Promise<void> {
   await apiClient.post(`/admin/agents/payouts/${id}/reject`, { admin_note: adminNote })
 }
+
+/** A user under an agent. `attached` is true when an admin put them there; `joined_at` is then when. */
+export interface AgentUser {
+  user_id: number
+  email: string
+  joined_at: string
+  attached: boolean
+  /** Their spending that counted for the agent's share, and the share it earned. */
+  spent: number
+  share: number
+}
+
+export async function listUsers(agentId: number): Promise<AgentUser[]> {
+  const { data } = await apiClient.get<AgentUser[]>(`/admin/agents/${agentId}/users`)
+  return data
+}
+
+/** Puts an existing user under the agent; the agent earns on their spending from now on. */
+export async function attachUser(agentId: number, userId: number): Promise<void> {
+  await apiClient.put(`/admin/agents/${agentId}/users/${userId}`)
+}
+
+export async function detachUser(agentId: number, userId: number): Promise<void> {
+  await apiClient.delete(`/admin/agents/${agentId}/users/${userId}`)
+}
