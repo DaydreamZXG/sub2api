@@ -54,7 +54,10 @@ export interface CostPackInput {
 
 export interface ProfitFigures {
   requests: number
+  /** The real money in what users were charged from their balance. */
   income: number
+  /** The rest of what they were charged: balance that was given, not paid for. */
+  gifted: number
   /** What monthly-plan users used, at plan value. Not money received. */
   plan_usage: number
   rate_cost: number
@@ -66,6 +69,9 @@ export interface ProfitReport {
   from: string
   to: string
   units_per_yuan: number
+  /** What payment orders brought in and gave back in the period, as paid. */
+  received: number
+  refunded: number
   totals: ProfitFigures
   months: (ProfitFigures & { month: string })[]
   /** group_id -1 carries pack cost no usage could be matched with; 0 is usage without a group. */
@@ -114,4 +120,20 @@ export async function addPayment(id: number, amount: number, paidAt: string, not
 
 export async function deletePayment(id: number, paymentId: number): Promise<void> {
   await apiClient.delete(`/admin/cost-packs/${id}/payments/${paymentId}`)
+}
+
+/** Which credits besides paid orders count as real money. */
+export interface ProfitSettings {
+  manual_is_paid: boolean
+  redeem_is_paid: boolean
+}
+
+export async function getSettings(): Promise<ProfitSettings> {
+  const { data } = await apiClient.get<ProfitSettings>('/admin/profit/settings')
+  return data
+}
+
+export async function updateSettings(settings: ProfitSettings): Promise<ProfitSettings> {
+  const { data } = await apiClient.put<ProfitSettings>('/admin/profit/settings', settings)
+  return data
 }

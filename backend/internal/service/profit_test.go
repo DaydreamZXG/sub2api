@@ -82,13 +82,13 @@ func TestBuildProfitReport(t *testing.T) {
 	}
 	rows := []ProfitUsageRow{
 		// Account 10 is in pack 1 and serves two groups: 3/4 of its standard use on group 1, 1/4 on group 2.
-		{Month: "2026-03", AccountID: 10, GroupID: 1, PackID: 1, Requests: 30, StandardCost: 300, ActualCost: 120, AccountCost: 300},
-		{Month: "2026-03", AccountID: 10, GroupID: 2, PackID: 1, Requests: 10, StandardCost: 100, ActualCost: 40, AccountCost: 100},
+		{Month: "2026-03", AccountID: 10, GroupID: 1, PackID: 1, Requests: 30, StandardCost: 300, ActualCost: 120, AccountCost: 300, PaidCost: 120},
+		{Month: "2026-03", AccountID: 10, GroupID: 2, PackID: 1, Requests: 10, StandardCost: 100, ActualCost: 40, AccountCost: 100, PaidCost: 40},
 		// Account 20 is in pack 2; a monthly-plan user used it, which is not money received.
-		{Month: "2026-04", AccountID: 20, GroupID: 1, PackID: 2, BillingType: BillingTypeSubscription, Requests: 5, StandardCost: 50, ActualCost: 50, AccountCost: 50},
-		{Month: "2026-04", AccountID: 20, GroupID: 1, PackID: 2, Requests: 8, StandardCost: 80, ActualCost: 64, AccountCost: 80},
+		{Month: "2026-04", AccountID: 20, GroupID: 1, PackID: 2, BillingType: BillingTypeSubscription, Requests: 5, StandardCost: 50, ActualCost: 50, AccountCost: 50, PaidCost: 50},
+		{Month: "2026-04", AccountID: 20, GroupID: 1, PackID: 2, Requests: 8, StandardCost: 80, ActualCost: 64, AccountCost: 80, PaidCost: 64},
 		// Account 30 is paid by use at a rate of 0.3.
-		{Month: "2026-04", AccountID: 30, GroupID: 2, Requests: 4, StandardCost: 100, ActualCost: 80, AccountCost: 30},
+		{Month: "2026-04", AccountID: 30, GroupID: 2, Requests: 4, StandardCost: 100, ActualCost: 80, AccountCost: 30, PaidCost: 80},
 	}
 
 	// Two balance units per yuan: every usage amount is halved.
@@ -147,6 +147,26 @@ func TestBuildProfitReport(t *testing.T) {
 	require.Zero(t, accounts[10].RateCost)
 	require.Zero(t, accounts[30].PackID)
 	require.InDelta(t, 40-15, accounts[30].Profit, 1e-9)
+}
+
+func TestBuildProfitReportGiftedBalanceIsNotIncome(t *testing.T) {
+	rows := []ProfitUsageRow{
+		// 100 charged, 60 of it real money; the account costs 30 by use.
+		{Month: "2026-04", AccountID: 30, GroupID: 2, Requests: 4, StandardCost: 100, ActualCost: 100, AccountCost: 30, PaidCost: 60},
+		// A monthly plan's use is neither income nor gifted.
+		{Month: "2026-04", AccountID: 30, GroupID: 2, BillingType: BillingTypeSubscription, Requests: 1, StandardCost: 10, ActualCost: 10, AccountCost: 3, PaidCost: 6},
+	}
+	report := buildProfitReport(rows, nil, "2026-04-01", "2026-04-30", "2026-04-30", 2)
+
+	require.InDelta(t, 30, report.Totals.Income, 1e-9)
+	require.InDelta(t, 20, report.Totals.Gifted, 1e-9)
+	require.InDelta(t, 5, report.Totals.PlanUsage, 1e-9)
+	require.InDelta(t, 16.5, report.Totals.RateCost, 1e-9)
+	require.InDelta(t, 13.5, report.Totals.Profit, 1e-9)
+	require.Len(t, report.Groups, 1)
+	require.InDelta(t, 20, report.Groups[0].Gifted, 1e-9)
+	require.Len(t, report.Accounts, 1)
+	require.InDelta(t, 30, report.Accounts[0].Income, 1e-9)
 }
 
 func TestBuildProfitReportEmpty(t *testing.T) {

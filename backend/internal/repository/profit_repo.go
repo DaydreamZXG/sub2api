@@ -12,25 +12,70 @@ import (
 
 // profitHourlyUpsertSQL sums usage logs created in [$1, $2) into hourly buckets per account, group and billing type.
 // Buckets are UTC hours, so the same log always lands in the same bucket whatever the site's timezone is.
+// paid_cost is the part of actual_cost that was real money: each user's charge times the share of their
+// credits that came from paid orders (and, when the settings say so, from manual grants and redeem codes).
+// Paid and gifted balance sit in one column, so they are taken to be spent in proportion.
 const profitHourlyUpsertSQL = `
-	INSERT INTO profit_hourly (bucket_start, account_id, group_id, billing_type, requests, standard_cost, actual_cost, account_cost)
+	WITH active AS (
+		-- Only the users charged in these hours: this runs every minute.
+		SELECT DISTINCT user_id FROM usage_logs WHERE created_at >= $1 AND created_at < $2
+	), paid AS (
+		-- refund_amount is filled in when a refund is asked for; it counts once the balance was taken back,
+		-- which is also when total_recharged went down: refunded, or waiting for the gateway to confirm.
+		SELECT user_id, SUM(GREATEST(amount - bonus_amount
+			- CASE WHEN status IN ('REFUND_PENDING', 'PARTIALLY_REFUNDED', 'REFUNDED') THEN refund_amount ELSE 0 END, 0)) AS amount
+		FROM payment_orders
+		WHERE order_type = 'balance' AND user_id IN (SELECT user_id FROM active)
+			AND status IN ('COMPLETED', 'REFUND_REQUESTED', 'REFUNDING', 'REFUND_PENDING', 'PARTIALLY_REFUNDED', 'REFUNDED', 'REFUND_FAILED')
+		GROUP BY user_id
+	), granted AS (
+		-- Net of what was taken back: an admin adding 600 and removing 600 again granted nothing.
+		SELECT used_by AS user_id, GREATEST(SUM(value), 0) AS amount
+		FROM redeem_codes rc
+		WHERE status = 'used' AND used_by IN (SELECT user_id FROM active) AND (
+			(type = 'admin_balance' AND COALESCE((SELECT value FROM settings WHERE key = 'profit_manual_is_paid'), '') = 'true')
+			-- An online top-up is credited through a code of its own; the order already counts it.
+			OR (type = 'balance' AND COALESCE((SELECT value FROM settings WHERE key = 'profit_redeem_is_paid'), '') = 'true'
+				AND NOT EXISTS (SELECT 1 FROM payment_orders po WHERE po.recharge_code = rc.code)))
+		GROUP BY used_by
+	), taken AS (
+		-- total_recharged does not go down when an admin takes balance back, so it is taken off here.
+		SELECT used_by AS user_id, SUM(value) AS amount
+		FROM redeem_codes
+		WHERE status = 'used' AND type = 'admin_balance' AND value < 0 AND used_by IN (SELECT user_id FROM active)
+		GROUP BY used_by
+	), share AS (
+		SELECT u.id AS user_id,
+			CASE WHEN u.total_recharged + COALESCE(t.amount, 0) > 0
+				THEN LEAST((COALESCE(p.amount, 0) + COALESCE(g.amount, 0)) / (u.total_recharged + COALESCE(t.amount, 0)), 1)
+				ELSE 0 END AS paid_share
+		FROM active a
+		JOIN users u ON u.id = a.user_id
+		LEFT JOIN paid p ON p.user_id = u.id
+		LEFT JOIN granted g ON g.user_id = u.id
+		LEFT JOIN taken t ON t.user_id = u.id
+	)
+	INSERT INTO profit_hourly (bucket_start, account_id, group_id, billing_type, requests, standard_cost, actual_cost, account_cost, paid_cost)
 	SELECT
-		date_trunc('hour', created_at AT TIME ZONE 'UTC') AT TIME ZONE 'UTC',
-		account_id,
-		COALESCE(group_id, 0),
-		COALESCE(billing_type, 0),
+		date_trunc('hour', l.created_at AT TIME ZONE 'UTC') AT TIME ZONE 'UTC',
+		l.account_id,
+		COALESCE(l.group_id, 0),
+		COALESCE(l.billing_type, 0),
 		COUNT(*),
-		COALESCE(SUM(total_cost), 0),
-		COALESCE(SUM(actual_cost), 0),
-		COALESCE(SUM(COALESCE(account_stats_cost, total_cost) * COALESCE(account_rate_multiplier, 1)), 0)
-	FROM usage_logs
-	WHERE created_at >= $1 AND created_at < $2
+		COALESCE(SUM(l.total_cost), 0),
+		COALESCE(SUM(l.actual_cost), 0),
+		COALESCE(SUM(COALESCE(l.account_stats_cost, l.total_cost) * COALESCE(l.account_rate_multiplier, 1)), 0),
+		COALESCE(SUM(l.actual_cost * COALESCE(s.paid_share, 0)), 0)
+	FROM usage_logs l
+	LEFT JOIN share s ON s.user_id = l.user_id
+	WHERE l.created_at >= $1 AND l.created_at < $2
 	GROUP BY 1, 2, 3, 4
 	ON CONFLICT (bucket_start, account_id, group_id, billing_type) DO UPDATE SET
 		requests = EXCLUDED.requests,
 		standard_cost = EXCLUDED.standard_cost,
 		actual_cost = EXCLUDED.actual_cost,
-		account_cost = EXCLUDED.account_cost
+		account_cost = EXCLUDED.account_cost,
+		paid_cost = EXCLUDED.paid_cost
 	WHERE EXCLUDED.requests >= profit_hourly.requests`
 
 // upsertProfitHourly refreshes the profit summary for whole hours. Saved figures only ever grow: an hour
@@ -291,7 +336,9 @@ func (r *profitRepository) Usage(ctx context.Context, from, to, tz string) ([]se
 	rows, err := r.db.QueryContext(ctx, `
 		WITH h AS (
 			SELECT (bucket_start AT TIME ZONE $3)::date AS day, account_id, group_id, billing_type,
-				requests, standard_cost, actual_cost, account_cost
+				requests, standard_cost, actual_cost, account_cost,
+				-- Hours summed up before paid_cost existed count in full.
+				COALESCE(paid_cost, actual_cost) AS paid_cost
 			FROM profit_hourly
 			WHERE bucket_start >= ($1::date::timestamp AT TIME ZONE $3)
 				AND bucket_start < (($2::date + 1)::timestamp AT TIME ZONE $3)
@@ -305,7 +352,8 @@ func (r *profitRepository) Usage(ctx context.Context, from, to, tz string) ([]se
 			SUM(h.requests),
 			SUM(h.standard_cost),
 			SUM(h.actual_cost),
-			SUM(h.account_cost)
+			SUM(h.account_cost),
+			SUM(h.paid_cost)
 		FROM h
 		LEFT JOIN cost_pack_accounts cpa ON cpa.account_id = h.account_id
 		LEFT JOIN cost_packs p ON p.id = cpa.pack_id
@@ -317,7 +365,7 @@ func (r *profitRepository) Usage(ctx context.Context, from, to, tz string) ([]se
 	for rows.Next() {
 		var row service.ProfitUsageRow
 		if err := rows.Scan(&row.Month, &row.AccountID, &row.GroupID, &row.BillingType, &row.PackID,
-			&row.Requests, &row.StandardCost, &row.ActualCost, &row.AccountCost); err != nil {
+			&row.Requests, &row.StandardCost, &row.ActualCost, &row.AccountCost, &row.PaidCost); err != nil {
 			_ = rows.Close()
 			return nil, err
 		}
@@ -326,12 +374,27 @@ func (r *profitRepository) Usage(ctx context.Context, from, to, tz string) ([]se
 	return out, closeRows(rows)
 }
 
+// Received sums what paid orders brought in and what was refunded in the period, in the currency paid.
+func (r *profitRepository) Received(ctx context.Context, from, to, tz string) (float64, float64, error) {
+	var received, refunded float64
+	err := r.db.QueryRowContext(ctx, `
+		SELECT
+			COALESCE(SUM(pay_amount) FILTER (
+				WHERE paid_at >= ($1::date::timestamp AT TIME ZONE $3) AND paid_at < (($2::date + 1)::timestamp AT TIME ZONE $3)), 0),
+			COALESCE(SUM(refund_amount * pay_amount / NULLIF(amount, 0)) FILTER (
+				WHERE refund_at >= ($1::date::timestamp AT TIME ZONE $3) AND refund_at < (($2::date + 1)::timestamp AT TIME ZONE $3)), 0)
+		FROM payment_orders
+		WHERE status IN ('COMPLETED', 'REFUND_REQUESTED', 'REFUNDING', 'REFUND_PENDING', 'PARTIALLY_REFUNDED', 'REFUNDED', 'REFUND_FAILED')`,
+		from, to, tz).Scan(&received, &refunded)
+	return received, refunded, err
+}
+
 func (r *profitRepository) PackUsage(ctx context.Context, tz string) (map[int64]service.ProfitPackUsage, error) {
 	rows, err := r.db.QueryContext(ctx, `
 		SELECT
 			p.id,
 			COALESCE(SUM(h.requests), 0),
-			COALESCE(SUM(CASE WHEN h.billing_type = 1 THEN 0 ELSE h.actual_cost END), 0),
+			COALESCE(SUM(CASE WHEN h.billing_type = 1 THEN 0 ELSE COALESCE(h.paid_cost, h.actual_cost) END), 0),
 			COALESCE(SUM(CASE WHEN h.billing_type = 1 THEN h.actual_cost ELSE 0 END), 0)
 		FROM cost_packs p
 		JOIN cost_pack_accounts cpa ON cpa.pack_id = p.id

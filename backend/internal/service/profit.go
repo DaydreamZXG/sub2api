@@ -13,7 +13,9 @@ import (
 )
 
 // SettingKeyProfitBackfilled is set once the usage that predates the profit summary has been folded into it.
-const SettingKeyProfitBackfilled = "profit_backfilled"
+// The name carries a version: v2 counts the kept usage again so that hours summed up before paid_cost
+// existed get one.
+const SettingKeyProfitBackfilled = "profit_backfilled_v2"
 
 const profitBackfillTimeout = 30 * time.Minute
 
@@ -100,6 +102,8 @@ type ProfitUsageRow struct {
 	StandardCost float64
 	ActualCost   float64
 	AccountCost  float64
+	// PaidCost is the part of ActualCost that was real money, not gifted balance.
+	PaidCost float64
 }
 
 // ProfitPackUsage is what a pack's accounts earned while they were in it.
@@ -128,6 +132,8 @@ type ProfitRepository interface {
 	DeletePayment(ctx context.Context, packID, paymentID int64) error
 	// Usage sums the summary between two days (both included), in the given timezone.
 	Usage(ctx context.Context, from, to, tz string) ([]ProfitUsageRow, error)
+	// Received is the money paid orders brought in and the money refunded, in the period, in currency.
+	Received(ctx context.Context, from, to, tz string) (received, refunded float64, err error)
 	PackUsage(ctx context.Context, tz string) (map[int64]ProfitPackUsage, error)
 	AccountInfos(ctx context.Context, ids []int64) (map[int64]ProfitAccountInfo, error)
 	GroupNames(ctx context.Context, ids []int64) (map[int64]string, error)
@@ -138,8 +144,10 @@ type ProfitRepository interface {
 // ProfitFigures are the numbers every line of the report carries, in yuan.
 type ProfitFigures struct {
 	Requests int64 `json:"requests"`
-	// Income is what users were charged from their balance.
+	// Income is the real money in what users were charged from their balance.
 	Income float64 `json:"income"`
+	// Gifted is the rest of what they were charged: balance that was given, not paid for.
+	Gifted float64 `json:"gifted"`
 	// PlanUsage is what monthly-plan users used, at plan value. It is not money received.
 	PlanUsage float64 `json:"plan_usage"`
 	// RateCost is the cost of accounts paid by use: standard price times the account's rate.
@@ -185,14 +193,17 @@ type ProfitAccountLine struct {
 
 // ProfitReport is income, cost and profit between two days, in yuan.
 type ProfitReport struct {
-	From         string              `json:"from"`
-	To           string              `json:"to"`
-	UnitsPerYuan float64             `json:"units_per_yuan"`
-	Totals       ProfitFigures       `json:"totals"`
-	Months       []ProfitMonthLine   `json:"months"`
-	Groups       []ProfitGroupLine   `json:"groups"`
-	Packs        []ProfitPackLine    `json:"packs"`
-	Accounts     []ProfitAccountLine `json:"accounts"`
+	From         string  `json:"from"`
+	To           string  `json:"to"`
+	UnitsPerYuan float64 `json:"units_per_yuan"`
+	// Received and Refunded are what payment orders brought in and gave back in the period, as paid.
+	Received float64             `json:"received"`
+	Refunded float64             `json:"refunded"`
+	Totals   ProfitFigures       `json:"totals"`
+	Months   []ProfitMonthLine   `json:"months"`
+	Groups   []ProfitGroupLine   `json:"groups"`
+	Packs    []ProfitPackLine    `json:"packs"`
+	Accounts []ProfitAccountLine `json:"accounts"`
 }
 
 // ProfitService works out what the site earned against what its upstream capacity cost.
@@ -264,6 +275,47 @@ func (s *ProfitService) ensureBackfilled(ctx context.Context) error {
 
 // Rebuild folds every usage log still kept into the summary again.
 func (s *ProfitService) Rebuild(ctx context.Context) error {
+	return s.repo.RebuildSummary(ctx)
+}
+
+// Setting keys read by the hourly summary: whether balance an admin grants by hand, and balance from
+// redeem codes, was paid for. Both are off unless set to "true".
+const (
+	SettingKeyProfitManualIsPaid = "profit_manual_is_paid"
+	SettingKeyProfitRedeemIsPaid = "profit_redeem_is_paid"
+)
+
+// ProfitSettings says which credits besides paid orders count as real money.
+type ProfitSettings struct {
+	ManualIsPaid bool `json:"manual_is_paid"`
+	RedeemIsPaid bool `json:"redeem_is_paid"`
+}
+
+func (s *ProfitService) GetSettings(ctx context.Context) ProfitSettings {
+	var out ProfitSettings
+	if s.settingRepo == nil {
+		return out
+	}
+	if v, err := s.settingRepo.GetValue(ctx, SettingKeyProfitManualIsPaid); err == nil {
+		out.ManualIsPaid = v == "true"
+	}
+	if v, err := s.settingRepo.GetValue(ctx, SettingKeyProfitRedeemIsPaid); err == nil {
+		out.RedeemIsPaid = v == "true"
+	}
+	return out
+}
+
+// UpdateSettings saves the settings and counts the hours whose logs are still kept again with them.
+func (s *ProfitService) UpdateSettings(ctx context.Context, in ProfitSettings) error {
+	for key, on := range map[string]bool{SettingKeyProfitManualIsPaid: in.ManualIsPaid, SettingKeyProfitRedeemIsPaid: in.RedeemIsPaid} {
+		value := "false"
+		if on {
+			value = "true"
+		}
+		if err := s.settingRepo.Set(ctx, key, value); err != nil {
+			return err
+		}
+	}
 	return s.repo.RebuildSummary(ctx)
 }
 
@@ -463,6 +515,9 @@ func (s *ProfitService) Report(ctx context.Context, from, to string) (*ProfitRep
 	}
 	rate := s.unitsPerYuan(ctx)
 	report := buildProfitReport(rows, packs, from, to, s.today(), rate)
+	if report.Received, report.Refunded, err = s.repo.Received(ctx, from, to, timezone.Name()); err != nil {
+		return nil, err
+	}
 
 	accountIDs := make([]int64, 0, len(report.Accounts))
 	for _, a := range report.Accounts {
@@ -529,11 +584,12 @@ func buildProfitReport(rows []ProfitUsageRow, packs []CostPack, from, to, today 
 	}
 
 	for _, row := range rows {
-		var income, planUsage, rateCost float64
+		var income, gifted, planUsage, rateCost float64
 		if row.BillingType == BillingTypeSubscription {
 			planUsage = row.ActualCost / rate
 		} else {
-			income = row.ActualCost / rate
+			income = row.PaidCost / rate
+			gifted = (row.ActualCost - row.PaidCost) / rate
 		}
 		if row.PackID == 0 {
 			rateCost = row.AccountCost / rate
@@ -546,6 +602,7 @@ func buildProfitReport(rows []ProfitUsageRow, packs []CostPack, from, to, today 
 		add := func(f *ProfitFigures) {
 			f.Requests += row.Requests
 			f.Income += income
+			f.Gifted += gifted
 			f.PlanUsage += planUsage
 			f.RateCost += rateCost
 		}
