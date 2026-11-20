@@ -739,7 +739,10 @@ export default {
 
   affiliate: {
     title: '邀请返利',
-    description: '邀请新用户注册，并将返利额度转入账户余额',
+    description: '把邀请链接发给朋友，他充值你就有返利，返利可以转进余额。',
+    hero: {
+      title: '朋友每次充值，你拿 {rate} 返利'
+    },
     yourCode: '我的邀请码',
     inviteLink: '邀请链接',
     copyCode: '复制邀请码',
@@ -751,18 +754,18 @@ export default {
     stats: {
       rebateRate: '我的返利比例',
       rebateRateHint: '被邀请用户每次充值后你可获得的返利比例',
-      invitedUsers: '邀请人数',
-      availableQuota: '可转返利额度',
+      invitedUsers: '已邀请',
+      availableQuota: '可转入余额',
       frozenQuota: '冻结中',
       frozenQuotaHint: '新产生的返利正在冻结期中',
-      totalQuota: '历史返利额度'
+      totalQuota: '累计返利'
     },
     transfer: {
       title: '返利额度转余额',
       description: '将当前可用返利额度一键转入账户余额',
       button: '转入余额',
       transferring: '转入中...',
-      empty: '当前没有可转入额度',
+      empty: '现在没有可转入的返利',
       success: '已转入余额：{amount}'
     },
     invitees: {
@@ -771,16 +774,16 @@ export default {
       columns: {
         email: '邮箱',
         username: '用户名',
-        rebate: '返利明细',
+        rebate: '返利',
         joinedAt: '注册时间'
       }
     },
     tips: {
-      title: '使用说明',
-      line1: '将邀请码或邀请链接分享给新用户。',
-      line2: '被邀请用户充值后，你可获得 {rate} 的返利额度。',
-      line3: '返利额度可随时转入账户余额。',
-      line4: '新产生的返利需要经过冻结期后才能提现。'
+      title: '怎么返利',
+      line1: '把邀请链接或邀请码发给朋友。',
+      line2: '朋友充值后，你获得 {rate} 的返利。',
+      line3: '返利可以随时转进账户余额。',
+      line4: '新产生的返利要过了冻结期才能转入余额。'
     }
   },
 
