@@ -93,7 +93,7 @@ export default {
   },
   shell: {
     garden: '菜园', start: '开始', connect: '接入工具', prices: '价目表', keys: '密钥管理', bills: '账单', topUp: '充值',
-    help: '帮助', more: '更多', plans: '包月套餐', invite: '邀请返利', admin: '管理后台', account: '我的账号'
+    help: '帮助', more: '更多', plans: '包月套餐', invite: '邀请返利', reseller: '分销', admin: '管理后台', account: '我的账号'
   },
   connect: {
     title: '接入工具',

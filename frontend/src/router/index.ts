@@ -308,6 +308,12 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
+    path: '/reseller',
+    name: 'Reseller',
+    component: () => import('@/views/user/ResellerView.vue'),
+    meta: { requiresAuth: true, requiresAdmin: false, title: 'Reseller', titleKey: 'reseller.title' }
+  },
+  {
     path: '/available-channels',
     name: 'UserAvailableChannels',
     component: () => import('@/views/user/AvailableChannelsView.vue'),

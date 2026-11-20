@@ -40,6 +40,7 @@ import { availableLocales, setLocale } from '@/i18n'
 import { useBatchImageAccess } from '@/composables/useBatchImageAccess'
 import { useYcMoney } from '@/composables/useYcMoney'
 import { getMyGarden } from '@/api/garden'
+import { useResellerFlag } from '@/composables/useResellerFlag'
 import AnnouncementBell from '@/components/common/AnnouncementBell.vue'
 import '@/styles/yecai.css'
 
@@ -62,6 +63,7 @@ const authStore = useAuthStore()
 const appStore = useAppStore()
 const adminSettingsStore = useAdminSettingsStore()
 const { yuan } = useYcMoney()
+const { isReseller, loadResellerFlag } = useResellerFlag()
 const { canUseBatchImage, refreshBatchImageAccess } = useBatchImageAccess()
 
 const settings = computed(() => appStore.cachedPublicSettings)
@@ -93,6 +95,7 @@ const more = computed<NavLink[]>(() => {
   return [
     ...on(full && flag(FeatureFlags.subscription), { to: '/subscriptions', text: t('yc.shell.plans') }),
     ...on(full && flag(FeatureFlags.affiliate), { to: '/affiliate', text: t('yc.shell.invite') }),
+    ...on(full && isReseller.value, { to: '/reseller', text: t('yc.shell.reseller') }),
     { to: '/keys', text: t('yc.shell.keys') },
     ...on(full && canUseBatchImage.value, { to: '/batch-image', text: t('nav.batchImage') }),
     ...on(full && flag(FeatureFlags.availableChannels), { to: '/available-channels', text: t('nav.availableChannels') }),
@@ -135,6 +138,7 @@ onMounted(() => {
       })
       .catch(() => undefined)
   }
+  if (!authStore.isSimpleMode) loadResellerFlag()
   void refreshBatchImageAccess()
   // Admin-only custom pages are resolved from these settings; the old sidebar used to load them.
   if (authStore.isAdmin) void adminSettingsStore.fetch()

@@ -746,6 +746,61 @@ export default {
     }
   },
 
+  reseller: {
+    title: 'Reselling',
+    headline: 'Hand out keys to your own clients, at your own price',
+    lead: "Every call a client makes is paid from your balance at your cost; the client's budget is used up at the price you set. The difference is yours.",
+    balance: 'My balance',
+    topUp: 'Top up',
+    short: 'Your balance is {balance}; what your clients have not used yet would need about {need}. When your balance runs out, their keys stop even with budget left, so top up in time.',
+    loadFailed: 'Could not load the reselling figures, please refresh',
+    none: {
+      title: 'This page is for resellers',
+      text: 'Resellers hand out keys to their own clients at their own price and keep the difference. Get in touch if you want to become one.',
+      toHelp: 'Contact us on the Help page'
+    },
+    facts: {
+      clientUsed: 'Used by clients',
+      clientUsedNote: 'at the price you give them',
+      cost: 'My cost',
+      costNote: 'what that usage took from your balance',
+      margin: 'My margin',
+      marginNote: 'used by clients minus my cost'
+    },
+    form: {
+      title: 'New client key',
+      name: 'Who it is for (only you see this)',
+      namePlaceholder: "e.g. Sam's studio",
+      line: 'Line',
+      lineDefault: 'Default line',
+      budget: 'Client budget ({sign})',
+      markup: 'Markup',
+      days: 'Valid for (days)',
+      daysPlaceholder: 'empty: never expires',
+      create: 'Create',
+      explain: "At this markup: for every 1 taken from your balance, the client's budget goes down by {client} and you keep {margin}. When the client has used {budget}, about {cost} has left your balance.",
+      markupInvalid: 'The markup must be from 1 to 100: 1 gives the client your own cost.',
+      locked: 'The markup cannot be changed once the key exists; make a new key for another price. Budget and line can be changed later under API keys.',
+      invalid: 'Fill in a name, a budget above 0 and a markup from 1 to 100',
+      created: 'Created, the key is copied',
+      failed: 'Could not create the key, please try again'
+    },
+    keys: {
+      title: 'Client keys',
+      empty: 'No client keys yet. Make one above and send the key to your client.',
+      markup: 'markup {markup}×',
+      copy: 'Copy key',
+      copied: 'Key copied',
+      used: 'Client used {used} of {budget}',
+      split: 'My cost {cost} · my margin {margin}',
+      expires: 'expires {date}',
+      stop: 'Stop',
+      start: 'Start',
+      deleteConfirm: 'Delete "{name}"? The client can no longer use this key at once.',
+      failed: 'That did not work, please try again'
+    },
+    status: { active: 'Active', inactive: 'Stopped', quota_exhausted: 'Budget used up', expired: 'Expired' }
+  },
   affiliate: {
     title: 'Affiliate Rebates',
     hero: {

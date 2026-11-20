@@ -750,6 +750,61 @@ export default {
     }
   },
 
+  reseller: {
+    title: '分销',
+    headline: '给你的客户发密钥，价格你定',
+    lead: '客户用的每一笔都从你的余额里按你的成本扣；客户的额度按你定的价格扣。差出来的就是你赚的。',
+    balance: '我的余额',
+    topUp: '去充值',
+    short: '你的余额 {balance}，客户还没用完的额度大约需要 {need}。余额用完时，客户的密钥即使还有额度也会停，请及时充值。',
+    loadFailed: '分销数据没有加载出来，请刷新再试',
+    none: {
+      title: '这一页是给分销商用的',
+      text: '分销商可以给自己的客户发密钥、自己定价，赚中间的差价。想做分销请联系我们开通。',
+      toHelp: '去帮助页联系我们'
+    },
+    facts: {
+      clientUsed: '客户已用',
+      clientUsedNote: '按你给客户的价格算',
+      cost: '我的成本',
+      costNote: '这些用量从你余额里扣掉的',
+      margin: '我赚的',
+      marginNote: '客户已用减去我的成本'
+    },
+    form: {
+      title: '新建客户密钥',
+      name: '给谁用（只有你看得到）',
+      namePlaceholder: '比如：张三的工作室',
+      line: '线路',
+      lineDefault: '默认线路',
+      budget: '客户额度（{sign}）',
+      markup: '加价倍数',
+      days: '有效天数',
+      daysPlaceholder: '不填就不过期',
+      create: '创建',
+      explain: '按这个倍数：你的余额每扣 1，客户的额度扣 {client}，你赚 {margin}。客户把 {budget} 用完，你的余额大约扣 {cost}。',
+      markupInvalid: '加价倍数要在 1 到 100 之间：1 表示按成本价给客户。',
+      locked: '加价倍数建好之后不能改；要换价格就新建一把。额度和线路之后可以在“密钥管理”里改。',
+      invalid: '请填名称、大于 0 的额度，以及 1 到 100 之间的加价倍数',
+      created: '建好了，密钥已复制',
+      failed: '没有建成，请再试一次'
+    },
+    keys: {
+      title: '客户密钥',
+      empty: '还没有客户密钥。在上面建一把，把密钥发给客户就能用。',
+      markup: '加价 {markup} 倍',
+      copy: '复制密钥',
+      copied: '密钥已复制',
+      used: '客户已用 {used} / {budget}',
+      split: '我的成本 {cost} · 我赚 {margin}',
+      expires: '{date} 到期',
+      stop: '停用',
+      start: '启用',
+      deleteConfirm: '删除“{name}”？客户会立刻不能再用这把密钥。',
+      failed: '操作没有成功，请再试一次'
+    },
+    status: { active: '可用', inactive: '已停用', quota_exhausted: '额度用完', expired: '已过期' }
+  },
   affiliate: {
     title: '邀请返利',
     description: '把邀请链接发给朋友，他充值你就有返利，返利可以转进余额。',
