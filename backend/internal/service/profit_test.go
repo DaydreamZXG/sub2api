@@ -149,6 +149,26 @@ func TestBuildProfitReport(t *testing.T) {
 	require.InDelta(t, 40-15, accounts[30].Profit, 1e-9)
 }
 
+func TestBuildProfitReportGiftedBalanceIsNotIncome(t *testing.T) {
+	rows := []ProfitUsageRow{
+		// 100 charged, 60 of it real money; the account costs 30 by use.
+		{Month: "2026-04", AccountID: 30, GroupID: 2, Requests: 4, StandardCost: 100, ActualCost: 100, AccountCost: 30, PaidCost: 60},
+		// A monthly plan's use is neither income nor gifted.
+		{Month: "2026-04", AccountID: 30, GroupID: 2, BillingType: BillingTypeSubscription, Requests: 1, StandardCost: 10, ActualCost: 10, AccountCost: 3, PaidCost: 6},
+	}
+	report := buildProfitReport(rows, nil, "2026-04-01", "2026-04-30", "2026-04-30", 2)
+
+	require.InDelta(t, 30, report.Totals.Income, 1e-9)
+	require.InDelta(t, 20, report.Totals.Gifted, 1e-9)
+	require.InDelta(t, 5, report.Totals.PlanUsage, 1e-9)
+	require.InDelta(t, 16.5, report.Totals.RateCost, 1e-9)
+	require.InDelta(t, 13.5, report.Totals.Profit, 1e-9)
+	require.Len(t, report.Groups, 1)
+	require.InDelta(t, 20, report.Groups[0].Gifted, 1e-9)
+	require.Len(t, report.Accounts, 1)
+	require.InDelta(t, 30, report.Accounts[0].Income, 1e-9)
+}
+
 func TestBuildProfitReportEmpty(t *testing.T) {
 	report := buildProfitReport(nil, nil, "2026-03-01", "2026-03-31", "2026-03-31", 0)
 	require.Equal(t, 1.0, report.UnitsPerYuan)

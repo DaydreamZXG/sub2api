@@ -13,7 +13,9 @@ import (
 )
 
 // SettingKeyProfitBackfilled is set once the usage that predates the profit summary has been folded into it.
-const SettingKeyProfitBackfilled = "profit_backfilled"
+// The name carries a version: v2 counts the kept usage again so that hours summed up before paid_cost
+// existed get one.
+const SettingKeyProfitBackfilled = "profit_backfilled_v2"
 
 const profitBackfillTimeout = 30 * time.Minute
 
