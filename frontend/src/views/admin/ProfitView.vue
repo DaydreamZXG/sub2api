@@ -59,6 +59,9 @@
           <p v-if="report.received > 0 || report.refunded > 0" class="text-sm text-gray-500 dark:text-dark-400" data-test="profit-cash-note">
             {{ t('admin.profit.cashNote', { received: money(report.received), refunded: money(report.refunded) }) }}
           </p>
+          <p v-if="report.agent_share > 0.005" class="text-sm text-gray-500 dark:text-dark-400" data-test="profit-agent-note">
+            {{ t('admin.profit.agentNote', { amount: money(report.agent_share) }) }}
+          </p>
           <p v-if="isEmpty" class="card p-8 text-center text-sm text-gray-500 dark:text-dark-400" data-test="profit-empty">
             {{ t('admin.profit.empty') }}
           </p>
@@ -208,6 +211,8 @@
           </section>
         </template>
       </template>
+
+      <ProfitAgentsTab v-else-if="tab === 'agents'" />
 
       <!-- Cost packs -->
       <template v-else>
@@ -402,8 +407,9 @@ import { extractApiErrorMessage } from '@/utils/apiError'
 import AppLayout from '@/components/layout/AppLayout.vue'
 import BaseDialog from '@/components/common/BaseDialog.vue'
 import Toggle from '@/components/common/Toggle.vue'
+import ProfitAgentsTab from '@/components/admin/profit/ProfitAgentsTab.vue'
 
-const TABS = ['report', 'packs'] as const
+const TABS = ['report', 'packs', 'agents'] as const
 const PRESETS = ['thisMonth', 'lastMonth', 'last30', 'last90'] as const
 const KINDS = ['once', 'cycle'] as const
 type Preset = (typeof PRESETS)[number]
