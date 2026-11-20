@@ -25,6 +25,7 @@ import (
 	"github.com/Wei-Shaw/sub2api/internal/pkg/openai"
 	"github.com/Wei-Shaw/sub2api/internal/pkg/timezone"
 	"github.com/Wei-Shaw/sub2api/internal/pkg/typesafe"
+	"github.com/Wei-Shaw/sub2api/internal/pkg/usagestats"
 	"github.com/Wei-Shaw/sub2api/internal/pkg/xai"
 	"github.com/Wei-Shaw/sub2api/internal/securityaudit"
 	middleware2 "github.com/Wei-Shaw/sub2api/internal/server/middleware"
@@ -1631,6 +1632,23 @@ func (h *GatewayHandler) Usage(c *gin.Context) {
 	if h.usageService != nil {
 		if stats, err := h.usageService.GetAPIKeyModelStats(ctx, apiKey.ID, startTime, endTime); err == nil && len(stats) > 0 {
 			modelStats = stats
+		}
+	}
+
+	// A reseller's client reads this with the key: every amount has to be in the client's price.
+	if markup := apiKey.ClientMarkup; markup > 0 {
+		if usageData != nil {
+			clientPriceUsageSummary(usageData, markup)
+		}
+		if points, ok := dailyUsage.([]usagestats.APIKeyDailyUsagePoint); ok {
+			dailyUsage = clientPriceDailyUsage(points, markup)
+		} else {
+			dailyUsage = nil
+		}
+		if stats, ok := modelStats.([]usagestats.ModelStat); ok {
+			modelStats = clientPriceModelStats(stats, markup)
+		} else {
+			modelStats = nil
 		}
 	}
 

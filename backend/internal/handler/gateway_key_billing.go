@@ -42,6 +42,11 @@ func (h *GatewayHandler) KeyBillingInfo(c *gin.Context) {
 		h.errorResponse(c, http.StatusNotFound, "not_found_error", "Billing information is not supported in simple mode")
 		return
 	}
+	// The multipliers are the reseller's buying price; their client, who holds the key, must not see them.
+	if apiKey.ClientMarkup > 0 {
+		h.errorResponse(c, http.StatusNotFound, "not_found_error", "Billing information is not available for this key")
+		return
+	}
 	if apiKey.GroupID == nil {
 		h.errorResponse(c, http.StatusForbidden, "permission_error", "API key is not assigned to a group")
 		return
