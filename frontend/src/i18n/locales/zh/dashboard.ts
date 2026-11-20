@@ -353,8 +353,11 @@ export default {
 
   // Usage
   usage: {
-    title: '使用记录',
-    description: '查看和分析您的 API 使用历史',
+    title: '用量明细',
+    description: '每一次调用花了多少、用了哪个模型，都在这里',
+    moreFilters: '更多筛选',
+    fewerFilters: '收起筛选',
+    pricing: '计价',
     costDetails: '费用明细',
     tokenDetails: 'Token 明细',
     cacheTtlOverriddenHint: '缓存 TTL Override 已启用',
@@ -497,6 +500,7 @@ export default {
       detailCoordinates: '坐标',
     },
     tabs: { usage: '用量明细', errors: '错误请求', ranking: '用户排行' },
+    userTabs: { usage: '每次调用', errors: '报错记录', charts: '图表' },
     errors: {
       time: '时间', model: '模型', endpoint: '端点', status: '状态码',
       category: '分类', platform: '平台', message: '错误信息',
