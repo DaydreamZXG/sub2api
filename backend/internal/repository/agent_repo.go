@@ -262,3 +262,10 @@ func (r *agentRepository) FinishPayout(ctx context.Context, id int64, status, ad
 	n, _ := res.RowsAffected()
 	return n > 0, nil
 }
+
+func (r *agentRepository) ReopenPayout(ctx context.Context, id int64) error {
+	_, err := r.db.ExecContext(ctx, `
+		UPDATE agent_payout_requests SET status = 'pending', admin_note = '', handled_at = NULL
+		WHERE id = $1 AND status = 'paid'`, id)
+	return err
+}

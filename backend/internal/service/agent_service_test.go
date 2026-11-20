@@ -21,6 +21,7 @@ type agentRepoStub struct {
 	payout   *AgentPayout
 	finished []string
 	finishOK bool
+	reopened int
 }
 
 func (s *agentRepoStub) AccrueShares(context.Context, time.Time) (int, error) {
@@ -44,6 +45,11 @@ func (s *agentRepoStub) GetPayout(context.Context, int64) (*AgentPayout, error) 
 		return nil, ErrAgentPayoutNotFound
 	}
 	return s.payout, nil
+}
+
+func (s *agentRepoStub) ReopenPayout(context.Context, int64) error {
+	s.reopened++
+	return nil
 }
 
 func (s *agentRepoStub) FinishPayout(_ context.Context, _ int64, status, _ string) (bool, error) {
@@ -138,7 +144,9 @@ func TestAgentMarkPaid_LeavesTheRequestWhenTheQuotaIsShort(t *testing.T) {
 	repo := &agentRepoStub{payout: &AgentPayout{ID: 3, UserID: 7, Amount: 25, Status: AgentPayoutPending}, finishOK: true}
 	svc := newAgentServiceForTest(repo, &agentAffiliateRepoStub{withdrawErr: ErrAffiliateQuotaInsufficient})
 	require.ErrorIs(t, svc.MarkPaid(context.Background(), 3, ""), ErrAffiliateQuotaInsufficient)
-	require.Empty(t, repo.finished)
+	// Taken, then put back to pending: nothing was taken off.
+	require.Equal(t, []string{AgentPayoutPaid}, repo.finished)
+	require.Equal(t, 1, repo.reopened)
 }
 
 func TestAgentPayout_HandledRequestsAreNotHandledAgain(t *testing.T) {
