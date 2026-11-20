@@ -38,7 +38,7 @@
           <div class="min-w-0">
             <div class="truncate text-sm text-gray-900 dark:text-white">{{ user.email || `#${user.user_id}` }}</div>
             <div class="text-xs text-gray-500 dark:text-dark-400">
-              {{ t(user.attached ? 'admin.profit.agents.users.attachedAt' : 'admin.profit.agents.users.joinedAt', { date: formatDate(user.joined_at) }) }}
+              {{ t(user.attached ? 'admin.profit.agents.users.attachedAt' : 'admin.profit.agents.users.joinedAt', { date: formatDateOnly(user.joined_at) }) }}
               · {{ t('admin.profit.agents.users.figures', { spent: yuan(user.spent), share: yuan(user.share) }) }}
             </div>
           </div>
@@ -61,7 +61,7 @@ import { lookupUsers } from '@/api/admin/affiliates'
 import type { SimpleUser } from '@/api/admin/affiliates'
 import { useYcMoney } from '@/composables/useYcMoney'
 import { extractApiErrorMessage } from '@/utils/apiError'
-import { formatDate } from '@/utils/format'
+import { formatDateOnly } from '@/utils/format'
 import BaseDialog from '@/components/common/BaseDialog.vue'
 
 const props = defineProps<{ agent: AgentEntry | null }>()
