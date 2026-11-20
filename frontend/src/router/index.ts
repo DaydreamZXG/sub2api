@@ -229,6 +229,12 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true, requiresAdmin: false, title: 'Help', titleKey: 'yc.help.title' }
   },
   {
+    path: '/garden',
+    name: 'Garden',
+    component: () => import('@/views/yecai/YcGardenView.vue'),
+    meta: { requiresAuth: true, requiresAdmin: false, title: 'Garden', titleKey: 'yc.garden.title' }
+  },
+  {
     path: '/prices',
     name: 'Prices',
     component: () => import('@/views/yecai/YcPricesView.vue'),
@@ -625,6 +631,18 @@ const routes: RouteRecordRaw[] = [
       title: 'Growth levels',
       titleKey: 'admin.growth.title',
       descriptionKey: 'admin.growth.description'
+    }
+  },
+  {
+    path: '/admin/garden',
+    name: 'AdminGarden',
+    component: () => import('@/views/admin/GardenSettingsView.vue'),
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: true,
+      title: 'Garden',
+      titleKey: 'admin.garden.title',
+      descriptionKey: 'admin.garden.description'
     }
   },
   {

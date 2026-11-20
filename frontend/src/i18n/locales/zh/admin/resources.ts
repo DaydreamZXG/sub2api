@@ -371,6 +371,19 @@ export default {
     },
 
     // Tickets
+    garden: {
+      title: '菜园',
+      description: '充值赠送先种成菜，成熟后由用户收进余额',
+      enable: '开启菜园',
+      enableHint: '开启后，余额充值的赠送部分不再直接到账，而是种成一棵菜，成熟后用户自己收进余额。本金照常立刻到账。',
+      ripenHours: '多久成熟（小时）',
+      ripenHoursHint: '只影响之后种下的菜，已经种下的不变。',
+      rules: '没有配置充值赠送时不会种菜。订单退款时，还没收的菜会先退回余额，再按原来的规则扣减。关闭后已种下的菜仍然可以收。修改后约一分钟内生效。',
+      errorHours: '成熟时间要大于 0，最多 {max} 小时',
+      saved: '已保存',
+      failedToSave: '保存失败',
+      failedToLoad: '读取菜园设置失败'
+    },
     growth: {
       title: '成长等级',
       description: '用户累计充值越多，用 app 接入时价格越低',

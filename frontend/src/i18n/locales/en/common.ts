@@ -167,6 +167,7 @@ export default {
     announcements: 'Announcements',
     tickets: 'Tickets',
     growthLevels: 'Growth levels',
+    garden: 'Garden',
     apiKeys: 'API Keys',
     batchImage: 'Batch Images',
     usage: 'Usage',

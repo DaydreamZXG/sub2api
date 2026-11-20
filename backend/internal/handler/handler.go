@@ -58,6 +58,7 @@ type Handlers struct {
 	Announcement     *AnnouncementHandler
 	Ticket           *TicketHandler
 	Growth           *GrowthHandler
+	Garden           *GardenHandler
 	Desktop          *DesktopHandler
 	ChannelMonitor   *ChannelMonitorUserHandler
 	ChannelMonitorV2 *ChannelMonitorV2Handler

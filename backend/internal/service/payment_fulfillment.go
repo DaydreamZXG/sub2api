@@ -435,6 +435,7 @@ func (s *PaymentService) doBalance(ctx context.Context, o *dbent.PaymentOrder, l
 
 	switch action {
 	case redeemActionSkipCompleted:
+		s.plantOrderBonus(ctx, o)
 		if err := s.applyAffiliateRebateForOrder(ctx, o); err != nil {
 			return err
 		}
@@ -451,10 +452,22 @@ func (s *PaymentService) doBalance(ctx context.Context, o *dbent.PaymentOrder, l
 	if _, err := s.redeemService.redeemForPaymentFulfillment(ctx, o.UserID, o.RechargeCode); err != nil {
 		return fmt.Errorf("redeem balance: %w", err)
 	}
+	s.plantOrderBonus(ctx, o)
 	if err := s.applyAffiliateRebateForOrder(ctx, o); err != nil {
 		return err
 	}
 	return s.markCompleted(ctx, o, lease, "RECHARGE_SUCCESS")
+}
+
+// plantOrderBonus moves the order's bonus out of the balance into a garden crop, once per order.
+// A failure is only logged: the bonus then stays in the balance, as it would without the garden.
+func (s *PaymentService) plantOrderBonus(ctx context.Context, o *dbent.PaymentOrder) {
+	if s.garden == nil || o.BonusAmount <= 0 {
+		return
+	}
+	if _, err := s.garden.PlantForOrder(ctx, o.UserID, o.ID, o.BonusAmount); err != nil {
+		s.writeAuditLog(ctx, o.ID, "GARDEN_PLANT_FAILED", "system", map[string]any{"error": err.Error()})
+	}
 }
 
 func (s *PaymentService) markCompleted(ctx context.Context, o *dbent.PaymentOrder, lease *paymentFulfillmentLease, auditAction string) error {

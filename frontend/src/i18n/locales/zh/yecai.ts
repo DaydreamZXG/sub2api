@@ -92,7 +92,7 @@ export default {
     a5: 'Claude Code、Codex、Gemini CLI、OpenCode 等常见工具都可以接。'
   },
   shell: {
-    start: '开始', connect: '接入工具', prices: '价目表', keys: '密钥管理', bills: '账单', topUp: '充值',
+    garden: '菜园', start: '开始', connect: '接入工具', prices: '价目表', keys: '密钥管理', bills: '账单', topUp: '充值',
     help: '帮助', more: '更多', plans: '包月套餐', invite: '邀请返利', admin: '管理后台', account: '我的账号'
   },
   connect: {
@@ -188,6 +188,23 @@ export default {
     manual: '你的 app 价是单独定的，不再叠加等级折扣。'
   },
   theme: { label: '外观', light: '浅色', dark: '深色', system: '跟随系统' },
+  garden: {
+    title: '菜园',
+    lead: '充值送的额度会先种成一棵菜，{hours} 小时后成熟，回来收进余额。本金照常立刻到账。',
+    failed: '菜园暂时打不开，稍后再试。',
+    ripe: '熟了，可以收',
+    growing: '还在长',
+    ripeIn: '还要 {time} 成熟',
+    hoursMinutes: '{hours} 小时 {minutes} 分',
+    minutes: '{minutes} 分钟',
+    harvest: '收菜',
+    harvestDone: '收到 {amount}，已进余额',
+    harvestFailed: '没收成，刷新后再试',
+    emptyTitle: '菜园还空着',
+    empty: '充值有赠送时，赠送的那部分会种在这里。',
+    off: '菜园现在没有开放。',
+    harvested: '收过的菜'
+  },
   prices: {
     title: '价目表',
     lead: '每个模型一个价，直接写人民币。单位是每百万 Token，用多少扣多少。',
