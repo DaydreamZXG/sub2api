@@ -4,6 +4,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 
@@ -18,6 +19,7 @@ type resellerRepoStub struct {
 	set      []bool
 
 	portal      ResellerPortal
+	portalErr   error
 	portalReads int
 }
 
@@ -32,7 +34,7 @@ func (s *resellerRepoStub) ClientKeys(context.Context, int64) ([]ResellerClientK
 }
 func (s *resellerRepoStub) GetPortal(context.Context) (ResellerPortal, error) {
 	s.portalReads++
-	return s.portal, nil
+	return s.portal, s.portalErr
 }
 func (s *resellerRepoStub) SetPortal(_ context.Context, portal ResellerPortal) error {
 	s.portal = portal
@@ -140,23 +142,50 @@ func TestResellerServiceSetPortalWantsABareHostAndAName(t *testing.T) {
 
 	// An empty domain turns it off and needs nothing else.
 	require.NoError(t, svc.SetPortal(context.Background(), ResellerPortal{}))
-	require.Nil(t, svc.PortalFor(context.Background(), "keys.example.com"))
+	require.Nil(t, portalForTest(t, svc, "keys.example.com"))
 }
 
 func TestResellerServicePortalForMatchesTheHostAndKeepsTheSettingsForAWhile(t *testing.T) {
 	repo := &resellerRepoStub{portal: ResellerPortal{Domain: "keys.example.com", Name: "Keys"}}
 	svc := &ResellerService{repo: repo}
 
-	require.Nil(t, svc.PortalFor(context.Background(), "main.example.com"))
-	require.Nil(t, svc.PortalFor(context.Background(), "evilkeys.example.com"))
-	got := svc.PortalFor(context.Background(), "KEYS.example.com:443")
+	require.Nil(t, portalForTest(t, svc, "main.example.com"))
+	require.Nil(t, portalForTest(t, svc, "evilkeys.example.com"))
+	got := portalForTest(t, svc, "KEYS.example.com:443")
 	require.NotNil(t, got)
 	require.Equal(t, "Keys", got.Name)
 	require.Equal(t, 1, repo.portalReads)
 
 	// Saving through the service is seen at once, without waiting for the next reload.
 	require.NoError(t, svc.SetPortal(context.Background(), ResellerPortal{Domain: "other.example.com", Name: "Other"}))
-	require.Nil(t, svc.PortalFor(context.Background(), "keys.example.com"))
-	require.NotNil(t, svc.PortalFor(context.Background(), "other.example.com"))
+	require.Nil(t, portalForTest(t, svc, "keys.example.com"))
+	require.NotNil(t, portalForTest(t, svc, "other.example.com"))
 	require.Equal(t, 1, repo.portalReads)
+}
+
+func portalForTest(t *testing.T, svc *ResellerService, host string) *ResellerPortal {
+	t.Helper()
+	portal, err := svc.PortalFor(context.Background(), host)
+	require.NoError(t, err)
+	return portal
+}
+
+func TestResellerServicePortalForSaysWhenTheDomainIsNotKnownYet(t *testing.T) {
+	repo := &resellerRepoStub{portal: ResellerPortal{Domain: "keys.example.com", Name: "Keys"}, portalErr: errors.New("down")}
+	svc := &ResellerService{repo: repo}
+
+	// Never read: the caller is told, and the next request asks again instead of waiting.
+	_, err := svc.PortalFor(context.Background(), "keys.example.com")
+	require.Error(t, err)
+	_, err = svc.PortalFor(context.Background(), "keys.example.com")
+	require.Error(t, err)
+	require.Equal(t, 2, repo.portalReads)
+
+	repo.portalErr = nil
+	require.NotNil(t, portalForTest(t, svc, "keys.example.com"))
+
+	// Once read, a failed reload keeps what was known.
+	svc.portalLoaded = time.Now().Add(-time.Hour)
+	repo.portalErr = errors.New("down")
+	require.NotNil(t, portalForTest(t, svc, "keys.example.com"))
 }

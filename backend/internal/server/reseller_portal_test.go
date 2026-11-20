@@ -13,14 +13,20 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type portalLookupStub struct{ portal service.ResellerPortal }
+type portalLookupStub struct {
+	portal service.ResellerPortal
+	err    error
+}
 
-func (s portalLookupStub) PortalFor(_ context.Context, host string) *service.ResellerPortal {
+func (s portalLookupStub) PortalFor(_ context.Context, host string) (*service.ResellerPortal, error) {
+	if s.err != nil {
+		return nil, s.err
+	}
 	if s.portal.Domain == "" || service.NormalizeResellerHost(host) != s.portal.Domain {
-		return nil
+		return nil, nil
 	}
 	portal := s.portal
-	return &portal
+	return &portal, nil
 }
 
 type portalSettingsStub struct {
@@ -33,15 +39,19 @@ func (s portalSettingsStub) GetPublicSettingsForInjection(context.Context) (any,
 }
 
 func newPortalTestRouter(portal service.ResellerPortal) *gin.Engine {
+	return newPortalTestRouterWith(portalLookupStub{portal: portal})
+}
+
+func newPortalTestRouterWith(lookup portalLookupStub) *gin.Engine {
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
-	r.Use(resellerPortalGuard(portalLookupStub{portal: portal}))
+	r.Use(resellerPortalGuard(lookup))
 	ok := func(c *gin.Context) {
 		config, onPortal := resellerPortalPage(func(context.Context) string { return "¥" })(c)
 		c.Header("X-On-Portal", map[bool]string{true: "yes", false: "no"}[onPortal])
 		c.Data(http.StatusOK, "application/json", append([]byte(nil), config...))
 	}
-	for _, path := range []string{"/api/v1/settings/public", "/api/v1/auth/login", "/setup/status", "/.well-known/oauth-authorization-server", "/v1/usage", "/v1/messages", "/", "/assets/app.js"} {
+	for _, path := range []string{"/api/v1/settings/public", "/api/v1/auth/login", "/setup/status", "/.well-known/oauth-authorization-server", "/v1/usage", "/v1/messages", "/", "/assets/app.js", "/health"} {
 		r.Any(path, ok)
 	}
 	return r
@@ -111,4 +121,13 @@ func TestResellerPortalSignFollowsHowTheSiteWritesAmounts(t *testing.T) {
 	require.Equal(t, "¥", sign(map[string]any{"payment_enabled": true, "balance_recharge_multiplier": 1}, nil))
 	require.Equal(t, "$", sign(map[string]any{"payment_enabled": true, "balance_recharge_multiplier": 0.14}, nil))
 	require.Equal(t, "¥", sign(nil, errors.New("down")))
+}
+
+func TestResellerPortalGuardServesNothingOfTheSiteWhileTheDomainIsNotKnown(t *testing.T) {
+	r := newPortalTestRouterWith(portalLookupStub{err: errors.New("database is starting")})
+	for _, path := range []string{"/api/v1/settings/public", "/", "/v1/usage"} {
+		w := portalTestGet(r, "keys.example.com", path, nil)
+		require.Equal(t, http.StatusServiceUnavailable, w.Code, path)
+	}
+	require.Equal(t, http.StatusOK, portalTestGet(r, "keys.example.com", "/health", nil).Code)
 }

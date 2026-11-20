@@ -24,6 +24,8 @@ const (
 	resellerMaxMarkup = 100.0
 	// How long a server keeps the client domain before asking the database again.
 	resellerPortalTTL = 30 * time.Second
+	// How soon a failed reload of it is tried again.
+	resellerPortalRetry = 2 * time.Second
 )
 
 var resellerPortalHost = regexp.MustCompile(`^([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$`)
@@ -116,6 +118,7 @@ type ResellerService struct {
 
 	portalMu     sync.Mutex
 	portal       ResellerPortal
+	portalKnown  bool
 	portalLoaded time.Time
 }
 
@@ -227,27 +230,34 @@ func (s *ResellerService) SetPortal(ctx context.Context, portal ResellerPortal) 
 		return err
 	}
 	s.portalMu.Lock()
-	s.portal, s.portalLoaded = portal, time.Now()
+	s.portal, s.portalKnown, s.portalLoaded = portal, true, time.Now()
 	s.portalMu.Unlock()
 	return nil
 }
 
 // PortalFor returns the client domain's settings when host is that domain, nil otherwise. It runs on
-// every request, so the settings are kept for a short while; a failed reload keeps the last ones.
-func (s *ResellerService) PortalFor(ctx context.Context, host string) *ResellerPortal {
+// every request, so the settings are kept for a short while; a failed reload keeps the last ones and
+// is tried again soon. The error is returned only while the settings have never been read: then it
+// is not known whether host is the client domain, and the caller must not serve the site there.
+func (s *ResellerService) PortalFor(ctx context.Context, host string) (*ResellerPortal, error) {
 	s.portalMu.Lock()
 	defer s.portalMu.Unlock()
 	if time.Since(s.portalLoaded) > resellerPortalTTL {
-		if portal, err := s.repo.GetPortal(ctx); err == nil {
-			s.portal = portal
+		portal, err := s.repo.GetPortal(ctx)
+		switch {
+		case err == nil:
+			s.portal, s.portalKnown, s.portalLoaded = portal, true, time.Now()
+		case !s.portalKnown:
+			return nil, err
+		default:
+			s.portalLoaded = time.Now().Add(resellerPortalRetry - resellerPortalTTL)
 		}
-		s.portalLoaded = time.Now()
 	}
 	if s.portal.Domain == "" || NormalizeResellerHost(host) != s.portal.Domain {
-		return nil
+		return nil, nil
 	}
 	portal := s.portal
-	return &portal
+	return &portal, nil
 }
 
 // NormalizeResellerHost reduces what an admin typed, or a Host header, to a bare lower-case host name.

@@ -112,9 +112,9 @@ func (h *ResellerHandler) SetPortal(c *gin.Context) {
 }
 
 // PortalFor tells the router whether a request arrived on the client domain.
-func (h *ResellerHandler) PortalFor(ctx context.Context, host string) *service.ResellerPortal {
+func (h *ResellerHandler) PortalFor(ctx context.Context, host string) (*service.ResellerPortal, error) {
 	if h == nil || h.resellers == nil {
-		return nil
+		return nil, nil
 	}
 	return h.resellers.PortalFor(ctx, host)
 }
