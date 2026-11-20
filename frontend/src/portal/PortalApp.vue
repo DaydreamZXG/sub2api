@@ -6,87 +6,87 @@
         <b>{{ config.site_name }}</b>
       </div>
       <div class="pt-top-right">
-        <button v-if="usage" type="button" class="pt-link" data-test="portal-switch" @click="signOut">{{ t('switchKey') }}</button>
+        <button v-if="usage" type="button" class="pt-link" data-test="portal-switch" @click="signOut">{{ say('switchKey') }}</button>
         <button type="button" class="pt-link" data-test="portal-locale" @click="toggleLocale">{{ locale === 'zh' ? 'English' : '中文' }}</button>
       </div>
     </header>
 
     <main class="pt-main">
       <section v-if="!usage" class="pt-card pt-enter" data-test="portal-enter">
-        <p class="pt-tagline">{{ t('tagline') }}</p>
-        <h1>{{ t('enterTitle') }}</h1>
+        <p class="pt-tagline">{{ say('tagline') }}</p>
+        <h1>{{ say('enterTitle') }}</h1>
         <form @submit.prevent="lookUp(input)">
-          <input v-model.trim="input" type="text" autocomplete="off" spellcheck="false" :placeholder="t('enterPlaceholder')" data-test="portal-key-input" />
-          <button type="submit" class="pt-btn" :disabled="loading || !input" data-test="portal-look-up">{{ loading ? t('loading') : t('enter') }}</button>
+          <input v-model.trim="input" type="text" autocomplete="off" spellcheck="false" :placeholder="say('enterPlaceholder')" data-test="portal-key-input" />
+          <button type="submit" class="pt-btn" :disabled="loading || !input" data-test="portal-look-up">{{ loading ? say('loading') : say('enter') }}</button>
         </form>
-        <p v-if="error" class="pt-error" data-test="portal-error">{{ t(error) }}</p>
-        <p class="pt-hint">{{ t('enterHint') }}</p>
+        <p v-if="error" class="pt-error" data-test="portal-error">{{ say(error) }}</p>
+        <p class="pt-hint">{{ say('enterHint') }}</p>
       </section>
 
       <template v-else>
         <section class="pt-card pt-budget" data-test="portal-budget">
           <div class="pt-budget-head">
             <div>
-              <p class="pt-label">{{ t('remaining') }}</p>
+              <p class="pt-label">{{ say('remaining') }}</p>
               <p class="pt-big" data-test="portal-remaining">{{ money(usage.quota?.remaining) }}</p>
             </div>
             <div class="pt-budget-side">
-              <span class="pt-chip" :class="`is-${status}`" data-test="portal-status">{{ t(`status.${status}`) }}</span>
-              <button type="button" class="pt-link" :disabled="loading" data-test="portal-refresh" @click="lookUp(key)">{{ t('refresh') }}</button>
+              <span class="pt-chip" :class="`is-${status}`" data-test="portal-status">{{ say(`status.${status}`) }}</span>
+              <button type="button" class="pt-link" :disabled="loading" data-test="portal-refresh" @click="lookUp(key)">{{ say('refresh') }}</button>
             </div>
           </div>
           <div class="pt-bar"><i :style="{ width: `${usedPercent}%` }"></i></div>
           <p class="pt-sub">
-            {{ t('used', { used: money(usage.quota?.used), limit: money(usage.quota?.limit) }) }}
+            {{ say('used', { used: money(usage.quota?.used), limit: money(usage.quota?.limit) }) }}
             ·
             {{ expiryText }}
           </p>
-          <p v-if="status !== 'active'" class="pt-error">{{ t('statusHelp') }}</p>
+          <p v-if="status !== 'active'" class="pt-error">{{ say('statusHelp') }}</p>
         </section>
 
         <div class="pt-two">
           <section class="pt-card">
-            <p class="pt-label">{{ t('today') }}</p>
+            <p class="pt-label">{{ say('today') }}</p>
             <p class="pt-mid" data-test="portal-today">{{ money(usage.usage?.today?.actual_cost) }}</p>
-            <p class="pt-sub">{{ t('requests', { n: count(usage.usage?.today?.requests) }) }} · {{ t('tokens', { n: count(usage.usage?.today?.total_tokens) }) }}</p>
+            <p class="pt-sub">{{ say('requests', { n: count(usage.usage?.today?.requests) }) }} · {{ say('tokens', { n: count(usage.usage?.today?.total_tokens) }) }}</p>
           </section>
           <section class="pt-card">
-            <p class="pt-label">{{ t('total') }}</p>
+            <p class="pt-label">{{ say('total') }}</p>
             <p class="pt-mid" data-test="portal-total">{{ money(usage.usage?.total?.actual_cost) }}</p>
-            <p class="pt-sub">{{ t('requests', { n: count(usage.usage?.total?.requests) }) }} · {{ t('tokens', { n: count(usage.usage?.total?.total_tokens) }) }}</p>
+            <p class="pt-sub">{{ say('requests', { n: count(usage.usage?.total?.requests) }) }} · {{ say('tokens', { n: count(usage.usage?.total?.total_tokens) }) }}</p>
           </section>
         </div>
 
         <section class="pt-card">
-          <h2>{{ t('connect') }}</h2>
-          <p class="pt-sub">{{ t('connectLead') }}</p>
+          <h2>{{ say('connect') }}</h2>
+          <p class="pt-sub">{{ say('connectLead') }}</p>
           <div class="pt-copy">
-            <span>{{ t('baseUrl') }}</span>
+            <span>{{ say('baseUrl') }}</span>
             <code data-test="portal-base-url">{{ origin }}</code>
-            <button type="button" class="pt-link" @click="copy(origin, 'url')">{{ copiedWhat === 'url' ? t('copied') : t('copy') }}</button>
+            <button type="button" class="pt-link" @click="copy(origin, 'url')">{{ copiedWhat === 'url' ? say('copied') : say('copy') }}</button>
           </div>
           <div class="pt-copy">
-            <span>{{ t('key') }}</span>
+            <span>{{ say('key') }}</span>
             <code>{{ maskedKey }}</code>
-            <button type="button" class="pt-link" data-test="portal-copy-key" @click="copy(key, 'key')">{{ copiedWhat === 'key' ? t('copied') : t('copy') }}</button>
+            <button type="button" class="pt-link" data-test="portal-copy-key" @click="copy(key, 'key')">{{ copiedWhat === 'key' ? say('copied') : say('copy') }}</button>
           </div>
           <ul class="pt-notes">
-            <li>{{ t('claude') }}</li>
-            <li>{{ t('openai') }}</li>
-            <li>{{ t('others') }}</li>
+            <li>{{ say('claude') }}</li>
+            <li>{{ say('openai') }}</li>
+            <li>{{ say('others') }}</li>
           </ul>
           <template v-if="models.length">
-            <p class="pt-label pt-models-label">{{ t('available') }}</p>
+            <p class="pt-label pt-models-label">{{ say('available') }}</p>
             <p class="pt-models" data-test="portal-models"><span v-for="m in models" :key="m">{{ m }}</span></p>
           </template>
         </section>
 
         <section class="pt-card">
-          <h2>{{ t('daily', { n: DAYS }) }}</h2>
-          <p v-if="daily.length === 0" class="pt-sub" data-test="portal-daily-empty">{{ t('dailyEmpty') }}</p>
+          <h2>{{ say('daily', { n: DAYS }) }}</h2>
+          <p v-if="daily.length === 0" class="pt-sub" data-test="portal-daily-empty">{{ say('dailyEmpty') }}</p>
           <table v-else class="pt-table" data-test="portal-daily">
             <thead>
-              <tr><th>{{ t('date') }}</th><th>{{ t('calls') }}</th><th>{{ t('amount') }}</th><th></th></tr>
+              <tr><th>{{ say('date') }}</th><th>{{ say('calls') }}</th><th>{{ say('amount') }}</th><th></th></tr>
             </thead>
             <tbody>
               <tr v-for="day in daily" :key="day.date">
@@ -100,10 +100,10 @@
         </section>
 
         <section v-if="byModel.length" class="pt-card">
-          <h2>{{ t('models') }}</h2>
+          <h2>{{ say('models') }}</h2>
           <table class="pt-table" data-test="portal-by-model">
             <thead>
-              <tr><th>{{ t('model') }}</th><th>{{ t('calls') }}</th><th>{{ t('amount') }}</th></tr>
+              <tr><th>{{ say('model') }}</th><th>{{ say('calls') }}</th><th>{{ say('amount') }}</th></tr>
             </thead>
             <tbody>
               <tr v-for="row in byModel" :key="row.model">
@@ -116,7 +116,7 @@
         </section>
       </template>
 
-      <p v-if="config.contact_info" class="pt-contact" data-test="portal-contact"><b>{{ t('contact') }}</b> {{ config.contact_info }}</p>
+      <p v-if="config.contact_info" class="pt-contact" data-test="portal-contact"><b>{{ say('contact') }}</b> {{ config.contact_info }}</p>
     </main>
   </div>
 </template>
@@ -156,7 +156,9 @@ const usage = ref<KeyUsage | null>(null)
 const models = ref<string[]>([])
 const copiedWhat = ref('')
 
-function t(name: string, params: Record<string, string | number> = {}): string {
+// Deliberately not named like the main site's translate function: its locale check takes every
+// call of that name for a key of the site's own locale files.
+function say(name: string, params: Record<string, string | number> = {}): string {
   const text = messages[locale.value][name] ?? name
   return text.replace(/\{(\w+)\}/g, (_, p: string) => String(params[p] ?? ''))
 }
@@ -179,10 +181,10 @@ const usedPercent = computed(() => {
 })
 const expiryText = computed(() => {
   const at = usage.value?.expires_at
-  if (!at) return t('noExpiry')
+  if (!at) return say('noExpiry')
   const date = new Date(at).toLocaleDateString(locale.value === 'zh' ? 'zh-CN' : 'en-CA')
   const days = usage.value?.days_until_expiry ?? 0
-  return days > 0 ? t('expires', { date, days }) : t('expiresToday', { date })
+  return days > 0 ? say('expires', { date, days }) : say('expiresToday', { date })
 })
 // Newest day first, and only days with something on them.
 const daily = computed(() => [...(usage.value?.daily_usage ?? [])].filter((d) => d.requests > 0).reverse())

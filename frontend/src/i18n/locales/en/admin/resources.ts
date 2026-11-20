@@ -398,6 +398,22 @@ export default {
       cashNote: 'Top-up orders brought in {received} in this period, and {refunded} was refunded.',
       agentNote: 'Agents were credited {amount} in this period. It is already taken off the profit above (off the total only, not off the tables by month and by line below).',
       resellers: {
+        portal: {
+          title: 'Client domain',
+          intro: "Resellers' clients use another domain: there they enter their key to see their budget and usage, and it is also their API address. Requests arriving on that domain reach only the API and the client pages; this site's sign-in, sign-up and price list cannot be opened there.",
+          domain: 'Domain',
+          domainHint: 'The host name only, e.g. keys.example.com. Leave empty to turn it off.',
+          name: 'Name shown there',
+          nameHint: 'Use a name other than this site\'s, so clients do not connect the two.',
+          contact: 'Contact shown there (optional)',
+          logo: 'Logo image address (optional)',
+          step1: 'Point the domain at this site\'s server.',
+          step2: 'In the reverse proxy (Nginx, Caddy, …) add a site for it that forwards to the same port as this site, with an HTTPS certificate. The original Host must be passed on.',
+          step3: 'Save the domain here. It takes effect within about half a minute.',
+          needName: 'A domain needs a name to show there',
+          saved: 'Saved; takes effect within about half a minute',
+          invalid: 'Not saved: the domain must look like keys.example.com, the logo an http(s) address'
+        },
         intro: 'A reseller hands out keys to their own clients from their own balance, at their own price. Each call is paid from the reseller\'s balance as usual, so their spending is already in the report\'s income; the margin they make is between them and their clients and does not pass through the site.',
         addTitle: 'Add a reseller',
         userPlaceholder: 'Search by email or username',
