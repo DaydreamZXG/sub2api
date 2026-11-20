@@ -1,0 +1,83 @@
+/* Design tokens for the redesigned user-facing pages: ink + lime, follows the `dark` class. */
+.yc {
+  --yc-bg: #fafaf7;
+  --yc-paper: #ffffff;
+  --yc-ink: #0b0f0c;
+  --yc-mut: #565d58;
+  --yc-dim: #8b918c;
+  --yc-line: rgb(11 15 12 / 0.1);
+  --yc-fill: rgb(11 15 12 / 0.045);
+  --yc-lime: #c8ff00;
+  --yc-on-lime: #0b0f0c;
+  --yc-ok: #0f8043;
+  background: var(--yc-bg);
+  color: var(--yc-ink);
+  font-feature-settings: 'tnum';
+  -webkit-font-smoothing: antialiased;
+}
+.dark .yc {
+  --yc-bg: #06090a;
+  --yc-paper: #0c1113;
+  --yc-ink: #f4f6f1;
+  --yc-mut: rgb(244 246 241 / 0.68);
+  --yc-dim: rgb(244 246 241 / 0.42);
+  --yc-line: rgb(244 246 241 / 0.11);
+  --yc-fill: rgb(244 246 241 / 0.055);
+  --yc-ok: #7dffb0;
+}
+.yc-wrap { width: 100%; max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+.yc-mark { background: linear-gradient(transparent 58%, var(--yc-lime) 58%, var(--yc-lime) 94%, transparent 94%); padding: 0 0.08em; }
+.dark .yc .yc-mark { background: none; color: var(--yc-lime); padding: 0; }
+.yc-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 46px; padding: 0 24px; border-radius: 999px; font-weight: 650; font-size: 15px; white-space: nowrap; transition: transform 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease; }
+.yc-btn:active { transform: scale(0.97); }
+.yc-btn-lime { background: var(--yc-lime); color: var(--yc-on-lime); box-shadow: inset 0 0 0 1px rgb(11 15 12 / 0.9); }
+.dark .yc .yc-btn-lime { box-shadow: none; }
+.yc-btn-lime:hover { box-shadow: inset 0 0 0 1px rgb(11 15 12 / 0.9), 0 6px 0 -1px var(--yc-ink); transform: translateY(-3px); }
+.dark .yc .yc-btn-lime:hover { box-shadow: 0 0 32px rgb(200 255 0 / 0.35); }
+.yc-btn-ghost { color: var(--yc-ink); box-shadow: inset 0 0 0 1px var(--yc-line); }
+.yc-btn-ghost:hover { background: var(--yc-fill); }
+.yc-btn-sm { height: 36px; padding: 0 16px; font-size: 14px; }
+.yc-eyebrow { font-size: 12.5px; font-weight: 650; letter-spacing: 0.14em; text-transform: uppercase; color: var(--yc-mut); }
+.yc-h2 { font-size: clamp(28px, 4vw, 44px); line-height: 1.12; letter-spacing: -0.03em; font-weight: 750; text-wrap: balance; }
+.yc-card { background: var(--yc-paper); border: 1px solid var(--yc-line); border-radius: 20px; }
+.yc :focus-visible:not(.yc-legacy *) { outline: 2px solid var(--yc-ink); outline-offset: 3px; border-radius: 6px; }
+.dark .yc :focus-visible:not(.yc-legacy *) { outline-color: var(--yc-lime); }
+.yc-surface { position: relative; background: var(--yc-paper); border: 1px solid var(--yc-line); border-radius: 24px; box-shadow: 0 1px 0 rgb(255 255 255 / 0.9) inset, 0 1px 2px rgb(11 15 12 / 0.04), 0 18px 40px -24px rgb(11 15 12 / 0.22); }
+.dark .yc .yc-surface { box-shadow: 0 1px 0 rgb(255 255 255 / 0.05) inset, 0 24px 60px -30px rgb(0 0 0 / 0.9); }
+.yc-num { font-variant-numeric: tabular-nums; letter-spacing: -0.04em; font-weight: 800; }
+.yc-reveal { opacity: 0; transform: translateY(28px); transition: opacity 0.8s cubic-bezier(0.2, 0.7, 0.2, 1), transform 0.8s cubic-bezier(0.2, 0.7, 0.2, 1); }
+.yc-reveal.is-in { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  .yc-reveal { opacity: 1; transform: none; transition: none; }
+}
+
+/* Signed-in pages */
+.yc-page-h1 { font-size: clamp(30px, 4.6vw, 48px); line-height: 1.12; letter-spacing: -0.035em; font-weight: 800; }
+.yc-page-lead { max-width: 620px; margin-top: 10px; font-size: 16px; line-height: 1.6; color: var(--yc-mut); }
+.yc-sec-h2 { font-size: 22px; line-height: 1.25; letter-spacing: -0.02em; font-weight: 750; }
+.yc-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+.yc-badge { display: inline-flex; align-items: center; height: 24px; padding: 0 10px; border-radius: 999px; background: var(--yc-ink); color: var(--yc-bg); font-size: 12px; font-weight: 700; white-space: nowrap; }
+.yc-badge-lime { background: var(--yc-lime); color: var(--yc-on-lime); }
+.yc-opts { display: flex; flex-wrap: wrap; gap: 8px; }
+.yc-opt { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 16px; border-radius: 999px; box-shadow: inset 0 0 0 1px var(--yc-line); font-size: 14.5px; font-weight: 600; color: var(--yc-mut); transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease; }
+.yc-opt:hover { color: var(--yc-ink); background: var(--yc-fill); }
+.yc-opt:active { transform: scale(0.97); }
+.yc-opt.is-on { background: var(--yc-ink); color: var(--yc-bg); box-shadow: none; }
+.yc-opt:disabled { opacity: 0.5; cursor: default; }
+.yc-code { margin: 0; padding: 18px 20px; border-radius: 16px; background: #0b0f0c; color: #e9f0e4; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13.5px; line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; }
+.dark .yc .yc-code { background: #000; box-shadow: inset 0 0 0 1px var(--yc-line); }
+.yc-input { width: 100%; height: 46px; padding: 0 16px; border-radius: 14px; background: var(--yc-paper); box-shadow: inset 0 0 0 1px var(--yc-line); font-size: 15px; color: var(--yc-ink); outline: none; transition: box-shadow 0.15s ease; }
+.yc-input::placeholder { color: var(--yc-dim); }
+.yc-input:focus { box-shadow: inset 0 0 0 2px var(--yc-ink); }
+.dark .yc .yc-input:focus { box-shadow: inset 0 0 0 2px var(--yc-lime); }
+.yc-note { font-size: 13.5px; line-height: 1.6; color: var(--yc-mut); }
+.yc-link { text-decoration: underline; text-decoration-color: var(--yc-dim); text-underline-offset: 3px; }
+.yc-link:hover { text-decoration-color: currentColor; }
+@keyframes yc-enter { from { opacity: 0; transform: translateY(22px); } }
+@media (prefers-reduced-motion: no-preference) {
+  .yc-shell-main:not(.yc-legacy) > * { animation: yc-enter 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) backwards; }
+  .yc-shell-main:not(.yc-legacy) > :nth-child(2) { animation-delay: 0.06s; }
+  .yc-shell-main:not(.yc-legacy) > :nth-child(3) { animation-delay: 0.12s; }
+  .yc-shell-main:not(.yc-legacy) > :nth-child(4) { animation-delay: 0.18s; }
+  .yc-shell-main:not(.yc-legacy) > :nth-child(n + 5) { animation-delay: 0.24s; }
+}

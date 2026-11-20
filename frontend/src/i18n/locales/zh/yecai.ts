@@ -1,0 +1,179 @@
+export default {
+  nav: { aria: '页面导航', pains: '解决什么', prices: '价格', faq: '常见问题', docs: '文档' },
+  cta: { start: '开始使用', login: '登录', console: '进入控制台' },
+  flow: { aria: '你的工具通过一把密钥连到各家模型', key: '你的密钥' },
+  hero: {
+    eyebrow: 'AI 模型接入服务',
+    titleA: '接入 AI',
+    titleB: '不用再折腾配置',
+    lead: '装个客户端，点一下就把 Claude、Codex 接上。价格直接写人民币，每一笔都查得到，没用完的可以退。'
+  },
+  pain: {
+    before: '以前',
+    after: '现在',
+    setup: {
+      tag: '接入',
+      titleA: '以前，要自己改配置文件。',
+      titleB: '现在，装个客户端点一下。',
+      b1: '翻文档找接口地址',
+      b2: '打开配置文件，一项一项填',
+      b3: '换一个工具，再来一遍',
+      a1: '下载客户端，登录账号',
+      a2: '它自动找到你电脑上的 Claude、Codex',
+      a3: '点“一键接入”，完成'
+    },
+    price: {
+      tag: '价格',
+      titleA: '以前，要自己算倍率。',
+      titleB: '现在，直接写人民币。',
+      formula: '充值汇率 × 分组倍率 × 模型倍率 × 官方价 = ？',
+      b1: '同样的倍率，实际价格差好几倍',
+      b2: '先选分组，才知道多少钱',
+      b3: '扣的是额度，不是钱',
+      a1: '每个模型一个人民币价格',
+      a2: '充多少就是多少，¥1 就是 ¥1',
+      a3: '想看倍率和原始价，点开就有'
+    },
+    bill: {
+      tag: '账单',
+      titleA: '以前，只看得到一个总数。',
+      titleB: '现在，一笔一笔看得见。',
+      b1: '余额少了，不知道花在哪',
+      b2: '用了哪个模型，对不上',
+      b3: '充进去的钱拿不回来',
+      a1: '每次请求用了哪个模型、扣了多少',
+      a2: '输入、输出、缓存分开列',
+      a3: '没用完的余额可以退'
+    },
+    help: {
+      tag: '服务',
+      titleA: '以前，报错只能自己查。',
+      titleB: '现在，卡住了有人回。',
+      b1: '一串英文报错，看不懂',
+      b2: '不知道是自己的问题还是站的问题',
+      b3: '找不到人问',
+      a1: 'QQ 群里直接问',
+      a2: '提工单，有人跟进',
+      a3: '接不上、缓存、网络问题都可以找我们'
+    }
+  },
+  live: { label: '全站已处理 Token，实时更新', today: '今天 {tokens} · 累计 {requests} 次请求' },
+  client: {
+    download: '下载客户端',
+    windows: '下载 Windows 版',
+    macos: '下载 macOS 版',
+    manual: '支持 Windows 和 macOS。不想装客户端？登录后也可以在网页上复制配置。',
+    window: '客户端 · 我的应用',
+    shotAlt: '客户端里的“我的应用”：自动发现电脑上的 Claude 和 Codex，可以一键接入'
+  },
+  price: {
+    eyebrow: '价格',
+    title: '最后，说价格。',
+    official: '官方价',
+    perMillionIn: '每百万 Token 输入',
+    off: '约 {zhe} 折',
+    note: '其他模型见完整价目表。官方价按 1 美元 ≈ {rate} 元折算，仅供对比。',
+    output: '输出每百万 Token ¥{price}',
+    pick: '点一个模型，看它的价格',
+    all: '全部模型和价格'
+  },
+  faq: {
+    eyebrow: '常见问题',
+    title: '开始之前',
+    q1: '我需要会写代码吗？',
+    a1: '不需要。装上客户端点一下就行；不想装客户端，也可以按页面提示复制粘贴一次。',
+    q2: '密钥是什么？',
+    a2: '一串以 sk- 开头的密码，工具靠它来使用你的余额。它只属于你，不要发给别人。',
+    q3: 'Token 是什么？',
+    a3: '模型计算用量的单位，大致相当于字数：一个汉字约 1 到 2 个 Token。价格按每百万 Token 标注。',
+    q4: '怎么收费？',
+    a4: '按每次请求的实际用量扣余额，不同模型价格不同。花了多少随时能在账单里看到。',
+    q5: '支持哪些工具？',
+    a5: 'Claude Code、Codex、Gemini CLI、OpenCode 等常见工具都可以接。'
+  },
+  shell: {
+    start: '开始', connect: '接入工具', prices: '价目表', keys: '密钥管理', bills: '账单', topUp: '充值',
+    help: '帮助', more: '更多', plans: '包月套餐', invite: '邀请返利', admin: '管理后台', account: '我的账号'
+  },
+  connect: {
+    title: '接入工具',
+    lead: '两种办法，选一种就行。',
+    best: '最省事',
+    clientTitle: '装个客户端，点一下',
+    clientText: '下载客户端并登录，它会自动找到电脑上的 Claude 和 Codex，点“一键接入”就完成，不用碰配置文件。',
+    copyTitle: '或者，复制一段命令',
+    pickKey: '选一把密钥',
+    loading: '正在读取你的密钥…',
+    newKey: '新建一把密钥',
+    newKeyFor: '新建密钥：{line}',
+    keyName: '{line} 密钥',
+    noLine: '你的账号暂时没有可用的线路，请联系客服开通。',
+    created: '密钥已创建',
+    createFailed: '创建失败，请稍后再试',
+    pickShell: '你在哪里运行 {tool}？',
+    shell: { unix: 'macOS / Linux 终端', powershell: 'Windows PowerShell', cmd: 'Windows 命令提示符' },
+    paste: '复制下面这段，粘贴到终端里按回车',
+    files: '这把密钥对应的工具需要写配置文件，按步骤做一次就行',
+    copy: '复制命令',
+    copyShort: '复制',
+    copied: '已复制',
+    after: '然后在同一个终端窗口里启动 {tool}。',
+    fullGuide: '想写进配置文件长期生效，或者用别的工具？查看完整配置',
+    openGuide: '打开配置步骤',
+    manual: '我自己填：接口地址和密钥',
+    baseUrl: '接口地址',
+    keyOf: '密钥（{name}）',
+    manageKeys: '管理全部密钥：限额、有效期、IP 限制'
+  },
+  bills: {
+    title: '账单',
+    lead: '每一笔请求用了什么模型、扣了多少钱，都在这里。',
+    range: '时间范围', today: '今天', week: '近 7 天', month: '近 30 天',
+    spent: '这段时间花了', requests: '请求次数', tokens: 'Token 总量',
+    empty: '这段时间没有使用记录。',
+    more: '再看 {n} 条',
+    advanced: '需要筛选、图表和导出？打开高级视图'
+  },
+  topUp: {
+    title: '充值',
+    lead: '充多少就是多少，¥1 就是 ¥1。用多少扣多少。',
+    pay: '去充值', buyPlan: '查看包月套餐', redeem: '我有兑换码', orders: '查看充值记录',
+    minTitle: '可以先少充一点', minAny: '金额自己定，先少充一点试试合不合用。',
+    bonusTitle: '多充送 {pct}%', bonusText: '单笔充值满 {min}，额外赠送 {pct}%。',
+    refundTitle: '没用完可以退', refundText: '余额没用完可以申请退款，联系客服办理。',
+    clearTitle: '每一笔都查得到', clearText: '每次请求扣了多少，都记在账单里，随时能看。'
+  },
+  help: {
+    title: '帮助',
+    lead: '卡住了别自己硬扛，直接找我们。',
+    contactTitle: '找人帮忙', noContact: '站长还没有填写联系方式。', docs: '查看使用文档',
+    newsTitle: '公告'
+  },
+  theme: { label: '外观', light: '浅色', dark: '深色', system: '跟随系统' },
+  prices: {
+    title: '价目表',
+    lead: '每个模型一个价，直接写人民币。单位是每百万 Token，用多少扣多少。',
+    search: '搜索模型，例如 claude',
+    model: '模型', input: '输入', output: '输出',
+    loading: '正在读取价格…',
+    none: '价目表暂时没有内容。',
+    noMatch: '没有找到这个模型，换个关键词试试。',
+    from: ' 起', varies: '这是标准价。超长上下文、特定时段或更高推理强度的请求会按更高的档位计费，每一笔以账单为准。',
+    line: '线路', cacheRead: '缓存读取', multiplier: '倍率',
+    official: '官方价：输入 ${input}、输出 ${output}（每百万 Token）。划掉的人民币价按 1 美元 ≈ {rate} 元折算，仅供对比。',
+    foot: '点任意一行可以展开，看每条线路的价格、缓存价和倍率。'
+  },
+  dash: {
+    night: '夜深了', morning: '早上好', afternoon: '下午好', evening: '晚上好', comma: '，',
+    nextTag: '下一步', nextTopUp: '先充一点余额，用多少扣多少，没用完可以退。',
+    nextKey: '创建你的第一把密钥，工具靠它来使用余额。', nextKeyGo: '去创建',
+    nextConnect: '密钥有了，把它接到你的工具里就能用。', nextConnectGo: '去接入',
+    balance: '余额', balanceHint: '用多少扣多少，没用完可以退', today: '今天花了', total: '累计花了',
+    requests: '{n} 次请求', recent: '最近使用', allBills: '全部账单',
+    empty: '还没有使用记录。接入工具并发出第一次请求后，这里会显示每一笔的明细。',
+    expandTip: '点任意一行可以展开，看这次请求的全部细节。',
+    dModel: '模型', dInput: '输入', dOutput: '输出', dCacheWrite: '缓存写入', dCacheRead: '缓存读取',
+    dTiming: '首字 / 总用时', dListCost: '标准价', dMultiplier: '倍率'
+  },
+  final: { title: '现在就把它接上' }
+}

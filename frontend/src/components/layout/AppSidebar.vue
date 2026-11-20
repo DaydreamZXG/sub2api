@@ -22,7 +22,7 @@
           class="sidebar-brand-title text-lg font-bold text-gray-900 transition-colors hover:text-primary-600 dark:text-white dark:hover:text-primary-400"
           @click="handleMenuItemClick(homePath)"
         >
-          {{ siteName }}
+          {{ siteName }}<i v-if="siteWordmark" class="yc-wordmark ml-1.5 text-[9px]">{{ siteWordmark }}</i>
         </router-link>
         <!-- Version Badge -->
         <VersionBadge :version="siteVersion" />
@@ -196,6 +196,7 @@ import VersionBadge from '@/components/common/VersionBadge.vue'
 import Icon from '@/components/icons/Icon.vue'
 import { sanitizeSvg } from '@/utils/sanitize'
 import { sanitizeUrl } from '@/utils/url'
+import { isStockSiteName, ycSiteName, YC_WORDMARK } from '@/utils/ycBrand'
 import { FeatureFlags, makeSidebarFlag } from '@/utils/featureFlags'
 import { resolveSiteBillingMode } from '@/utils/siteBillingMode'
 import { useBatchImageAccess } from '@/composables/useBatchImageAccess'
@@ -261,7 +262,8 @@ const homePath = computed(() => (isAdmin.value ? '/admin/dashboard' : '/dashboar
 const groupExpandOverrides = ref<Map<string, boolean>>(new Map())
 
 // Site settings from appStore (cached, no flicker)
-const siteName = computed(() => appStore.siteName)
+const siteName = computed(() => ycSiteName(appStore.siteName))
+const siteWordmark = computed(() => (isStockSiteName(appStore.siteName) ? YC_WORDMARK : ''))
 const siteLogo = computed(() => sanitizeUrl(appStore.siteLogo || '', { allowRelative: true, allowDataUrl: true }))
 const siteVersion = computed(() => appStore.siteVersion)
 const settingsLoaded = computed(() => appStore.publicSettingsLoaded)
@@ -1059,7 +1061,7 @@ onBeforeUnmount(() => {
 }
 
 .dark .sidebar-section-title::after {
-  background: rgb(55 65 81);
+  background: rgb(var(--dark-700));
 }
 
 .sidebar-section-title-text-collapsed {

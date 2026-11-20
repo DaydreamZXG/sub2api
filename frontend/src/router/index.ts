@@ -13,6 +13,7 @@ import { useRoutePrefetch } from '@/composables/useRoutePrefetch'
 import { getSetupStatus } from '@/api/setup'
 import { resolveCompletedSetupRedirectPath } from './setupRedirect'
 import { resolveRouteDocumentTitle } from './title'
+import { ycSiteName } from '@/utils/ycBrand'
 
 /**
  * Route definitions with lazy loading
@@ -33,7 +34,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/home',
     name: 'Home',
-    component: () => import('@/views/HomeView.vue'),
+    component: () => import('@/views/yecai/YcHomeView.vue'),
     meta: {
       requiresAuth: false,
       title: 'Home'
@@ -194,7 +195,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/dashboard',
     name: 'Dashboard',
-    component: () => import('@/views/user/DashboardView.vue'),
+    component: () => import('@/views/yecai/YcDashboardView.vue'),
     meta: {
       requiresAuth: true,
       requiresAdmin: false,
@@ -202,6 +203,36 @@ const routes: RouteRecordRaw[] = [
       titleKey: 'dashboard.title',
       descriptionKey: 'dashboard.welcomeMessage'
     }
+  },
+  {
+    path: '/connect',
+    name: 'Connect',
+    component: () => import('@/views/yecai/YcConnectView.vue'),
+    meta: { requiresAuth: true, requiresAdmin: false, title: 'Connect a tool', titleKey: 'yc.connect.title' }
+  },
+  {
+    path: '/bills',
+    name: 'Bills',
+    component: () => import('@/views/yecai/YcBillsView.vue'),
+    meta: { requiresAuth: true, requiresAdmin: false, title: 'Bills', titleKey: 'yc.bills.title' }
+  },
+  {
+    path: '/topup',
+    name: 'TopUp',
+    component: () => import('@/views/yecai/YcTopUpView.vue'),
+    meta: { requiresAuth: true, requiresAdmin: false, title: 'Top up', titleKey: 'yc.topUp.title' }
+  },
+  {
+    path: '/help',
+    name: 'Help',
+    component: () => import('@/views/yecai/YcHelpView.vue'),
+    meta: { requiresAuth: true, requiresAdmin: false, title: 'Help', titleKey: 'yc.help.title' }
+  },
+  {
+    path: '/prices',
+    name: 'Prices',
+    component: () => import('@/views/yecai/YcPricesView.vue'),
+    meta: { requiresAuth: true, requiresAdmin: false, title: 'Prices', titleKey: 'yc.prices.title' }
   },
   {
     path: '/keys',
@@ -821,7 +852,7 @@ router.beforeEach(async (to, _from, next) => {
     ...(appStore.cachedPublicSettings?.custom_menu_items ?? []),
     ...(authStore.isAdmin ? adminSettingsStore.customMenuItems : []),
   ]
-  document.title = resolveRouteDocumentTitle(to, appStore.siteName, customMenuItems)
+  document.title = resolveRouteDocumentTitle(to, ycSiteName(appStore.siteName), customMenuItems)
 
   // Check if route requires authentication
   const requiresAuth = to.meta.requiresAuth !== false // Default to true
