@@ -1055,6 +1055,11 @@ export default {
   errors: {
     somethingWentWrong: '出错了',
     pageNotFound: '页面未找到',
+    pageNotFoundDesc: '你要找的页面不存在，或者已经搬走了。',
+    goBack: '返回上一页',
+    goHome: '回到首页',
+    needHelp: '需要帮助？',
+    openHelp: '去帮助页看看',
     unauthorized: '未授权',
     forbidden: '禁止访问',
     serverError: '服务器错误',

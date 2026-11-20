@@ -62,6 +62,7 @@ import { formatDateLocalInput, formatRelativeTime } from '@/utils/format'
 import YcShell from '@/components/yecai/YcShell.vue'
 import YcGrowthCard from '@/components/yecai/YcGrowthCard.vue'
 import { useYcMoney } from '@/composables/useYcMoney'
+import { priceChangeLabel } from '@/utils/ycPriceWords'
 
 const { t } = useI18n()
 const authStore = useAuthStore()
@@ -119,7 +120,7 @@ function details(log: UsageLog) {
     { label: 'yc.dash.dCacheRead', value: count(log.cache_read_tokens) },
     { label: 'yc.dash.dTiming', value: `${seconds(log.first_token_ms)} / ${seconds(log.duration_ms)}` },
     { label: 'yc.dash.dListCost', value: yuan(log.total_cost, 4) },
-    { label: 'yc.dash.dMultiplier', value: `×${log.rate_multiplier}` }
+    { label: 'yc.dash.dMultiplier', value: priceChangeLabel(t, log.rate_multiplier) || t('modelPlaza.table.standardPrice') }
   ]
 }
 
