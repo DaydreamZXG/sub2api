@@ -71,4 +71,19 @@ describe('AgentPanel', () => {
     expect(wrapper.find('[data-test="agent-payout-open"]').exists()).toBe(false)
     expect(wrapper.find('[data-test="agent-pending"]').text()).toContain('¥40.00')
   })
+
+  it('tells an agent with tiers how far the next one is', () => {
+    const wrapper = mountPanel({
+      share_percent: 5, tiers: [{ from: 500, percent: 8 }], current_percent: 5, next_tier: { from: 500, percent: 8 }, month_spent: 125
+    })
+    expect(wrapper.text()).toContain('"rate":"5%"')
+    const tier = wrapper.get('[data-test="agent-tier"]').text()
+    expect(tier).toContain('affiliate.agent.nextTier')
+    expect(tier).toContain('"rate":"8%"')
+
+    const top = mountPanel({ share_percent: 5, tiers: [{ from: 100, percent: 8 }], current_percent: 8, next_tier: null })
+    expect(top.text()).toContain('"rate":"8%"')
+    expect(top.get('[data-test="agent-tier"]').text()).toContain('affiliate.agent.topTier')
+    expect(mountPanel().find('[data-test="agent-tier"]').exists()).toBe(false)
+  })
 })

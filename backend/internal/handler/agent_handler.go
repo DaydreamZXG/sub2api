@@ -27,6 +27,8 @@ type agentPayoutRequest struct {
 
 type agentSetRequest struct {
 	SharePercent float64 `json:"share_percent"`
+	// Tiers replaces the agent's ladder; left out or empty means one flat share.
+	Tiers []service.AgentTier `json:"tiers"`
 }
 
 type agentPayoutDecision struct {
@@ -98,7 +100,7 @@ func (h *AgentHandler) Set(c *gin.Context) {
 		response.BadRequest(c, "Invalid request: "+err.Error())
 		return
 	}
-	if err := h.agents.SetAgent(c.Request.Context(), userID, true, req.SharePercent); err != nil {
+	if err := h.agents.SetAgent(c.Request.Context(), userID, true, req.SharePercent, req.Tiers); err != nil {
 		response.ErrorFrom(c, err)
 		return
 	}
@@ -111,7 +113,7 @@ func (h *AgentHandler) Remove(c *gin.Context) {
 	if !ok {
 		return
 	}
-	if err := h.agents.SetAgent(c.Request.Context(), userID, false, 0); err != nil {
+	if err := h.agents.SetAgent(c.Request.Context(), userID, false, 0, nil); err != nil {
 		response.ErrorFrom(c, err)
 		return
 	}

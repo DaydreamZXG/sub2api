@@ -395,6 +395,15 @@ export default {
       cashNote: '这段时间充值订单实际收款 {received}，退款 {refunded}。',
       agentNote: '这段时间记给代理的分润 {amount}，已经从上面的利润里扣掉（只扣在总数里，下面按月、按线路的表没有扣）。',
       agents: {
+        tiers: {
+          title: '分档（可不设）',
+          hint: '名下用户当月计入分润的消费满一个数之后，超出的部分按更高的比例算。之前已经记的分润不重算，每月 1 号从头开始。',
+          from: '当月满 ¥',
+          then: '之后按',
+          add: '加一档',
+          invalid: '每一档的金额和比例都要比上一档高，比例不超过 100',
+          summary: '{from}% 起，最高 {to}% · 本月已计 {spent}'
+        },
         users: {
           open: '名下用户',
           title: '{agent} 名下的用户',

@@ -398,6 +398,15 @@ export default {
       cashNote: 'Top-up orders brought in {received} in this period, and {refunded} was refunded.',
       agentNote: 'Agents were credited {amount} in this period. It is already taken off the profit above (off the total only, not off the tables by month and by line below).',
       agents: {
+        tiers: {
+          title: 'Tiers (optional)',
+          hint: "Once the users' spending that counts reaches an amount in a calendar month, what comes after earns a higher share. Nothing credited before is recalculated, and every month starts from the bottom.",
+          from: 'From ¥',
+          then: 'in the month, then',
+          add: 'Add a tier',
+          invalid: 'Each tier needs a higher amount and a higher share than the one before, at most 100',
+          summary: 'from {from}% up to {to}% · {spent} counted this month'
+        },
         users: {
           open: 'Users',
           title: 'Users under {agent}',

@@ -58,7 +58,12 @@
                   {{ t('admin.profit.agents.since', { date: formatDate(agent.since) }) }}
                 </p>
               </td>
-              <td class="py-2.5 text-right tabular-nums text-gray-900 dark:text-white">{{ agent.share_percent }}%</td>
+              <td class="py-2.5 text-right tabular-nums text-gray-900 dark:text-white" data-test="agents-share-cell">
+                {{ agent.tiers?.length ? agent.current_percent : agent.share_percent }}%
+                <p v-if="agent.tiers?.length" class="text-xs font-normal text-gray-400 dark:text-dark-500">
+                  {{ t('admin.profit.agents.tiers.summary', { from: agent.share_percent, to: agent.tiers[agent.tiers.length - 1].percent, spent: yuan(agent.month_spent) }) }}
+                </p>
+              </td>
               <td class="py-2.5 text-right tabular-nums text-gray-600 dark:text-dark-300">{{ agent.invitees }}</td>
               <td class="py-2.5 text-right tabular-nums text-gray-900 dark:text-white">{{ yuan(agent.shared) }}</td>
               <td class="py-2.5 text-right tabular-nums text-gray-900 dark:text-white">{{ yuan(agent.available) }}</td>
@@ -128,6 +133,23 @@
           <input v-model.number="sharePercent" type="number" min="0.01" max="100" step="0.01" class="input mt-1" data-test="agents-share" />
           <span class="mt-1 block text-xs font-normal text-gray-500 dark:text-dark-400">{{ t('admin.profit.agents.form.shareHint') }}</span>
         </label>
+        <div data-test="agents-tiers">
+          <p class="text-sm font-medium text-gray-900 dark:text-white">{{ t('admin.profit.agents.tiers.title') }}</p>
+          <p class="mt-1 text-xs text-gray-500 dark:text-dark-400">{{ t('admin.profit.agents.tiers.hint') }}</p>
+          <div v-for="(tier, index) in tiers" :key="index" class="mt-2 flex items-center gap-2 text-sm text-gray-600 dark:text-dark-300" data-test="agents-tier-row">
+            <span class="shrink-0">{{ t('admin.profit.agents.tiers.from') }}</span>
+            <input v-model.number="tier.from" type="number" min="0.01" step="0.01" class="input min-w-0 flex-1" data-test="agents-tier-from" />
+            <span class="shrink-0">{{ t('admin.profit.agents.tiers.then') }}</span>
+            <input v-model.number="tier.percent" type="number" min="0.01" max="100" step="0.01" class="input w-16 shrink-0 sm:w-20" data-test="agents-tier-percent" />
+            <span class="shrink-0">%</span>
+            <button type="button" class="shrink-0 text-xs text-red-600 dark:text-red-400" data-test="agents-tier-remove" @click="tiers.splice(index, 1)">
+              {{ t('common.delete') }}
+            </button>
+          </div>
+          <button v-if="tiers.length < 10" type="button" class="mt-2 text-xs text-primary-600 dark:text-primary-400" data-test="agents-tier-add" @click="addTier">
+            {{ t('admin.profit.agents.tiers.add') }}
+          </button>
+        </div>
         <div class="flex justify-end gap-2">
           <button type="button" class="btn btn-secondary" @click="formOpen = false">{{ t('common.cancel') }}</button>
           <button type="submit" class="btn btn-primary" :disabled="saving" data-test="agents-save">{{ t('common.save') }}</button>
@@ -179,7 +201,7 @@ import AgentUsersDialog from './AgentUsersDialog.vue'
 const { t } = useI18n()
 const appStore = useAppStore()
 // Shares are kept in balance units; what has to be paid is that in yuan.
-const { yuan } = useYcMoney()
+const { yuan, toYuan, toUnits } = useYcMoney()
 
 const loading = ref(false)
 const saving = ref(false)
@@ -206,6 +228,15 @@ async function load() {
 const formOpen = ref(false)
 const editing = ref<AgentEntry | null>(null)
 const sharePercent = ref(10)
+// Thresholds are typed and shown in yuan, and sent in balance units. A stored threshold may not be a
+// whole number of yuan cents, so `kept` remembers what was loaded: a row whose amount was not retyped
+// goes back exactly as it came.
+interface TierRow {
+  from: number
+  percent: number
+  kept?: { shown: number; units: number }
+}
+const tiers = ref<TierRow[]>([])
 const query = ref('')
 const found = ref<SimpleUser[]>([])
 const picked = ref<SimpleUser | null>(null)
@@ -214,10 +245,36 @@ let searchSeq = 0
 function openForm(agent: AgentEntry | null) {
   editing.value = agent
   sharePercent.value = agent?.share_percent ?? 10
+  tiers.value = (agent?.tiers ?? []).map((tier) => {
+    const shown = Number(toYuan(tier.from).toFixed(2))
+    return { from: shown, percent: tier.percent, kept: { shown, units: tier.from } }
+  })
   query.value = ''
   found.value = []
   picked.value = null
   formOpen.value = true
+}
+
+function addTier() {
+  const last = tiers.value[tiers.value.length - 1]
+  tiers.value.push({ from: last ? last.from * 2 : 5000, percent: Math.min((last?.percent ?? sharePercent.value) + 2, 100) })
+}
+
+function tierUnits(tier: TierRow): number {
+  return tier.kept && tier.from === tier.kept.shown ? tier.kept.units : toUnits(tier.from)
+}
+
+// Each tier has to start later and pay more than the one before it.
+function tiersValid(): boolean {
+  let from = 0
+  let percent = sharePercent.value
+  return tiers.value.every((tier) => {
+    const units = tierUnits(tier)
+    const ok = units > from && tier.percent > percent && tier.percent <= 100
+    from = units
+    percent = tier.percent
+    return ok
+  })
 }
 
 async function search() {
@@ -246,9 +303,17 @@ async function saveAgent() {
     appStore.showError(t('admin.profit.agents.form.shareInvalid'))
     return
   }
+  if (!tiersValid()) {
+    appStore.showError(t('admin.profit.agents.tiers.invalid'))
+    return
+  }
   saving.value = true
   try {
-    await agentsAPI.set(userId, sharePercent.value)
+    await agentsAPI.set(
+      userId,
+      sharePercent.value,
+      tiers.value.map((tier) => ({ from: tierUnits(tier), percent: tier.percent }))
+    )
     formOpen.value = false
     appStore.showSuccess(t('admin.profit.agents.saved'))
     await load()

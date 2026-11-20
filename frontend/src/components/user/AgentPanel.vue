@@ -3,7 +3,17 @@
     <div class="yag-head">
       <div>
         <h3>{{ t('affiliate.agent.title') }}</h3>
-        <p class="yag-sub">{{ t('affiliate.agent.rule', { rate: `${agent.share_percent}%` }) }}</p>
+        <p class="yag-sub">{{ t('affiliate.agent.rule', { rate: `${agent.tiers?.length ? agent.current_percent : agent.share_percent}%` }) }}</p>
+        <p v-if="agent.tiers?.length" class="yag-sub" data-test="agent-tier">
+          {{
+            agent.next_tier
+              ? t('affiliate.agent.nextTier', {
+                  left: money(Math.max(agent.next_tier.from - agent.month_spent, 0)),
+                  rate: `${agent.next_tier.percent}%`
+                })
+              : t('affiliate.agent.topTier')
+          }}
+        </p>
       </div>
       <button
         v-if="!pending && !formOpen"

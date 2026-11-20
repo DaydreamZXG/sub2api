@@ -24,6 +24,7 @@ const (
 	agentAccrueEvery = 10 * time.Minute
 	// Usage rows are written a little after the request they belong to.
 	agentAccrueLag       = 3 * time.Minute
+	agentMaxTiers        = 10
 	agentAccrueTimeout   = 5 * time.Minute
 	agentPayoutNoteRunes = 500
 	agentPayoutListLimit = 200
@@ -32,6 +33,7 @@ const (
 var (
 	ErrAgentNotAgent       = infraerrors.Forbidden("AGENT_NOT_AGENT", "this account is not an agent")
 	ErrAgentShareInvalid   = infraerrors.BadRequest("AGENT_SHARE_INVALID", "share must be between 0 and 100")
+	ErrAgentTiersInvalid   = infraerrors.BadRequest("AGENT_TIERS_INVALID", "each tier needs a higher threshold and a higher share than the one before, at most 10 tiers")
 	ErrAgentUserInvalid    = infraerrors.BadRequest("AGENT_USER_INVALID", "this user cannot be put under this agent")
 	ErrAgentUserNotFound   = infraerrors.NotFound("AGENT_USER_NOT_FOUND", "this user is not under this agent")
 	ErrAgentPayoutAmount   = infraerrors.BadRequest("AGENT_PAYOUT_AMOUNT_INVALID", "amount must be more than 0 and no more than what can be paid out")
@@ -40,15 +42,26 @@ var (
 	ErrAgentPayoutHandled  = infraerrors.Conflict("AGENT_PAYOUT_HANDLED", "this payout request was already handled")
 )
 
+// AgentTier raises an agent's share once their users' spending in the calendar month reaches From
+// (balance units). Only the spending from there on earns Percent; nothing credited before is recalculated.
+type AgentTier struct {
+	From    float64 `json:"from"`
+	Percent float64 `json:"percent"`
+}
+
 // AgentEntry is one agent in the admin list. Amounts are in balance units.
 type AgentEntry struct {
-	UserID       int64      `json:"user_id"`
-	Email        string     `json:"email"`
-	SharePercent float64    `json:"share_percent"`
-	Since        *time.Time `json:"since"`
-	Invitees     int        `json:"invitees"`
-	Shared       float64    `json:"shared"`
-	Available    float64    `json:"available"`
+	UserID       int64       `json:"user_id"`
+	Email        string      `json:"email"`
+	SharePercent float64     `json:"share_percent"`
+	Tiers        []AgentTier `json:"tiers"`
+	Since        *time.Time  `json:"since"`
+	Invitees     int         `json:"invitees"`
+	Shared       float64     `json:"shared"`
+	Available    float64     `json:"available"`
+	// MonthSpent is the users' spending this month that counted, which decides the tier.
+	MonthSpent     float64 `json:"month_spent"`
+	CurrentPercent float64 `json:"current_percent"`
 }
 
 // AgentInvitee is one of an agent's users with what they spent that counted and what it earned.
@@ -64,15 +77,19 @@ type AgentInvitee struct {
 
 // AgentOverview is what an agent sees about their own business.
 type AgentOverview struct {
-	SharePercent float64        `json:"share_percent"`
-	Since        *time.Time     `json:"since"`
-	Available    float64        `json:"available"`
-	Shared       float64        `json:"shared"`
-	Spent        float64        `json:"spent"`
-	MonthShared  float64        `json:"month_shared"`
-	MonthSpent   float64        `json:"month_spent"`
-	Invitees     []AgentInvitee `json:"invitees"`
-	Payouts      []AgentPayout  `json:"payouts"`
+	SharePercent float64     `json:"share_percent"`
+	Tiers        []AgentTier `json:"tiers"`
+	// CurrentPercent is the share for what the users spend next; NextTier is the tier not reached yet, if any.
+	CurrentPercent float64        `json:"current_percent"`
+	NextTier       *AgentTier     `json:"next_tier"`
+	Since          *time.Time     `json:"since"`
+	Available      float64        `json:"available"`
+	Shared         float64        `json:"shared"`
+	Spent          float64        `json:"spent"`
+	MonthShared    float64        `json:"month_shared"`
+	MonthSpent     float64        `json:"month_spent"`
+	Invitees       []AgentInvitee `json:"invitees"`
+	Payouts        []AgentPayout  `json:"payouts"`
 }
 
 // AgentPayout is a request to be paid out, settled by hand outside the site.
@@ -89,8 +106,9 @@ type AgentPayout struct {
 }
 
 type AgentRepository interface {
-	SetAgent(ctx context.Context, userID int64, isAgent bool, sharePercent float64) error
-	ListAgents(ctx context.Context) ([]AgentEntry, error)
+	SetAgent(ctx context.Context, userID int64, isAgent bool, sharePercent float64, tiers []AgentTier) error
+	// ListAgents and AccrueShares count a month from monthStart.
+	ListAgents(ctx context.Context, monthStart time.Time) ([]AgentEntry, error)
 	// AccrueShares credits every agent their share of the usage up to upTo that was not counted yet.
 	AccrueShares(ctx context.Context, upTo time.Time) (int, error)
 	// Overview returns nil when the user is not an agent.
@@ -177,12 +195,12 @@ func (s *AgentService) Accrue(ctx context.Context) (int, error) {
 	return s.repo.AccrueShares(ctx, time.Now().Add(-agentAccrueLag))
 }
 
-func (s *AgentService) SetAgent(ctx context.Context, userID int64, isAgent bool, sharePercent float64) error {
+func (s *AgentService) SetAgent(ctx context.Context, userID int64, isAgent bool, sharePercent float64, tiers []AgentTier) error {
 	if userID <= 0 {
 		return infraerrors.BadRequest("INVALID_USER", "invalid user")
 	}
 	if !isAgent {
-		sharePercent = 0
+		sharePercent, tiers = 0, nil
 	} else {
 		// Checked as it is stored: a share that rounds to nothing would leave the agent with no reward at all.
 		if math.IsNaN(sharePercent) {
@@ -190,6 +208,10 @@ func (s *AgentService) SetAgent(ctx context.Context, userID int64, isAgent bool,
 		}
 		if sharePercent = roundTo(sharePercent, 2); sharePercent <= 0 || sharePercent > 100 {
 			return ErrAgentShareInvalid
+		}
+		var err error
+		if tiers, err = normalizeAgentTiers(sharePercent, tiers); err != nil {
+			return err
 		}
 	}
 	// The agent's figures live on their affiliate profile.
@@ -202,11 +224,65 @@ func (s *AgentService) SetAgent(ctx context.Context, userID int64, isAgent bool,
 			return err
 		}
 	}
-	return s.repo.SetAgent(ctx, userID, isAgent, sharePercent)
+	return s.repo.SetAgent(ctx, userID, isAgent, sharePercent, tiers)
+}
+
+// normalizeAgentTiers checks the ladder as it will be stored: thresholds and shares both rise, starting
+// above the base share.
+func normalizeAgentTiers(basePercent float64, tiers []AgentTier) ([]AgentTier, error) {
+	if len(tiers) > agentMaxTiers {
+		return nil, ErrAgentTiersInvalid
+	}
+	out := make([]AgentTier, 0, len(tiers))
+	lastFrom, lastPercent := 0.0, basePercent
+	for _, tier := range tiers {
+		if math.IsNaN(tier.From) || math.IsInf(tier.From, 0) || math.IsNaN(tier.Percent) {
+			return nil, ErrAgentTiersInvalid
+		}
+		tier.From, tier.Percent = roundTo(tier.From, 2), roundTo(tier.Percent, 2)
+		if tier.From <= lastFrom || tier.Percent <= lastPercent || tier.Percent > 100 {
+			return nil, ErrAgentTiersInvalid
+		}
+		lastFrom, lastPercent = tier.From, tier.Percent
+		out = append(out, tier)
+	}
+	return out, nil
+}
+
+// agentRateAt is the share for the next spending when the month's spending so far is monthSpent, and
+// the tier still ahead.
+func agentRateAt(basePercent float64, tiers []AgentTier, monthSpent float64) (float64, *AgentTier) {
+	current := basePercent
+	for i := range tiers {
+		if monthSpent < tiers[i].From {
+			next := tiers[i]
+			return current, &next
+		}
+		current = tiers[i].Percent
+	}
+	return current, nil
+}
+
+// AgentMonthStart is the first moment of at's calendar month in the site's timezone: the month over which
+// an agent's tiers count their users' spending.
+func AgentMonthStart(at time.Time) time.Time {
+	at = at.In(timezone.Location())
+	return time.Date(at.Year(), at.Month(), 1, 0, 0, 0, 0, at.Location())
+}
+
+func agentMonthStart() time.Time {
+	return AgentMonthStart(time.Now())
 }
 
 func (s *AgentService) ListAgents(ctx context.Context) ([]AgentEntry, error) {
-	return s.repo.ListAgents(ctx)
+	agents, err := s.repo.ListAgents(ctx, agentMonthStart())
+	if err != nil {
+		return nil, err
+	}
+	for i := range agents {
+		agents[i].CurrentPercent, _ = agentRateAt(agents[i].SharePercent, agents[i].Tiers, agents[i].MonthSpent)
+	}
+	return agents, nil
 }
 
 // AgentUsers is the admin's view of the users under an agent, with their full e-mail addresses.
@@ -241,12 +317,11 @@ func (s *AgentService) DetachUser(ctx context.Context, agentID, userID int64) er
 
 // Overview returns nil for a user who is not an agent.
 func (s *AgentService) Overview(ctx context.Context, userID int64) (*AgentOverview, error) {
-	now := timezone.Now()
-	monthStart := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location())
-	out, err := s.repo.Overview(ctx, userID, monthStart)
+	out, err := s.repo.Overview(ctx, userID, agentMonthStart())
 	if err != nil || out == nil {
 		return nil, err
 	}
+	out.CurrentPercent, out.NextTier = agentRateAt(out.SharePercent, out.Tiers, out.MonthSpent)
 	for i := range out.Invitees {
 		out.Invitees[i].Email = maskEmail(out.Invitees[i].Email)
 	}

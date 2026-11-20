@@ -784,6 +784,8 @@ export default {
     agent: {
       title: '代理分润',
       rule: '你是代理：你邀请的用户花掉自己充值的钱时，你拿其中的 {rate} 作为分润（花赠送的余额不算）。分润和返利记在同一个额度里。',
+      nextTier: '本月名下用户再消费 {left}，之后的部分按 {rate} 算。每月 1 号重新从最低档开始。',
+      topTier: '本月已经到最高一档。每月 1 号重新从最低档开始。',
       monthShared: '本月分润',
       shared: '累计分润',
       fromSpent: '来自名下用户 {amount} 的消费',

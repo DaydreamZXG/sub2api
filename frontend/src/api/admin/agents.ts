@@ -5,10 +5,21 @@
 
 import { apiClient } from '../client'
 
+/** From `from` of the month's spending (balance units) on, the agent earns `percent` instead. */
+export interface AgentTier {
+  from: number
+  percent: number
+}
+
 export interface AgentEntry {
   user_id: number
   email: string
+  /** The share below the first tier, or the only one. */
   share_percent: number
+  tiers: AgentTier[]
+  /** Their users' spending this month that counted, and the share in force for what comes next. */
+  month_spent: number
+  current_percent: number
   since: string | null
   invitees: number
   /** Everything credited to this agent so far. */
@@ -36,8 +47,9 @@ export async function list(): Promise<AgentEntry[]> {
   return data
 }
 
-export async function set(userId: number, sharePercent: number): Promise<void> {
-  await apiClient.put(`/admin/agents/${userId}`, { share_percent: sharePercent })
+/** `tiers` replaces the agent's ladder; an empty list means one flat share. */
+export async function set(userId: number, sharePercent: number, tiers: AgentTier[] = []): Promise<void> {
+  await apiClient.put(`/admin/agents/${userId}`, { share_percent: sharePercent, tiers })
 }
 
 export async function remove(userId: number): Promise<void> {
