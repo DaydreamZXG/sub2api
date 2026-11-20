@@ -3,7 +3,7 @@ import { flushPromises, mount } from '@vue/test-utils'
 
 import ProfitView from '../ProfitView.vue'
 
-const { getReport, rebuild, listPacks, createPack, updatePack, deletePack, addPayment, deletePayment, listAccounts } = vi.hoisted(
+const { getReport, rebuild, listPacks, createPack, updatePack, deletePack, addPayment, deletePayment, getSettings, updateSettings, listAccounts } = vi.hoisted(
   () => ({
     getReport: vi.fn(),
     rebuild: vi.fn(),
@@ -13,12 +13,14 @@ const { getReport, rebuild, listPacks, createPack, updatePack, deletePack, addPa
     deletePack: vi.fn(),
     addPayment: vi.fn(),
     deletePayment: vi.fn(),
+    getSettings: vi.fn(),
+    updateSettings: vi.fn(),
     listAccounts: vi.fn()
   })
 )
 
 vi.mock('@/api/admin/profit', () => ({
-  getReport, rebuild, listPacks, createPack, updatePack, deletePack, addPayment, deletePayment
+  getReport, rebuild, listPacks, createPack, updatePack, deletePack, addPayment, deletePayment, getSettings, updateSettings
 }))
 vi.mock('@/api/admin/accounts', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/api/admin/accounts')>()),
@@ -33,14 +35,16 @@ vi.mock('vue-i18n', async (importOriginal) => ({
 }))
 
 const figures = (over: Record<string, number> = {}) => ({
-  requests: 0, income: 0, plan_usage: 0, rate_cost: 0, pack_cost: 0, profit: 0, ...over
+  requests: 0, income: 0, gifted: 0, plan_usage: 0, rate_cost: 0, pack_cost: 0, profit: 0, ...over
 })
 
 const report = {
   from: '2026-11-01',
   to: '2026-11-20',
   units_per_yuan: 1,
-  totals: figures({ requests: 57, income: 1520.5, plan_usage: 25, rate_cost: 150, pack_cost: 346, profit: 1024.5 }),
+  received: 900,
+  refunded: 50,
+  totals: figures({ requests: 57, income: 1520.5, gifted: 210, plan_usage: 25, rate_cost: 150, pack_cost: 346, profit: 1024.5 }),
   months: [],
   groups: [
     { group_id: 1, name: 'Claude', ...figures({ income: 1200, pack_cost: 336, profit: 864 }) },
@@ -77,6 +81,8 @@ describe('ProfitView', () => {
     getReport.mockResolvedValue(report)
     listPacks.mockResolvedValue([pack(), pack({ id: 5, name: 'Top-up', cycle_days: 0, cycle_amount: 0, paid: 36, income: 80, profit: 44, next_cycle_at: null })])
     createPack.mockResolvedValue(undefined)
+    getSettings.mockResolvedValue({ manual_is_paid: false, redeem_is_paid: true })
+    updateSettings.mockImplementation(async (value: unknown) => value)
     listAccounts.mockResolvedValue({ items: [], total: 0 })
   })
 
@@ -89,6 +95,10 @@ describe('ProfitView', () => {
     expect(wrapper.get('[data-test="profit-tile-profit"]').text()).toContain('¥1,024.50')
     expect(wrapper.get('[data-test="profit-tile-margin"]').text()).toContain('67.4%')
     expect(wrapper.get('[data-test="profit-plan-note"]').text()).toContain('¥25.00')
+    expect(wrapper.get('[data-test="profit-gifted-note"]').text()).toContain('¥210.00')
+    const cash = wrapper.get('[data-test="profit-cash-note"]').text()
+    expect(cash).toContain('¥900.00')
+    expect(cash).toContain('¥50.00')
 
     const groups = wrapper.get('[data-test="profit-by-group"]').text()
     expect(groups).toContain('admin.profit.unallocated')
@@ -149,5 +159,21 @@ describe('ProfitView', () => {
     await flushPromises()
 
     expect(createPack.mock.calls[0][0]).toMatchObject({ name: 'Max', cycle_days: 30, cycle_amount: 1400, amount: 0 })
+  })
+
+  it('saves both income switches together and loads the report again', async () => {
+    const wrapper = mountView()
+    await flushPromises()
+
+    const manual = wrapper.get('[data-test="profit-basis-manual"]')
+    expect(manual.attributes('aria-checked')).toBe('false')
+    expect(wrapper.get('[data-test="profit-basis-redeem"]').attributes('aria-checked')).toBe('true')
+
+    await manual.trigger('click')
+    await flushPromises()
+
+    expect(updateSettings).toHaveBeenCalledWith({ manual_is_paid: true, redeem_is_paid: true })
+    expect(wrapper.get('[data-test="profit-basis-manual"]').attributes('aria-checked')).toBe('true')
+    expect(getReport).toHaveBeenCalledTimes(2)
   })
 })

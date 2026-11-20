@@ -384,13 +384,25 @@ export default {
       rebuilt: '已重新统计',
       tiles: { income: '收入', packCost: '成本包支出', rateCost: '按量成本', profit: '利润', margin: '利润率' },
       tileHints: {
-        income: '用户从余额里被扣的钱',
+        income: '用户被扣的余额里，真充值的那部分',
         packCost: '这段时间买包、续费付出去的钱',
         rateCost: '没挂成本包的账号：标准价 × 账号倍率',
         profit: '收入 − 成本包支出 − 按量成本',
         margin: '利润 ÷ 收入'
       },
       planUsageNote: '另有包月用户用掉了价值 {amount} 的额度。这不是收到的钱，没有算进收入。',
+      giftedNote: '另有 {amount} 是用赠送的余额付的（充值赠送、菜园、邀请返利这些）。这不是收到的钱，没有算进收入。',
+      cashNote: '这段时间充值订单实际收款 {received}，退款 {refunded}。',
+      basis: {
+        title: '哪些余额算真充值',
+        hint: '在线充值订单的实付部分一直算。下面两种默认不算，是收了钱才加的就打开。改了以后会把还保留着的调用记录重新算一遍。',
+        manual: '后台手动加的余额',
+        manualHint: '比如用户转账后你在后台给他加的',
+        redeem: '兑换码兑换的余额',
+        redeemHint: '比如你在别处卖出去的卡密',
+        saved: '已保存并重新统计',
+        failed: '保存失败'
+      },
       empty: '这段时间没有调用，也没有成本包支出',
       byPack: '按成本包',
       byPackHint: '这段时间里每个包花了多少、它下面的账号赚回多少。亏得最多的排在前面。',

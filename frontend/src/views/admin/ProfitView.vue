@@ -53,6 +53,12 @@
           <p v-if="report.totals.plan_usage > 0" class="text-sm text-gray-500 dark:text-dark-400" data-test="profit-plan-note">
             {{ t('admin.profit.planUsageNote', { amount: money(report.totals.plan_usage) }) }}
           </p>
+          <p v-if="report.totals.gifted > 0.005" class="text-sm text-gray-500 dark:text-dark-400" data-test="profit-gifted-note">
+            {{ t('admin.profit.giftedNote', { amount: money(report.totals.gifted) }) }}
+          </p>
+          <p v-if="report.received > 0 || report.refunded > 0" class="text-sm text-gray-500 dark:text-dark-400" data-test="profit-cash-note">
+            {{ t('admin.profit.cashNote', { received: money(report.received), refunded: money(report.refunded) }) }}
+          </p>
           <p v-if="isEmpty" class="card p-8 text-center text-sm text-gray-500 dark:text-dark-400" data-test="profit-empty">
             {{ t('admin.profit.empty') }}
           </p>
@@ -178,6 +184,26 @@
                   </tr>
                 </tbody>
               </table>
+            </div>
+          </section>
+
+          <section class="card space-y-3 p-5" data-test="profit-basis">
+            <div>
+              <h2 class="text-sm font-semibold text-gray-900 dark:text-white">{{ t('admin.profit.basis.title') }}</h2>
+              <p class="mt-1 text-xs text-gray-500 dark:text-dark-400">{{ t('admin.profit.basis.hint') }}</p>
+            </div>
+            <div v-for="item in basisItems" :key="item.key" class="flex items-center justify-between gap-4">
+              <div>
+                <p class="text-sm text-gray-900 dark:text-white">{{ t(`admin.profit.basis.${item.label}`) }}</p>
+                <p class="text-xs text-gray-500 dark:text-dark-400">{{ t(`admin.profit.basis.${item.label}Hint`) }}</p>
+              </div>
+              <Toggle
+                :model-value="settings[item.key]"
+                :class="{ 'pointer-events-none opacity-60': settingsSaving }"
+                :aria-label="t(`admin.profit.basis.${item.label}`)"
+                :data-test="`profit-basis-${item.label}`"
+                @update:model-value="(value: boolean) => saveSetting(item.key, value)"
+              />
             </div>
           </section>
         </template>
@@ -370,11 +396,12 @@ import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores/app'
 import * as profitAPI from '@/api/admin/profit'
-import type { CostPack, ProfitReport } from '@/api/admin/profit'
+import type { CostPack, ProfitReport, ProfitSettings } from '@/api/admin/profit'
 import { list as listAccounts } from '@/api/admin/accounts'
 import { extractApiErrorMessage } from '@/utils/apiError'
 import AppLayout from '@/components/layout/AppLayout.vue'
 import BaseDialog from '@/components/common/BaseDialog.vue'
+import Toggle from '@/components/common/Toggle.vue'
 
 const TABS = ['report', 'packs'] as const
 const PRESETS = ['thisMonth', 'lastMonth', 'last30', 'last90'] as const
@@ -482,6 +509,36 @@ async function runRebuild() {
     appStore.showError(extractApiErrorMessage(error, t('admin.profit.failedToRebuild')))
   } finally {
     rebuilding.value = false
+  }
+}
+
+// ---- which credits count as real money ----
+const settings = reactive<ProfitSettings>({ manual_is_paid: false, redeem_is_paid: false })
+const settingsSaving = ref(false)
+const basisItems: { key: keyof ProfitSettings; label: string }[] = [
+  { key: 'manual_is_paid', label: 'manual' },
+  { key: 'redeem_is_paid', label: 'redeem' }
+]
+
+async function loadSettings() {
+  try {
+    Object.assign(settings, await profitAPI.getSettings())
+  } catch {
+    // The switches stay off; saving one still sends both.
+  }
+}
+
+async function saveSetting(key: keyof ProfitSettings, value: boolean) {
+  if (settingsSaving.value) return
+  settingsSaving.value = true
+  try {
+    Object.assign(settings, await profitAPI.updateSettings({ ...settings, [key]: value }))
+    appStore.showSuccess(t('admin.profit.basis.saved'))
+    await Promise.all([loadReport(), loadPacks()])
+  } catch (error) {
+    appStore.showError(extractApiErrorMessage(error, t('admin.profit.basis.failed')))
+  } finally {
+    settingsSaving.value = false
   }
 }
 
@@ -721,6 +778,7 @@ async function removePayment(paymentId: number) {
 
 onMounted(() => {
   void loadReport()
+  void loadSettings()
   // The report names packs and the form needs to know which accounts are taken.
   void loadPacks()
 })

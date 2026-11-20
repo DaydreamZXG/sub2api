@@ -387,13 +387,25 @@ export default {
       rebuilt: 'Recounted',
       tiles: { income: 'Income', packCost: 'Paid for packs', rateCost: 'Cost by use', profit: 'Profit', margin: 'Margin' },
       tileHints: {
-        income: 'What users were charged from their balance',
+        income: 'The paid part of what users were charged from their balance',
         packCost: 'Paid for packs and renewals in this period',
         rateCost: 'Accounts outside a pack: standard price × account rate',
         profit: 'Income − packs − cost by use',
         margin: 'Profit ÷ income'
       },
       planUsageNote: 'Monthly-plan users also used {amount} of plan value. That is not money received and is not counted as income.',
+      giftedNote: 'Another {amount} was paid with gifted balance (top-up bonus, garden, invite rebate and the like). That is not money received and is not counted as income.',
+      cashNote: 'Top-up orders brought in {received} in this period, and {refunded} was refunded.',
+      basis: {
+        title: 'Which balance counts as paid',
+        hint: 'The paid part of online top-up orders always counts. The two below do not unless you turn them on, for balance you added after being paid. Changing them recounts the usage records that are still kept.',
+        manual: 'Balance added by hand in the admin',
+        manualHint: 'For example after a user paid you by transfer',
+        redeem: 'Balance from redeem codes',
+        redeemHint: 'For example codes you sold elsewhere',
+        saved: 'Saved and recounted',
+        failed: 'Failed to save'
+      },
       empty: 'No usage and no pack payments in this period',
       byPack: 'By cost pack',
       byPackHint: 'What each pack cost in this period and what its accounts earned back. The biggest loss comes first.',
