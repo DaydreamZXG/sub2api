@@ -395,6 +395,19 @@ export default {
       cashNote: '这段时间充值订单实际收款 {received}，退款 {refunded}。',
       agentNote: '这段时间记给代理的分润 {amount}，已经从上面的利润里扣掉（只扣在总数里，下面按月、按线路的表没有扣）。',
       agents: {
+        users: {
+          open: '名下用户',
+          title: '{agent} 名下的用户',
+          hint: '客户不是通过邀请链接注册的，也可以在这里挂到这位代理名下。挂上之后的消费才给代理分润，之前的不算。',
+          add: '挂到名下',
+          addConfirm: '把 {user} 挂到 {agent} 名下？如果他原来有邀请人，会从原邀请人名下移走。',
+          empty: '这位代理名下还没有用户。',
+          joinedAt: '{date} 通过邀请注册',
+          attachedAt: '{date} 后台挂入',
+          figures: '计入分润的消费 {spent}，分润 {share}',
+          remove: '移出',
+          removeConfirm: '把 {user} 从这位代理名下移出？已经记的分润不会收回。'
+        },
         intro: '代理是你指定的邀请人：他名下用户每花掉一笔真充值的钱，按比例记一份分润给他。代理不再拿这些用户的充值返利。分润记在他的"邀请返利"额度里，可以申请提现，也可以自己转进余额。',
         pendingTitle: '待处理的提现申请',
         pendingHint: '线下把钱打给代理后点"已打款"，这笔钱会从他的可提现额度里扣掉。',
