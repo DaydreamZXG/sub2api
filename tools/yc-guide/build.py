@@ -68,6 +68,18 @@ def error_list(h):
     return f'{before}<div class="errs">{cards}</div>{after}', errors
 
 
+def inline_errors(h):
+    """Rows of every 'what you see' table in a block that keeps its error tables inline, for the error search."""
+    found = []
+    while True:
+        t = table_rows(h)
+        if not t:
+            return found
+        head, rows, _, h = t
+        if len(head) == 3 and '你看到什么' in head[0]:
+            found += [{'s': r[0], 'c': r[1], 'f': r[2]} for r in rows if len(r) == 3]
+
+
 def kind_of(t):
     if '报错' in t:
         return 'errors'
@@ -148,12 +160,15 @@ for t in tools:
     tabs, errors = {}, []
     if pre:
         tabs['steps'] = render(pre)
+        errors += inline_errors(tabs['steps'])
     for s in t['segs'][1:]:
         kind = s.get('kind') or kind_of(s['title'])
         body = render('\n'.join(s['lines']).strip())
         if kind == 'errors':
             body, errs = error_list(body)
             errors += errs
+        else:
+            errors += inline_errors(body)
         plain_title = s['title'] in ('配置步骤', '注意事项', '常见报错速查', '')
         head = '' if plain_title else f'<h3>{html.escape(s["title"])}</h3>'
         tabs[kind] = tabs.get(kind, '') + head + body
