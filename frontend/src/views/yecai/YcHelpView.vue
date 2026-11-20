@@ -8,6 +8,11 @@
       <i aria-hidden="true">→</i>
     </router-link>
 
+    <router-link to="/help/agents" class="yc-help-more" data-test="help-agents">
+      <span><b>{{ t('yc.agentGuide.title') }}</b><em>{{ t('yc.agentGuide.card') }}</em></span>
+      <i aria-hidden="true">→</i>
+    </router-link>
+
     <section class="yc-surface yc-help">
       <h2 class="yc-sec-h2">{{ t('yc.help.contactTitle') }}</h2>
       <p v-if="contact" class="yc-help-contact">{{ contact }}</p>
@@ -77,6 +82,11 @@ onMounted(async () => {
 .yc-help-guide b { display: block; font-size: 19px; font-weight: 800; letter-spacing: -0.01em; }
 .yc-help-guide em { display: block; margin-top: 2px; font-style: normal; font-size: 14.5px; opacity: 0.8; }
 .yc-help-guide i { flex: none; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--yc-on-lime); color: var(--yc-lime); font-style: normal; font-size: 18px; }
+.yc-help-more { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 12px; padding: 16px 30px; border: 1px solid var(--yc-line); border-radius: 18px; color: inherit; text-decoration: none; }
+.yc-help-more:hover { border-color: var(--yc-ink); }
+.yc-help-more b { display: block; font-size: 16px; font-weight: 700; }
+.yc-help-more em { display: block; margin-top: 2px; font-style: normal; font-size: 14px; color: var(--yc-dim); }
+.yc-help-more i { flex: none; font-style: normal; color: var(--yc-dim); }
 .yc-help-contact { margin: 10px 0 4px; font-size: 16px; line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; }
 .yc-help .yc-note { margin-top: 8px; }
 .yc-help .yc-btn { margin-top: 14px; }

@@ -69,6 +69,9 @@
             <li><span>3</span>{{ t('affiliate.tips.line3') }}</li>
           </ol>
           <p v-if="detail.aff_frozen_quota > 0" class="yaf-steps-note">{{ t('affiliate.tips.line4') }}</p>
+          <router-link to="/help/agents" class="yaf-agent-link" data-test="aff-agent-guide">
+            {{ agent ? t('affiliate.agent.guideForAgent') : t('affiliate.agent.guide') }} →
+          </router-link>
         </section>
 
         <section class="yaf-panel">
@@ -241,6 +244,8 @@ onMounted(() => {
 .yaf-steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 16px 0 0; padding: 0; list-style: none; }
 .yaf-steps li { display: grid; gap: 10px; padding: 16px; border-radius: 16px; background: var(--yc-fill); color: var(--yc-ink); font-size: 14px; }
 .yaf-steps li span { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--yc-ink); color: var(--yc-paper); font-size: 13px; font-weight: 700; }
+.yaf-agent-link { display: inline-block; margin-top: 14px; font-size: 14px; color: var(--yc-dim); text-decoration: underline; text-underline-offset: 3px; }
+.yaf-agent-link:hover { color: var(--yc-ink); }
 .yaf-steps-note { margin-top: 12px; font-size: 13px; color: #d97706; }
 
 .yaf-empty { margin-top: 16px; padding: 28px; border: 1px dashed var(--yc-line); border-radius: 16px; color: var(--yc-mut); font-size: 14px; text-align: center; }
