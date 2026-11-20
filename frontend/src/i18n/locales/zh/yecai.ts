@@ -205,6 +205,7 @@ export default {
     off: '菜园现在没有开放。',
     harvested: '收过的菜',
     stolen: '被偷走 {amount}',
+    source: { invite: '邀请奖励', gift: '站里送的' },
     water: '浇水',
     waterDone: '浇好了，这棵菜早熟 {minutes} 分钟',
     steal: '偷菜',

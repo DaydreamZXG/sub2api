@@ -8,6 +8,7 @@
       <section v-if="growing.length" class="yc-garden-plots">
         <article v-for="crop in growing" :key="crop.id" class="yc-surface yc-garden-plot" :class="{ ripe: isRipe(crop) }">
           <YcPlant class="yc-garden-plant" :stage="stageOf(crop)" :label="t(isRipe(crop) ? 'yc.garden.ripe' : 'yc.garden.growing')" />
+          <span v-if="crop.source !== 'order'" class="yc-badge yc-badge-lime">{{ t(`yc.garden.source.${crop.source}`) }}</span>
           <p class="yc-garden-amount yc-num">{{ yuan(crop.amount - crop.stolen_amount) }}</p>
           <p v-if="crop.stolen_amount > 0" class="yc-garden-stolen">{{ t('yc.garden.stolen', { amount: yuan(crop.stolen_amount) }) }}</p>
           <p class="yc-garden-state">

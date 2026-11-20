@@ -452,6 +452,7 @@ func registerGrowthRoutes(admin *gin.RouterGroup, h *handler.Handlers) {
 	admin.PUT("/growth-levels", h.Growth.AdminUpdate)
 	admin.GET("/garden-settings", h.Garden.AdminGet)
 	admin.PUT("/garden-settings", h.Garden.AdminUpdate)
+	admin.POST("/garden/crops", h.Garden.AdminGift)
 }
 
 func registerTicketRoutes(admin *gin.RouterGroup, h *handler.Handlers) {

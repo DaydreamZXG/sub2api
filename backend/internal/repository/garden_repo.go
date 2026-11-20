@@ -20,7 +20,7 @@ func NewGardenRepository(client *dbent.Client, db *sql.DB) service.GardenReposit
 	return &gardenRepository{client: client, db: db}
 }
 
-const gardenCropColumns = `id, user_id, COALESCE(order_id, 0), amount, stolen_amount, status, planted_at, ripe_at, harvested_at, harvested_amount`
+const gardenCropColumns = `id, user_id, COALESCE(order_id, 0), amount, stolen_amount, status, planted_at, ripe_at, harvested_at, harvested_amount, source`
 
 func scanGardenCrop(row interface{ Scan(dest ...any) error }) (*service.GardenCrop, error) {
 	var (
@@ -28,7 +28,7 @@ func scanGardenCrop(row interface{ Scan(dest ...any) error }) (*service.GardenCr
 		harvestedAt sql.NullTime
 	)
 	if err := row.Scan(&crop.ID, &crop.UserID, &crop.OrderID, &crop.Amount, &crop.StolenAmount, &crop.Status,
-		&crop.PlantedAt, &crop.RipeAt, &harvestedAt, &crop.HarvestedAmount); err != nil {
+		&crop.PlantedAt, &crop.RipeAt, &harvestedAt, &crop.HarvestedAmount, &crop.Source); err != nil {
 		return nil, err
 	}
 	if harvestedAt.Valid {
@@ -148,6 +148,53 @@ func replantCrop(ctx context.Context, client *dbent.Client, orderID int64) (floa
 		return 0, err
 	}
 	return left, nil
+}
+
+func (r *gardenRepository) PlantGift(ctx context.Context, email string, amount float64, ripenAfter time.Duration) (int64, error) {
+	var userID int64
+	err := r.db.QueryRowContext(ctx, `
+		INSERT INTO garden_crops (user_id, source, amount, ripe_at)
+		SELECT id, 'gift', $2, NOW() + make_interval(secs => $3)
+		FROM users WHERE LOWER(email) = LOWER($1) AND deleted_at IS NULL
+		ORDER BY id LIMIT 1
+		RETURNING user_id`, email, amount, ripenAfter.Seconds()).Scan(&userID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return 0, service.ErrUserNotFound
+	}
+	return userID, err
+}
+
+func (r *gardenRepository) PlantInviteReward(ctx context.Context, inviteeID, orderID int64, amount float64, ripenAfter time.Duration) (int64, error) {
+	// 只认被邀请人最早付款的那一笔（付款时间相同按订单号），这样两笔几乎同时付款时也总有一笔算数；
+	// 唯一索引保证同一个被邀请人只给邀请人一棵。
+	const query = `
+		INSERT INTO garden_crops (user_id, source, amount, ripe_at, ref_user_id, ref_order_id)
+		SELECT a.inviter_id, 'invite', $3, NOW() + make_interval(secs => $4), $1, $2
+		FROM user_affiliates a
+		JOIN users inviter ON inviter.id = a.inviter_id AND inviter.deleted_at IS NULL AND inviter.status = 'active'
+		JOIN payment_orders o ON o.id = $2 AND o.user_id = $1 AND o.paid_at IS NOT NULL
+		WHERE a.user_id = $1 AND a.inviter_id IS NOT NULL
+			AND NOT EXISTS (
+				SELECT 1 FROM payment_orders p
+				WHERE p.user_id = $1 AND p.id <> o.id AND p.paid_at IS NOT NULL AND (p.paid_at, p.id) < (o.paid_at, o.id)
+			)
+		ON CONFLICT (ref_user_id) WHERE source = 'invite' DO NOTHING
+		RETURNING user_id
+	`
+	var inviterID int64
+	err := r.db.QueryRowContext(ctx, query, inviteeID, orderID, amount, ripenAfter.Seconds()).Scan(&inviterID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return 0, nil
+	}
+	return inviterID, err
+}
+
+func (r *gardenRepository) RemoveInviteReward(ctx context.Context, orderID int64) error {
+	// 这棵菜是站里送的，没从谁的余额里扣过，拔掉不用退钱；邻居已经偷走的部分不追。
+	_, err := r.db.ExecContext(ctx, `
+		UPDATE garden_crops SET status = 'removed'
+		WHERE ref_order_id = $1 AND source = 'invite' AND status = 'growing'`, orderID)
+	return err
 }
 
 func (r *gardenRepository) Harvest(ctx context.Context, userID, cropID int64) (float64, bool, error) {

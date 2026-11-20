@@ -42,10 +42,36 @@
         <p v-if="socialInvalid" class="text-sm text-red-600 dark:text-red-400">{{ t('admin.garden.errorSocial') }}</p>
       </div>
 
+      <div class="space-y-3 border-t border-gray-200 pt-5 dark:border-dark-700">
+        <label class="block text-sm font-medium text-gray-900 dark:text-white" for="garden-invite-crop">
+          {{ t('admin.garden.inviteCrop') }}
+        </label>
+        <input id="garden-invite-crop" v-model.number="form.invite_crop_amount" class="input max-w-xs" type="number" min="0" :max="MAX_GIFT" step="1" />
+        <p class="text-sm text-gray-500 dark:text-dark-400">{{ t('admin.garden.inviteCropHint') }}</p>
+        <p v-if="inviteInvalid" class="text-sm text-red-600 dark:text-red-400">{{ t('admin.garden.errorGift', { max: MAX_GIFT }) }}</p>
+      </div>
+
       <div class="flex justify-end border-t border-gray-200 pt-5 dark:border-dark-700">
         <button class="btn btn-primary" :disabled="loading || saving || invalid" @click="save">
           {{ t('common.save') }}
         </button>
+      </div>
+    </div>
+    <div class="card mx-auto mt-6 max-w-3xl space-y-4 p-6">
+      <div>
+        <h2 class="text-base font-semibold text-gray-900 dark:text-white">{{ t('admin.garden.gift') }}</h2>
+        <p class="mt-1 text-sm text-gray-500 dark:text-dark-400">{{ t('admin.garden.giftHint') }}</p>
+      </div>
+      <div class="grid gap-4 sm:grid-cols-[minmax(0,1fr)_160px_auto] sm:items-end">
+        <label class="block text-sm font-medium text-gray-900 dark:text-white">
+          {{ t('admin.garden.giftEmail') }}
+          <input v-model="gift.email" class="input mt-2" type="email" autocomplete="off" />
+        </label>
+        <label class="block text-sm font-medium text-gray-900 dark:text-white">
+          {{ t('admin.garden.giftAmount') }}
+          <input v-model.number="gift.amount" class="input mt-2" type="number" min="0" :max="MAX_GIFT" step="1" />
+        </label>
+        <button class="btn btn-primary" :disabled="gifting || giftInvalid" @click="sendGift">{{ t('admin.garden.giftSend') }}</button>
       </div>
     </div>
   </AppLayout>
@@ -55,17 +81,18 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores/app'
-import { getGardenSettings, updateGardenSettings, type GardenSettings } from '@/api/garden'
+import { getGardenSettings, giftCrop, updateGardenSettings, type GardenSettings } from '@/api/garden'
 import { extractApiErrorMessage } from '@/utils/apiError'
 import AppLayout from '@/components/layout/AppLayout.vue'
 import Toggle from '@/components/common/Toggle.vue'
 
 const MAX_HOURS = 720
+const MAX_GIFT = 10000
 
 const { t } = useI18n()
 const appStore = useAppStore()
 
-type SocialKey = Exclude<keyof GardenSettings, 'enabled' | 'ripen_hours'>
+type SocialKey = Exclude<keyof GardenSettings, 'enabled' | 'ripen_hours' | 'invite_crop_amount'>
 // Each rule neighbours play by, with the range the server accepts.
 const SOCIAL_FIELDS: { key: SocialKey; min: number; max: number; step: number; whole?: boolean }[] = [
   { key: 'protect_hours', min: 0, max: MAX_HOURS, step: 1 },
@@ -81,7 +108,8 @@ const SOCIAL_FIELDS: { key: SocialKey; min: number; max: number; step: number; w
 
 const form = reactive<GardenSettings>({
   enabled: false, ripen_hours: 24, protect_hours: 2, steal_percent: 3, max_stolen_percent: 50, daily_steal_limit: 10,
-  water_minutes: 60, max_waters_per_crop: 5, neighbours_per_day: 10, dog_min_percent: 10, dog_max_percent: 50
+  water_minutes: 60, max_waters_per_crop: 5, neighbours_per_day: 10, dog_min_percent: 10, dog_max_percent: 50,
+  invite_crop_amount: 0
 })
 const loading = ref(true)
 const saving = ref(false)
@@ -98,7 +126,30 @@ const socialInvalid = computed(
     form.steal_percent > form.max_stolen_percent ||
     form.dog_min_percent > form.dog_max_percent
 )
-const invalid = computed(() => hoursInvalid.value || socialInvalid.value)
+const inviteInvalid = computed(
+  () => !Number.isFinite(form.invite_crop_amount) || form.invite_crop_amount < 0 || form.invite_crop_amount > MAX_GIFT
+)
+const invalid = computed(() => hoursInvalid.value || socialInvalid.value || inviteInvalid.value)
+
+// A crop handed to one user, for a post, a promotion or any other campaign.
+const gift = reactive({ email: '', amount: 5 })
+const gifting = ref(false)
+const giftInvalid = computed(
+  () => !gift.email.trim() || !Number.isFinite(gift.amount) || gift.amount <= 0 || gift.amount > MAX_GIFT
+)
+
+async function sendGift() {
+  gifting.value = true
+  try {
+    await giftCrop(gift.email.trim(), gift.amount)
+    appStore.showSuccess(t('admin.garden.giftDone', { email: gift.email.trim() }))
+    gift.email = ''
+  } catch (error) {
+    appStore.showError(extractApiErrorMessage(error, t('admin.garden.giftFailed')))
+  } finally {
+    gifting.value = false
+  }
+}
 
 async function save() {
   saving.value = true

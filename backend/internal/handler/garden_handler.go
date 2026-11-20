@@ -52,6 +52,26 @@ func (h *GardenHandler) Get(c *gin.Context) {
 	})
 }
 
+type giftCropRequest struct {
+	Email  string  `json:"email" binding:"required"`
+	Amount float64 `json:"amount" binding:"required"`
+}
+
+// AdminGift handles POST /api/v1/admin/garden/crops
+func (h *GardenHandler) AdminGift(c *gin.Context) {
+	var req giftCropRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.BadRequest(c, "Invalid request: "+err.Error())
+		return
+	}
+	userID, err := h.garden.GiftCrop(c.Request.Context(), req.Email, req.Amount)
+	if err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+	response.Success(c, gin.H{"user_id": userID})
+}
+
 // gardenActor reads the signed-in user and the numeric :id of the request path.
 func gardenActor(c *gin.Context) (userID, id int64, ok bool) {
 	subject, found := middleware2.GetAuthSubjectFromContext(c)

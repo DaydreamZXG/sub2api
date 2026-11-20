@@ -27,6 +27,7 @@ const (
 
 var (
 	ErrGardenSettingsInvalid = infraerrors.BadRequest("GARDEN_SETTINGS_INVALID", "invalid garden settings")
+	ErrGardenGiftInvalid     = infraerrors.BadRequest("GARDEN_GIFT_INVALID", "the crop must be above 0 and within the limit")
 	ErrGardenCropNotFound    = infraerrors.NotFound("GARDEN_CROP_NOT_FOUND", "crop not found")
 	ErrGardenCropNotRipe     = infraerrors.Conflict("GARDEN_CROP_NOT_RIPE", "crop is not ripe yet")
 )
@@ -49,6 +50,8 @@ type GardenSettings struct {
 	// A fed dog catches a thief with a chance between DogMinPercent (lowest growth level) and DogMaxPercent (highest).
 	DogMinPercent float64 `json:"dog_min_percent"`
 	DogMaxPercent float64 `json:"dog_max_percent"`
+	// InviteCropAmount is the crop an inviter is given when someone they invited pays for the first time; 0 gives none.
+	InviteCropAmount float64 `json:"invite_crop_amount"`
 }
 
 // DefaultGardenSettings is the garden switched off with a one-day ripening time.
@@ -74,7 +77,8 @@ func (g GardenSettings) Validate() error {
 		!within(g.DogMinPercent, 0, 100), !within(g.DogMaxPercent, 0, 100), g.DogMinPercent > g.DogMaxPercent,
 		g.DailyStealLimit < 0 || g.DailyStealLimit > 1000,
 		g.MaxWatersPerCrop < 0 || g.MaxWatersPerCrop > 100,
-		g.NeighboursPerDay < 0 || g.NeighboursPerDay > 50:
+		g.NeighboursPerDay < 0 || g.NeighboursPerDay > 50,
+		!within(g.InviteCropAmount, 0, GardenMaxGiftAmount):
 		return ErrGardenSettingsInvalid
 	}
 	return nil
@@ -92,7 +96,17 @@ type GardenCrop struct {
 	RipeAt          time.Time  `json:"ripe_at"`
 	HarvestedAt     *time.Time `json:"harvested_at,omitempty"`
 	HarvestedAmount float64    `json:"harvested_amount"`
+	// Source is "order" for a top-up's bonus, "invite" for an invite reward, "gift" for one an admin gave.
+	Source string `json:"source"`
 }
+
+const (
+	GardenSourceOrder  = "order"
+	GardenSourceInvite = "invite"
+	GardenSourceGift   = "gift"
+	// GardenMaxGiftAmount caps a crop the site gives away.
+	GardenMaxGiftAmount = 10000
+)
 
 // GardenRepository moves a crop's value between the crop and the user's balance, each in one statement.
 type GardenRepository interface {
@@ -102,6 +116,13 @@ type GardenRepository interface {
 	Uproot(ctx context.Context, orderID int64) (float64, error)
 	// GrowingForOrder reports what the order's growing crop still holds, 0 when it has none.
 	GrowingForOrder(ctx context.Context, orderID int64) (float64, error)
+	// PlantGift plants a crop, not taken out of anyone's balance, for the user with this email and reports who that is.
+	PlantGift(ctx context.Context, email string, amount float64, ripenAfter time.Duration) (int64, error)
+	// PlantInviteReward plants a crop for the inviter of the user who paid the order, when that order is the user's
+	// first paid one and they have not earned their inviter a crop before. It reports the inviter, 0 when nothing was planted.
+	PlantInviteReward(ctx context.Context, inviteeID, orderID int64, amount float64, ripenAfter time.Duration) (int64, error)
+	// RemoveInviteReward takes back the still-growing invite crop the order earned.
+	RemoveInviteReward(ctx context.Context, orderID int64) error
 	// Replant undoes Uproot: the removed crop grows again and its value leaves the balance.
 	// It reports 0 and changes nothing when the balance no longer covers it.
 	Replant(ctx context.Context, orderID int64) (float64, error)
@@ -207,6 +228,40 @@ func (s *GardenService) UprootForOrder(ctx context.Context, userID, orderID int6
 }
 
 // GrowingForOrder reports what the order's growing crop still holds: balance a refund of the order can count on.
+// GiftCrop plants a crop the site gives the user, for a post, a promotion or any other campaign.
+// It works while the garden is closed too: crops already planted can always be harvested.
+func (s *GardenService) GiftCrop(ctx context.Context, email string, amount float64) (int64, error) {
+	email = strings.TrimSpace(email)
+	if email == "" || math.IsNaN(amount) || amount <= 0 || amount > GardenMaxGiftAmount {
+		return 0, ErrGardenGiftInvalid
+	}
+	settings := s.Settings(ctx)
+	return s.repo.PlantGift(ctx, email, amount, time.Duration(settings.RipenHours*float64(time.Hour)))
+}
+
+// PlantInviteReward gives the inviter of the user who paid the order a crop, once per invited user and only for
+// that user's first paid order. It reports whether a crop was planted.
+func (s *GardenService) PlantInviteReward(ctx context.Context, inviteeID, orderID int64) (bool, error) {
+	if s == nil || s.repo == nil {
+		return false, nil
+	}
+	settings := s.Settings(ctx)
+	if !settings.Enabled || settings.InviteCropAmount <= 0 {
+		return false, nil
+	}
+	inviterID, err := s.repo.PlantInviteReward(ctx, inviteeID, orderID, settings.InviteCropAmount,
+		time.Duration(settings.RipenHours*float64(time.Hour)))
+	return inviterID > 0, err
+}
+
+// RemoveInviteRewardForOrder takes back the invite crop a refunded order earned, while it is still growing.
+func (s *GardenService) RemoveInviteRewardForOrder(ctx context.Context, orderID int64) error {
+	if s == nil || s.repo == nil {
+		return nil
+	}
+	return s.repo.RemoveInviteReward(ctx, orderID)
+}
+
 func (s *GardenService) GrowingForOrder(ctx context.Context, orderID int64) (float64, error) {
 	if s == nil || s.repo == nil {
 		return 0, nil
