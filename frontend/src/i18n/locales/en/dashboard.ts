@@ -1051,6 +1051,11 @@ export default {
   errors: {
     somethingWentWrong: 'Something went wrong',
     pageNotFound: 'Page not found',
+    pageNotFoundDesc: "The page you are looking for doesn't exist or has been moved.",
+    goBack: 'Go back',
+    goHome: 'Go to the start page',
+    needHelp: 'Need help?',
+    openHelp: 'Open the help page',
     unauthorized: 'Unauthorized',
     forbidden: 'Forbidden',
     serverError: 'Server error',
