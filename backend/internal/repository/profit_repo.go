@@ -16,17 +16,20 @@ import (
 // credits that came from paid orders (and, when the settings say so, from manual grants and redeem codes).
 // Paid and gifted balance sit in one column, so they are taken to be spent in proportion.
 const profitHourlyUpsertSQL = `
-	WITH paid AS (
+	WITH active AS (
+		-- Only the users charged in these hours: this runs every minute.
+		SELECT DISTINCT user_id FROM usage_logs WHERE created_at >= $1 AND created_at < $2
+	), paid AS (
 		SELECT user_id, SUM(GREATEST(amount - bonus_amount - refund_amount, 0)) AS amount
 		FROM payment_orders
-		WHERE order_type = 'balance'
+		WHERE order_type = 'balance' AND user_id IN (SELECT user_id FROM active)
 			AND status IN ('COMPLETED', 'REFUND_REQUESTED', 'REFUNDING', 'REFUND_PENDING', 'PARTIALLY_REFUNDED', 'REFUNDED', 'REFUND_FAILED')
 		GROUP BY user_id
 	), granted AS (
 		-- Net of what was taken back: an admin adding 600 and removing 600 again granted nothing.
 		SELECT used_by AS user_id, GREATEST(SUM(value), 0) AS amount
 		FROM redeem_codes
-		WHERE status = 'used' AND used_by IS NOT NULL AND (
+		WHERE status = 'used' AND used_by IN (SELECT user_id FROM active) AND (
 			(type = 'admin_balance' AND COALESCE((SELECT value FROM settings WHERE key = 'profit_manual_is_paid'), '') = 'true')
 			OR (type = 'balance' AND COALESCE((SELECT value FROM settings WHERE key = 'profit_redeem_is_paid'), '') = 'true'))
 		GROUP BY used_by
@@ -35,7 +38,8 @@ const profitHourlyUpsertSQL = `
 			CASE WHEN u.total_recharged > 0
 				THEN LEAST((COALESCE(p.amount, 0) + COALESCE(g.amount, 0)) / u.total_recharged, 1)
 				ELSE 0 END AS paid_share
-		FROM users u
+		FROM active a
+		JOIN users u ON u.id = a.user_id
 		LEFT JOIN paid p ON p.user_id = u.id
 		LEFT JOIN granted g ON g.user_id = u.id
 	)
