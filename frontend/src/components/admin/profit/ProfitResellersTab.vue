@@ -34,6 +34,39 @@
       </div>
     </section>
 
+    <section class="card p-5" data-test="resellers-portal">
+      <h2 class="text-base font-semibold text-gray-900 dark:text-white">{{ t('admin.profit.resellers.portal.title') }}</h2>
+      <p class="mt-1 text-sm text-gray-500 dark:text-dark-400">{{ t('admin.profit.resellers.portal.intro') }}</p>
+      <form class="mt-4 grid gap-4 sm:grid-cols-2" @submit.prevent="savePortal">
+        <label class="block text-sm font-medium text-gray-900 dark:text-white">
+          {{ t('admin.profit.resellers.portal.domain') }}
+          <input v-model.trim="portal.domain" class="input mt-1" placeholder="keys.example.com" data-test="portal-domain" />
+          <span class="mt-1 block text-xs font-normal text-gray-500 dark:text-dark-400">{{ t('admin.profit.resellers.portal.domainHint') }}</span>
+        </label>
+        <label class="block text-sm font-medium text-gray-900 dark:text-white">
+          {{ t('admin.profit.resellers.portal.name') }}
+          <input v-model.trim="portal.name" class="input mt-1" maxlength="60" data-test="portal-name" />
+          <span class="mt-1 block text-xs font-normal text-gray-500 dark:text-dark-400">{{ t('admin.profit.resellers.portal.nameHint') }}</span>
+        </label>
+        <label class="block text-sm font-medium text-gray-900 dark:text-white">
+          {{ t('admin.profit.resellers.portal.contact') }}
+          <input v-model.trim="portal.contact" class="input mt-1" maxlength="300" data-test="portal-contact" />
+        </label>
+        <label class="block text-sm font-medium text-gray-900 dark:text-white">
+          {{ t('admin.profit.resellers.portal.logo') }}
+          <input v-model.trim="portal.logo" class="input mt-1" placeholder="https://…" maxlength="500" data-test="portal-logo" />
+        </label>
+        <div class="sm:col-span-2">
+          <button type="submit" class="btn btn-primary" :disabled="savingPortal" data-test="portal-save">{{ t('common.save') }}</button>
+        </div>
+      </form>
+      <ol class="mt-4 list-decimal space-y-1 pl-5 text-xs text-gray-500 dark:text-dark-400">
+        <li>{{ t('admin.profit.resellers.portal.step1') }}</li>
+        <li>{{ t('admin.profit.resellers.portal.step2') }}</li>
+        <li>{{ t('admin.profit.resellers.portal.step3') }}</li>
+      </ol>
+    </section>
+
     <section class="card p-5" data-test="resellers-list">
       <h2 class="text-base font-semibold text-gray-900 dark:text-white">{{ t('admin.profit.resellers.listTitle') }}</h2>
       <div v-if="loading && resellers.length === 0" class="mt-4 text-sm text-gray-500 dark:text-dark-400">{{ t('common.loading') }}</div>
@@ -79,7 +112,7 @@ import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores/app'
 import * as resellersAPI from '@/api/admin/resellers'
-import type { ResellerEntry } from '@/api/admin/resellers'
+import type { ResellerEntry, ResellerPortal } from '@/api/admin/resellers'
 import { lookupUsers } from '@/api/admin/affiliates'
 import type { SimpleUser } from '@/api/admin/affiliates'
 import { useYcMoney } from '@/composables/useYcMoney'
@@ -97,6 +130,8 @@ const query = ref('')
 const found = ref<SimpleUser[]>([])
 const picked = ref<SimpleUser | null>(null)
 let searchSeq = 0
+const portal = ref<ResellerPortal>({ domain: '', name: '', contact: '', logo: '' })
+const savingPortal = ref(false)
 
 async function load() {
   loading.value = true
@@ -106,6 +141,32 @@ async function load() {
     appStore.showError(extractApiErrorMessage(error, t('admin.profit.failedToLoad')))
   } finally {
     loading.value = false
+  }
+}
+
+async function loadPortal() {
+  try {
+    portal.value = await resellersAPI.getPortal()
+  } catch (error) {
+    appStore.showError(extractApiErrorMessage(error, t('admin.profit.failedToLoad')))
+  }
+}
+
+async function savePortal() {
+  if (savingPortal.value) return
+  // The server reduces an address to its host; a domain needs a name to show to clients.
+  if (portal.value.domain && !portal.value.name) {
+    appStore.showError(t('admin.profit.resellers.portal.needName'))
+    return
+  }
+  savingPortal.value = true
+  try {
+    portal.value = await resellersAPI.setPortal(portal.value)
+    appStore.showSuccess(t('admin.profit.resellers.portal.saved'))
+  } catch (error) {
+    appStore.showError(extractApiErrorMessage(error, t('admin.profit.resellers.portal.invalid')))
+  } finally {
+    savingPortal.value = false
   }
 }
 
@@ -151,5 +212,8 @@ async function remove(reseller: ResellerEntry) {
   }
 }
 
-onMounted(load)
+onMounted(() => {
+  void load()
+  void loadPortal()
+})
 </script>

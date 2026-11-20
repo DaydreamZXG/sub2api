@@ -477,6 +477,8 @@ func registerAgentRoutes(admin *gin.RouterGroup, h *handler.Handlers) {
 		resellers.PUT("/:user_id", h.Reseller.Add)
 		resellers.DELETE("/:user_id", h.Reseller.Remove)
 	}
+	admin.GET("/reseller-portal", h.Reseller.GetPortal)
+	admin.PUT("/reseller-portal", h.Reseller.SetPortal)
 }
 
 func registerProfitRoutes(admin *gin.RouterGroup, h *handler.Handlers) {

@@ -3,7 +3,10 @@ import { flushPromises, mount } from '@vue/test-utils'
 
 import ProfitResellersTab from '../ProfitResellersTab.vue'
 
-const { list, add, remove, lookupUsers, showError } = vi.hoisted(() => ({
+const { list, add, remove, getPortal, setPortal, lookupUsers, showError, showSuccess } = vi.hoisted(() => ({
+  getPortal: vi.fn(),
+  setPortal: vi.fn(),
+  showSuccess: vi.fn(),
   list: vi.fn(),
   add: vi.fn(),
   remove: vi.fn(),
@@ -11,9 +14,9 @@ const { list, add, remove, lookupUsers, showError } = vi.hoisted(() => ({
   showError: vi.fn()
 }))
 
-vi.mock('@/api/admin/resellers', () => ({ list, add, remove }))
+vi.mock('@/api/admin/resellers', () => ({ list, add, remove, getPortal, setPortal }))
 vi.mock('@/api/admin/affiliates', () => ({ lookupUsers }))
-vi.mock('@/stores/app', () => ({ useAppStore: () => ({ showError }) }))
+vi.mock('@/stores/app', () => ({ useAppStore: () => ({ showError, showSuccess }) }))
 vi.mock('@/composables/useYcMoney', () => ({ useYcMoney: () => ({ yuan: (units: number) => `¥${(units / 2).toFixed(2)}` }) }))
 vi.mock('vue-i18n', async (importOriginal) => ({
   ...(await importOriginal<typeof import('vue-i18n')>()),
@@ -34,6 +37,8 @@ describe('ProfitResellersTab', () => {
     list.mockResolvedValue([reseller])
     add.mockResolvedValue(undefined)
     remove.mockResolvedValue(undefined)
+    getPortal.mockResolvedValue({ domain: 'keys.example.com', name: 'Keys', contact: '', logo: '' })
+    setPortal.mockImplementation(async (portal) => portal)
     lookupUsers.mockResolvedValue([{ id: 12, email: 'new@example.com', username: 'new' }])
     vi.spyOn(window, 'confirm').mockReturnValue(true)
   })
@@ -69,5 +74,22 @@ describe('ProfitResellersTab', () => {
     await wrapper.get('[data-test="resellers-remove"]').trigger('click')
     await flushPromises()
     expect(remove).toHaveBeenCalledWith(7)
+  })
+
+  it('loads and saves the client domain, and wants a name with a domain', async () => {
+    const wrapper = await mountTab()
+    expect((wrapper.get('[data-test="portal-domain"]').element as HTMLInputElement).value).toBe('keys.example.com')
+
+    await wrapper.get('[data-test="portal-name"]').setValue('')
+    await wrapper.get('[data-test="resellers-portal"] form').trigger('submit')
+    expect(setPortal).not.toHaveBeenCalled()
+    expect(showError).toHaveBeenCalledWith('admin.profit.resellers.portal.needName')
+
+    await wrapper.get('[data-test="portal-name"]').setValue('Client keys')
+    await wrapper.get('[data-test="portal-contact"]').setValue('wx: keys')
+    await wrapper.get('[data-test="resellers-portal"] form').trigger('submit')
+    await flushPromises()
+    expect(setPortal).toHaveBeenCalledWith({ domain: 'keys.example.com', name: 'Client keys', contact: 'wx: keys', logo: '' })
+    expect(showSuccess).toHaveBeenCalledWith('admin.profit.resellers.portal.saved')
   })
 })

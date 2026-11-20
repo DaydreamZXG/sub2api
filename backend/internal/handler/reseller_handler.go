@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"context"
+
 	"github.com/Wei-Shaw/sub2api/internal/pkg/response"
 	middleware2 "github.com/Wei-Shaw/sub2api/internal/server/middleware"
 	"github.com/Wei-Shaw/sub2api/internal/service"
@@ -83,4 +85,36 @@ func (h *ResellerHandler) set(c *gin.Context, on bool) {
 		return
 	}
 	response.Success(c, gin.H{"user_id": userID})
+}
+
+// GetPortal handles GET /api/v1/admin/reseller-portal: the domain resellers' clients use.
+func (h *ResellerHandler) GetPortal(c *gin.Context) {
+	portal, err := h.resellers.Portal(c.Request.Context())
+	if err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+	response.Success(c, portal)
+}
+
+// SetPortal handles PUT /api/v1/admin/reseller-portal. An empty domain turns the client domain off.
+func (h *ResellerHandler) SetPortal(c *gin.Context) {
+	var req service.ResellerPortal
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.BadRequest(c, "Invalid request: "+err.Error())
+		return
+	}
+	if err := h.resellers.SetPortal(c.Request.Context(), req); err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+	h.GetPortal(c)
+}
+
+// PortalFor tells the router whether a request arrived on the client domain.
+func (h *ResellerHandler) PortalFor(ctx context.Context, host string) (*service.ResellerPortal, error) {
+	if h == nil || h.resellers == nil {
+		return nil, nil
+	}
+	return h.resellers.PortalFor(ctx, host)
 }

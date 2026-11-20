@@ -29,5 +29,23 @@ export async function remove(userId: number): Promise<void> {
   await apiClient.delete(`/admin/resellers/${userId}`)
 }
 
-export const resellersAPI = { list, add, remove }
+/** The second domain on which resellers' clients look up their key. An empty domain means none. */
+export interface ResellerPortal {
+  domain: string
+  name: string
+  contact: string
+  logo: string
+}
+
+export async function getPortal(): Promise<ResellerPortal> {
+  const { data } = await apiClient.get<ResellerPortal>('/admin/reseller-portal')
+  return data
+}
+
+export async function setPortal(portal: ResellerPortal): Promise<ResellerPortal> {
+  const { data } = await apiClient.put<ResellerPortal>('/admin/reseller-portal', portal)
+  return data
+}
+
+export const resellersAPI = { list, add, remove, getPortal, setPortal }
 export default resellersAPI

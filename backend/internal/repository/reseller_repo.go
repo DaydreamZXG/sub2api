@@ -3,6 +3,8 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
+	"errors"
 
 	"github.com/Wei-Shaw/sub2api/internal/service"
 )
@@ -110,4 +112,32 @@ func (r *resellerRepository) ClientKeys(ctx context.Context, userID int64) ([]se
 		out = append(out, k)
 	}
 	return out, balance, rows.Err()
+}
+
+const resellerPortalKey = "reseller_portal"
+
+func (r *resellerRepository) GetPortal(ctx context.Context) (service.ResellerPortal, error) {
+	var portal service.ResellerPortal
+	var raw string
+	err := r.db.QueryRowContext(ctx, `SELECT value FROM settings WHERE key = $1`, resellerPortalKey).Scan(&raw)
+	if errors.Is(err, sql.ErrNoRows) {
+		return portal, nil
+	}
+	if err != nil {
+		return portal, err
+	}
+	// A value that does not parse counts as no portal: the main site keeps working.
+	_ = json.Unmarshal([]byte(raw), &portal)
+	return portal, nil
+}
+
+func (r *resellerRepository) SetPortal(ctx context.Context, portal service.ResellerPortal) error {
+	raw, err := json.Marshal(portal)
+	if err != nil {
+		return err
+	}
+	_, err = r.db.ExecContext(ctx, `
+		INSERT INTO settings (key, value) VALUES ($1, $2)
+		ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()`, resellerPortalKey, string(raw))
+	return err
 }
