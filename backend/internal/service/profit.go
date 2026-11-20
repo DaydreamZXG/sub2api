@@ -130,6 +130,8 @@ type ProfitRepository interface {
 	DeletePayment(ctx context.Context, packID, paymentID int64) error
 	// Usage sums the summary between two days (both included), in the given timezone.
 	Usage(ctx context.Context, from, to, tz string) ([]ProfitUsageRow, error)
+	// Received is the money paid orders brought in and the money refunded, in the period, in currency.
+	Received(ctx context.Context, from, to, tz string) (received, refunded float64, err error)
 	PackUsage(ctx context.Context, tz string) (map[int64]ProfitPackUsage, error)
 	AccountInfos(ctx context.Context, ids []int64) (map[int64]ProfitAccountInfo, error)
 	GroupNames(ctx context.Context, ids []int64) (map[int64]string, error)
@@ -189,14 +191,17 @@ type ProfitAccountLine struct {
 
 // ProfitReport is income, cost and profit between two days, in yuan.
 type ProfitReport struct {
-	From         string              `json:"from"`
-	To           string              `json:"to"`
-	UnitsPerYuan float64             `json:"units_per_yuan"`
-	Totals       ProfitFigures       `json:"totals"`
-	Months       []ProfitMonthLine   `json:"months"`
-	Groups       []ProfitGroupLine   `json:"groups"`
-	Packs        []ProfitPackLine    `json:"packs"`
-	Accounts     []ProfitAccountLine `json:"accounts"`
+	From         string  `json:"from"`
+	To           string  `json:"to"`
+	UnitsPerYuan float64 `json:"units_per_yuan"`
+	// Received and Refunded are what payment orders brought in and gave back in the period, as paid.
+	Received float64             `json:"received"`
+	Refunded float64             `json:"refunded"`
+	Totals   ProfitFigures       `json:"totals"`
+	Months   []ProfitMonthLine   `json:"months"`
+	Groups   []ProfitGroupLine   `json:"groups"`
+	Packs    []ProfitPackLine    `json:"packs"`
+	Accounts []ProfitAccountLine `json:"accounts"`
 }
 
 // ProfitService works out what the site earned against what its upstream capacity cost.
@@ -467,6 +472,9 @@ func (s *ProfitService) Report(ctx context.Context, from, to string) (*ProfitRep
 	}
 	rate := s.unitsPerYuan(ctx)
 	report := buildProfitReport(rows, packs, from, to, s.today(), rate)
+	if report.Received, report.Refunded, err = s.repo.Received(ctx, from, to, timezone.Name()); err != nil {
+		return nil, err
+	}
 
 	accountIDs := make([]int64, 0, len(report.Accounts))
 	for _, a := range report.Accounts {

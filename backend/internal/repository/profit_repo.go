@@ -357,6 +357,21 @@ func (r *profitRepository) Usage(ctx context.Context, from, to, tz string) ([]se
 	return out, closeRows(rows)
 }
 
+// Received sums what paid orders brought in and what was refunded in the period, in the currency paid.
+func (r *profitRepository) Received(ctx context.Context, from, to, tz string) (float64, float64, error) {
+	var received, refunded float64
+	err := r.db.QueryRowContext(ctx, `
+		SELECT
+			COALESCE(SUM(pay_amount) FILTER (
+				WHERE paid_at >= ($1::date::timestamp AT TIME ZONE $3) AND paid_at < (($2::date + 1)::timestamp AT TIME ZONE $3)), 0),
+			COALESCE(SUM(refund_amount * pay_amount / NULLIF(amount, 0)) FILTER (
+				WHERE refund_at >= ($1::date::timestamp AT TIME ZONE $3) AND refund_at < (($2::date + 1)::timestamp AT TIME ZONE $3)), 0)
+		FROM payment_orders
+		WHERE status IN ('COMPLETED', 'REFUND_REQUESTED', 'REFUNDING', 'REFUND_PENDING', 'PARTIALLY_REFUNDED', 'REFUNDED', 'REFUND_FAILED')`,
+		from, to, tz).Scan(&received, &refunded)
+	return received, refunded, err
+}
+
 func (r *profitRepository) PackUsage(ctx context.Context, tz string) (map[int64]service.ProfitPackUsage, error) {
 	rows, err := r.db.QueryContext(ctx, `
 		SELECT
