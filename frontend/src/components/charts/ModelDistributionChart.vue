@@ -143,13 +143,13 @@
                   {{ formatTokens(model.total_tokens) }}
                 </td>
                 <td class="py-1.5 text-right text-green-600 dark:text-green-400">
-                  ${{ formatCost(model.actual_cost) }}
+                  {{ currency }}{{ formatCost(model.actual_cost) }}
                 </td>
                 <td v-if="showAccountCost" class="py-1.5 text-right text-orange-500 dark:text-orange-400">
-                  ${{ formatCost(model.account_cost) }}
+                  {{ currency }}{{ formatCost(model.account_cost) }}
                 </td>
                 <td class="py-1.5 text-right text-gray-400 dark:text-gray-500">
-                  ${{ formatCost(model.cost) }}
+                  {{ currency }}{{ formatCost(model.cost) }}
                 </td>
               </tr>
               <tr v-if="expandedKey === `model-${model.model}`">
@@ -226,7 +226,7 @@
                 {{ formatTokens(item.tokens) }}
               </td>
               <td class="py-1.5 text-right text-green-600 dark:text-green-400">
-                ${{ formatCost(item.actual_cost) }}
+                {{ currency }}{{ formatCost(item.actual_cost) }}
               </td>
             </tr>
           </tbody>
@@ -280,6 +280,8 @@ const props = withDefaults(defineProps<{
   startDate?: string
   endDate?: string
   filters?: Record<string, any>
+  /** Sign printed before money amounts. */
+  currency?: string
 }>(), {
   upstreamModelStats: () => [],
   mappingModelStats: () => [],
@@ -296,7 +298,8 @@ const props = withDefaults(defineProps<{
   enableBreakdown: true,
   showAccountCost: true,
   rankingLoading: false,
-  rankingError: false
+  rankingError: false,
+  currency: '$'
 })
 
 const expandedKey = ref<string | null>(null)
@@ -451,7 +454,7 @@ const doughnutOptions = computed(() => ({
           const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0)
           const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0'
           const formattedValue = props.metric === 'actual_cost'
-            ? `$${formatCost(value)}`
+            ? `${props.currency}${formatCost(value)}`
             : formatTokens(value)
           return `${context.label}: ${formattedValue} (${percentage}%)`
         }
@@ -473,7 +476,7 @@ const rankingDoughnutOptions = computed(() => ({
           const value = context.raw as number
           const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0)
           const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0'
-          return `${context.label}: $${formatCost(value)} (${percentage}%)`
+          return `${context.label}: ${props.currency}${formatCost(value)} (${percentage}%)`
         }
       }
     }

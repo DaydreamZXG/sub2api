@@ -74,13 +74,13 @@
                   {{ formatTokens(group.total_tokens) }}
                 </td>
                 <td class="py-1.5 text-right text-green-600 dark:text-green-400">
-                  ${{ formatCost(group.actual_cost) }}
+                  {{ currency }}{{ formatCost(group.actual_cost) }}
                 </td>
                 <td v-if="showAccountCost" class="py-1.5 text-right text-orange-500 dark:text-orange-400">
-                  ${{ formatCost(group.account_cost) }}
+                  {{ currency }}{{ formatCost(group.account_cost) }}
                 </td>
                 <td class="py-1.5 text-right text-gray-400 dark:text-gray-500">
-                  ${{ formatCost(group.cost) }}
+                  {{ currency }}{{ formatCost(group.cost) }}
                 </td>
               </tr>
               <!-- User breakdown sub-rows -->
@@ -133,12 +133,15 @@ const props = withDefaults(defineProps<{
   startDate?: string
   endDate?: string
   filters?: Record<string, any>
+  /** Sign printed before money amounts. */
+  currency?: string
 }>(), {
   loading: false,
   metric: 'tokens',
   showMetricToggle: false,
   enableBreakdown: true,
   showAccountCost: true,
+  currency: '$',
 })
 
 const emit = defineEmits<{
@@ -224,7 +227,7 @@ const doughnutOptions = computed(() => ({
           const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0)
           const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0'
           const formattedValue = props.metric === 'actual_cost'
-            ? `$${formatCost(value)}`
+            ? `${props.currency}${formatCost(value)}`
             : formatTokens(value)
           return `${context.label}: ${formattedValue} (${percentage}%)`
         }

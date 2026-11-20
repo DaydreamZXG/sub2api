@@ -185,7 +185,7 @@
         </div>
       </section>
 
-      <template v-if="activeTab === 'usage'">
+      <div v-if="activeTab === 'usage'" class="yus-records" data-test="usage-records">
         <UsageTable
           :data="usageLogs"
           :loading="loading"
@@ -208,7 +208,7 @@
           @update:page="handlePageChange"
           @update:pageSize="handlePageSizeChange"
         />
-      </template>
+      </div>
 
       <div v-else-if="activeTab === 'charts'" class="yus-charts" data-test="usage-charts">
         <div class="yus-grain">
@@ -219,6 +219,7 @@
         </div>
         <div class="grid grid-cols-1 gap-5 lg:grid-cols-2">
           <ModelDistributionChart
+            :currency="sign"
             v-model:metric="modelDistributionMetric"
             :model-stats="requestedModelStats"
             :loading="modelStatsLoading"
@@ -230,6 +231,7 @@
             :end-date="endDate"
           />
           <GroupDistributionChart
+            :currency="sign"
             v-model:metric="groupDistributionMetric"
             :group-stats="groupStats"
             :loading="chartsLoading"
@@ -240,6 +242,7 @@
             :end-date="endDate"
           />
           <EndpointDistributionChart
+            :currency="sign"
             v-model:source="endpointDistributionSource"
             v-model:metric="endpointDistributionMetric"
             :endpoint-stats="inboundEndpointStats"
@@ -254,12 +257,13 @@
             :start-date="startDate"
             :end-date="endDate"
           />
-          <TokenUsageTrend :trend-data="trendData" :loading="chartsLoading" />
+          <TokenUsageTrend :trend-data="trendData" :loading="chartsLoading" :currency="sign" />
         </div>
       </div>
 
       <UserErrorRequestsTable
         v-else-if="errorViewEnabled"
+        class="yus-records"
         :rows="errorRows"
         :total="errorTotal"
         :loading="errorLoading"
@@ -1049,7 +1053,42 @@ watch(endpointDistributionSource, () => {
 .yus-menu button { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 8px 10px; border-radius: 8px; font-size: 13px; color: var(--yc-ink); text-align: left; }
 .yus-menu button:hover { background: var(--yc-fill); }
 
+/*
+ * The records table, the pager and the charts are shared with the admin pages.
+ * They are dressed here, under this page's own classes, so the admin pages keep their look.
+ */
+.yus-records { overflow: hidden; border: 1px solid var(--yc-line); border-radius: 22px; background: var(--yc-paper); }
+.yus-records :deep(.card) { border: 0 !important; border-radius: 0 !important; background: transparent !important; box-shadow: none !important; }
+.yus-records :deep(thead.table-header),
+.yus-records :deep(thead.table-header th) { background: var(--yc-fill) !important; }
+.yus-records :deep(thead.table-header th) { color: var(--yc-mut) !important; font-size: 12px; font-weight: 600; letter-spacing: 0; text-transform: none; }
+.yus-records :deep(tbody.table-body),
+.yus-records :deep(tbody.table-body td) { background: var(--yc-paper) !important; }
+.yus-records :deep(tbody.table-body tr:hover td) { background: var(--yc-fill) !important; }
+.yus-records :deep(table),
+.yus-records :deep(tbody.table-body),
+.yus-records :deep(tbody.table-body > tr),
+.yus-records :deep(.border-t),
+.yus-records :deep(.border-b) { border-color: var(--yc-line) !important; }
+.yus-records :deep(span.inline-flex.rounded.px-2) { border: 1px solid var(--yc-line); border-radius: 999px; background: transparent !important; color: var(--yc-ink) !important; }
+.yus-records :deep(.text-green-600) { color: var(--yc-ink) !important; font-weight: 650; }
+/* On a phone the table becomes a list: rows separated by a line instead of a card inside the panel. */
+.yus-records :deep(.space-y-3 > .rounded-lg) { margin-top: 0 !important; border: 0 !important; border-top: 1px solid var(--yc-line) !important; border-radius: 0 !important; background: transparent !important; }
+.yus-records :deep(.space-y-3 .uppercase) { color: var(--yc-mut) !important; letter-spacing: 0; text-transform: none; }
+.yus-records :deep(.flex.items-center.justify-between.border-t) { background: transparent !important; }
+.yus-records :deep([aria-current='page']) { border-color: var(--yc-ink) !important; background: var(--yc-ink) !important; color: var(--yc-paper) !important; }
+
 .yus-charts { display: grid; gap: 16px; }
+.yus-charts :deep(.card) { border: 1px solid var(--yc-line) !important; border-radius: 22px !important; background: var(--yc-paper) !important; box-shadow: none !important; }
+.yus-charts :deep(.card h3) { color: var(--yc-ink) !important; font-size: 15px; font-weight: 700; }
+.yus-charts :deep(.card .inline-flex.rounded-lg.border) { padding: 3px; border: 0 !important; border-radius: 999px !important; background: var(--yc-fill) !important; }
+.yus-charts :deep(.card .inline-flex.rounded-lg.border > button) { border-radius: 999px !important; box-shadow: none !important; color: var(--yc-mut) !important; }
+.yus-charts :deep(.card .inline-flex.rounded-lg.border > button.bg-white),
+.yus-charts :deep(.card .inline-flex.rounded-lg.border > button.shadow-sm) { background: var(--yc-ink) !important; color: var(--yc-paper) !important; }
+.yus-charts :deep(.card table th) { color: var(--yc-mut) !important; font-weight: 600; }
+.yus-charts :deep(.card table td.text-green-600),
+.yus-charts :deep(.card table .text-green-600) { color: var(--yc-ink) !important; font-weight: 650; }
+.yus-charts :deep(.card table tr) { border-color: var(--yc-line) !important; }
 .yus-grain { justify-content: flex-end; }
 
 @media (max-width: 1100px) {
