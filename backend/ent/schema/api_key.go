@@ -69,6 +69,12 @@ func (APIKey) Fields() []ent.Field {
 			SchemaType(map[string]string{dialect.Postgres: "decimal(20,8)"}).
 			Default(0).
 			Comment("Used quota amount in USD"),
+		// A reseller's key for a client: what a call costs the owner is counted against the key's
+		// quota and rate limits multiplied by this. 0 for an ordinary key. Set once, at creation.
+		field.Float("client_markup").
+			SchemaType(map[string]string{dialect.Postgres: "decimal(10,4)"}).
+			Default(0).
+			Comment("Client key of a reseller: cost times this is counted against the quota (0 = ordinary key)"),
 		// Expiration time (nil = never expires)
 		field.Time("expires_at").
 			Optional().

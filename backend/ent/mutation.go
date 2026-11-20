@@ -132,6 +132,8 @@ type APIKeyMutation struct {
 	addquota           *float64
 	quota_used         *float64
 	addquota_used      *float64
+	client_markup      *float64
+	addclient_markup   *float64
 	expires_at         *time.Time
 	rate_limit_5h      *float64
 	addrate_limit_5h   *float64
@@ -864,6 +866,62 @@ func (m *APIKeyMutation) ResetQuotaUsed() {
 	m.addquota_used = nil
 }
 
+// SetClientMarkup sets the "client_markup" field.
+func (m *APIKeyMutation) SetClientMarkup(f float64) {
+	m.client_markup = &f
+	m.addclient_markup = nil
+}
+
+// ClientMarkup returns the value of the "client_markup" field in the mutation.
+func (m *APIKeyMutation) ClientMarkup() (r float64, exists bool) {
+	v := m.client_markup
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldClientMarkup returns the old "client_markup" field's value of the APIKey entity.
+// If the APIKey object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *APIKeyMutation) OldClientMarkup(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldClientMarkup is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldClientMarkup requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldClientMarkup: %w", err)
+	}
+	return oldValue.ClientMarkup, nil
+}
+
+// AddClientMarkup adds f to the "client_markup" field.
+func (m *APIKeyMutation) AddClientMarkup(f float64) {
+	if m.addclient_markup != nil {
+		*m.addclient_markup += f
+	} else {
+		m.addclient_markup = &f
+	}
+}
+
+// AddedClientMarkup returns the value that was added to the "client_markup" field in this mutation.
+func (m *APIKeyMutation) AddedClientMarkup() (r float64, exists bool) {
+	v := m.addclient_markup
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetClientMarkup resets all changes to the "client_markup" field.
+func (m *APIKeyMutation) ResetClientMarkup() {
+	m.client_markup = nil
+	m.addclient_markup = nil
+}
+
 // SetExpiresAt sets the "expires_at" field.
 func (m *APIKeyMutation) SetExpiresAt(t time.Time) {
 	m.expires_at = &t
@@ -1538,7 +1596,7 @@ func (m *APIKeyMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *APIKeyMutation) Fields() []string {
-	fields := make([]string, 0, 23)
+	fields := make([]string, 0, 24)
 	if m.created_at != nil {
 		fields = append(fields, apikey.FieldCreatedAt)
 	}
@@ -1577,6 +1635,9 @@ func (m *APIKeyMutation) Fields() []string {
 	}
 	if m.quota_used != nil {
 		fields = append(fields, apikey.FieldQuotaUsed)
+	}
+	if m.client_markup != nil {
+		fields = append(fields, apikey.FieldClientMarkup)
 	}
 	if m.expires_at != nil {
 		fields = append(fields, apikey.FieldExpiresAt)
@@ -1642,6 +1703,8 @@ func (m *APIKeyMutation) Field(name string) (ent.Value, bool) {
 		return m.Quota()
 	case apikey.FieldQuotaUsed:
 		return m.QuotaUsed()
+	case apikey.FieldClientMarkup:
+		return m.ClientMarkup()
 	case apikey.FieldExpiresAt:
 		return m.ExpiresAt()
 	case apikey.FieldRateLimit5h:
@@ -1697,6 +1760,8 @@ func (m *APIKeyMutation) OldField(ctx context.Context, name string) (ent.Value, 
 		return m.OldQuota(ctx)
 	case apikey.FieldQuotaUsed:
 		return m.OldQuotaUsed(ctx)
+	case apikey.FieldClientMarkup:
+		return m.OldClientMarkup(ctx)
 	case apikey.FieldExpiresAt:
 		return m.OldExpiresAt(ctx)
 	case apikey.FieldRateLimit5h:
@@ -1817,6 +1882,13 @@ func (m *APIKeyMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetQuotaUsed(v)
 		return nil
+	case apikey.FieldClientMarkup:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetClientMarkup(v)
+		return nil
 	case apikey.FieldExpiresAt:
 		v, ok := value.(time.Time)
 		if !ok {
@@ -1901,6 +1973,9 @@ func (m *APIKeyMutation) AddedFields() []string {
 	if m.addquota_used != nil {
 		fields = append(fields, apikey.FieldQuotaUsed)
 	}
+	if m.addclient_markup != nil {
+		fields = append(fields, apikey.FieldClientMarkup)
+	}
 	if m.addrate_limit_5h != nil {
 		fields = append(fields, apikey.FieldRateLimit5h)
 	}
@@ -1931,6 +2006,8 @@ func (m *APIKeyMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedQuota()
 	case apikey.FieldQuotaUsed:
 		return m.AddedQuotaUsed()
+	case apikey.FieldClientMarkup:
+		return m.AddedClientMarkup()
 	case apikey.FieldRateLimit5h:
 		return m.AddedRateLimit5h()
 	case apikey.FieldRateLimit1d:
@@ -1965,6 +2042,13 @@ func (m *APIKeyMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddQuotaUsed(v)
+		return nil
+	case apikey.FieldClientMarkup:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddClientMarkup(v)
 		return nil
 	case apikey.FieldRateLimit5h:
 		v, ok := value.(float64)
@@ -2130,6 +2214,9 @@ func (m *APIKeyMutation) ResetField(name string) error {
 		return nil
 	case apikey.FieldQuotaUsed:
 		m.ResetQuotaUsed()
+		return nil
+	case apikey.FieldClientMarkup:
+		m.ResetClientMarkup()
 		return nil
 	case apikey.FieldExpiresAt:
 		m.ResetExpiresAt()

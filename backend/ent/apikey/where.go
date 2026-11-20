@@ -110,6 +110,11 @@ func QuotaUsed(v float64) predicate.APIKey {
 	return predicate.APIKey(sql.FieldEQ(FieldQuotaUsed, v))
 }
 
+// ClientMarkup applies equality check predicate on the "client_markup" field. It's identical to ClientMarkupEQ.
+func ClientMarkup(v float64) predicate.APIKey {
+	return predicate.APIKey(sql.FieldEQ(FieldClientMarkup, v))
+}
+
 // ExpiresAt applies equality check predicate on the "expires_at" field. It's identical to ExpiresAtEQ.
 func ExpiresAt(v time.Time) predicate.APIKey {
 	return predicate.APIKey(sql.FieldEQ(FieldExpiresAt, v))
@@ -683,6 +688,46 @@ func QuotaUsedLT(v float64) predicate.APIKey {
 // QuotaUsedLTE applies the LTE predicate on the "quota_used" field.
 func QuotaUsedLTE(v float64) predicate.APIKey {
 	return predicate.APIKey(sql.FieldLTE(FieldQuotaUsed, v))
+}
+
+// ClientMarkupEQ applies the EQ predicate on the "client_markup" field.
+func ClientMarkupEQ(v float64) predicate.APIKey {
+	return predicate.APIKey(sql.FieldEQ(FieldClientMarkup, v))
+}
+
+// ClientMarkupNEQ applies the NEQ predicate on the "client_markup" field.
+func ClientMarkupNEQ(v float64) predicate.APIKey {
+	return predicate.APIKey(sql.FieldNEQ(FieldClientMarkup, v))
+}
+
+// ClientMarkupIn applies the In predicate on the "client_markup" field.
+func ClientMarkupIn(vs ...float64) predicate.APIKey {
+	return predicate.APIKey(sql.FieldIn(FieldClientMarkup, vs...))
+}
+
+// ClientMarkupNotIn applies the NotIn predicate on the "client_markup" field.
+func ClientMarkupNotIn(vs ...float64) predicate.APIKey {
+	return predicate.APIKey(sql.FieldNotIn(FieldClientMarkup, vs...))
+}
+
+// ClientMarkupGT applies the GT predicate on the "client_markup" field.
+func ClientMarkupGT(v float64) predicate.APIKey {
+	return predicate.APIKey(sql.FieldGT(FieldClientMarkup, v))
+}
+
+// ClientMarkupGTE applies the GTE predicate on the "client_markup" field.
+func ClientMarkupGTE(v float64) predicate.APIKey {
+	return predicate.APIKey(sql.FieldGTE(FieldClientMarkup, v))
+}
+
+// ClientMarkupLT applies the LT predicate on the "client_markup" field.
+func ClientMarkupLT(v float64) predicate.APIKey {
+	return predicate.APIKey(sql.FieldLT(FieldClientMarkup, v))
+}
+
+// ClientMarkupLTE applies the LTE predicate on the "client_markup" field.
+func ClientMarkupLTE(v float64) predicate.APIKey {
+	return predicate.APIKey(sql.FieldLTE(FieldClientMarkup, v))
 }
 
 // ExpiresAtEQ applies the EQ predicate on the "expires_at" field.
