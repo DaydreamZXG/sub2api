@@ -21,7 +21,7 @@
     <span v-else class="yc-badge yc-badge-lime">{{ t('yc.garden.dog.onGuard') }}</span>
   </section>
 
-  <section class="yc-surface yc-nb">
+  <section ref="neighboursEl" class="yc-surface yc-nb">
     <header class="yc-nb-head">
       <h2>{{ t('yc.garden.neighbours.title') }}</h2>
       <p>{{ t('yc.garden.neighbours.triesLeft', { left: triesLeft, limit: garden.daily_steal_limit }) }}</p>
@@ -36,7 +36,8 @@
         <button type="button" class="yc-nb-row" :aria-expanded="open === n.id" @click="toggle(n.id)">
           <i>{{ n.name.charAt(0).toUpperCase() }}</i>
           <span class="yc-nb-name">{{ n.name }}</span>
-          <span v-if="n.pinned" class="yc-badge">{{ t('yc.garden.neighbours.pinned') }}</span>
+          <span v-if="n.took_from_you" class="yc-badge yc-badge-lime">{{ t('yc.garden.neighbours.raided') }}</span>
+          <span v-else-if="n.pinned" class="yc-badge">{{ t('yc.garden.neighbours.pinned') }}</span>
           <span class="yc-nb-count">{{ t('yc.garden.neighbours.crops', { count: n.crops }) }}</span>
         </button>
         <div v-if="open === n.id" class="yc-nb-crops">
@@ -63,19 +64,52 @@
     <ul>
       <li v-for="(item, i) in feed" :key="i">
         <span>{{ feedText(item) }}</span>
+        <button v-if="canGoBack(item)" type="button" class="yc-feed-go" @click="goTo(item.user_id)">{{ t('yc.garden.feed.visit') }}</button>
         <time>{{ when(item.created_at) }}</time>
       </li>
     </ul>
   </section>
+
+  <section v-if="ranks && (ranks.thieves.length || ranks.dogs.length)" class="yc-surface yc-ranks">
+    <h2>{{ t('yc.garden.ranks.title') }}</h2>
+    <div class="yc-ranks-cols">
+      <div v-for="board in boards" :key="board.key">
+        <h3>{{ t(`yc.garden.ranks.${board.key}`) }}</h3>
+        <p v-if="!board.rows.length" class="yc-nb-none">{{ t('yc.garden.ranks.none') }}</p>
+        <ol v-else>
+          <li v-for="(row, i) in board.rows" :key="i" :class="{ me: row.me }">
+            <b>{{ i + 1 }}</b>
+            <span class="yc-nb-name">{{ row.name }}</span>
+            <span v-if="row.me" class="yc-badge yc-badge-lime">{{ t('yc.garden.ranks.me') }}</span>
+            <em class="yc-num">{{ board.key === 'thieves' ? yuan(row.amount) : t('yc.garden.ranks.caught', { count: row.count }) }}</em>
+          </li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section v-if="inviteLink" class="yc-surface yc-invite">
+    <div>
+      <h2>{{ t('yc.garden.invite.title') }}</h2>
+      <p>{{ t('yc.garden.invite.lead', { amount: yuan(garden.invite_crop_amount) }) }}</p>
+      <code>{{ inviteLink }}</code>
+    </div>
+    <button type="button" class="yc-btn yc-btn-lime yc-btn-sm" @click="copyToClipboard(inviteLink, t('yc.garden.invite.copied'))">
+      {{ t('yc.garden.invite.copy') }}
+    </button>
+  </section>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, nextTick, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
-  feedDog, getGardenFeed, getGardenNeighbours, getNeighbourGarden, stealCrop, waterCrop,
-  type GardenFeedItem, type GardenNeighbour, type GardenNeighbourCrop, type GardenNeighbourGarden, type MyGarden
+  feedDog, getGardenFeed, getGardenNeighbours, getGardenRanks, getNeighbourGarden, stealCrop, waterCrop,
+  type GardenFeedItem, type GardenNeighbour, type GardenNeighbourCrop, type GardenNeighbourGarden, type GardenRanks,
+  type MyGarden
 } from '@/api/garden'
+import userAPI from '@/api/user'
+import { useClipboard } from '@/composables/useClipboard'
 import YcPlant from '@/components/yecai/YcPlant.vue'
 import { useYcMoney } from '@/composables/useYcMoney'
 import { useAppStore } from '@/stores'
@@ -95,6 +129,30 @@ const open = ref<number | null>(null)
 const visiting = ref<GardenNeighbourGarden | null>(null)
 const feed = ref<GardenFeedItem[]>([])
 const busy = ref<number | 'dog' | null>(null)
+const ranks = ref<GardenRanks | null>(null)
+const neighboursEl = ref<HTMLElement | null>(null)
+const affCode = ref('')
+const { copyToClipboard } = useClipboard()
+
+const boards = computed(() => [
+  { key: 'thieves' as const, rows: ranks.value?.thieves ?? [] },
+  { key: 'dogs' as const, rows: ranks.value?.dogs ?? [] }
+])
+
+// Shown only when inviting earns a crop.
+const inviteLink = computed(() =>
+  affCode.value ? `${window.location.origin}/register?aff=${encodeURIComponent(affCode.value)}` : ''
+)
+
+// Someone who took from the user, or was caught trying, is listed among the neighbours for a day.
+const canGoBack = (item: GardenFeedItem) =>
+  !item.mine && item.kind !== 'water' && !!neighbours.value?.some((n) => n.id === item.user_id)
+
+async function goTo(id: number) {
+  if (open.value !== id) toggle(id)
+  await nextTick()
+  neighboursEl.value?.scrollIntoView?.({ behavior: 'smooth', block: 'start' })
+}
 
 const triesLeft = computed(() => Math.max(0, props.garden.daily_steal_limit - props.garden.steals_today))
 
@@ -136,6 +194,23 @@ async function loadFeed() {
   }
 }
 
+async function loadRanks() {
+  try {
+    ranks.value = await getGardenRanks()
+  } catch (error) {
+    console.error('Failed to load the garden boards:', error)
+  }
+}
+
+async function loadInvite() {
+  if (props.garden.invite_crop_amount <= 0 || !appStore.cachedPublicSettings?.affiliate_enabled) return
+  try {
+    affCode.value = (await userAPI.getAffiliateDetail()).aff_code
+  } catch (error) {
+    console.error('Failed to load the invite link:', error)
+  }
+}
+
 async function visit(id: number) {
   try {
     visiting.value = await getNeighbourGarden(id)
@@ -160,7 +235,7 @@ async function act(key: number | 'dog', action: () => Promise<void>) {
   } finally {
     busy.value = null
     if (open.value) await visit(open.value)
-    await loadFeed()
+    await Promise.all([loadFeed(), loadRanks()])
     emit('changed')
   }
 }
@@ -181,6 +256,8 @@ const steal = (crop: GardenNeighbourCrop) => act(crop.id, async () => {
 
 onMounted(async () => {
   void loadFeed()
+  void loadRanks()
+  void loadInvite()
   try {
     neighbours.value = await getGardenNeighbours()
   } catch (error) {
@@ -205,9 +282,9 @@ onMounted(async () => {
 .dark .yc .yc-dog.hungry .yc-dog-face .ear { fill: var(--yc-fill); }
 .dark .yc .yc-dog.hungry .yc-dog-face .line { stroke: var(--yc-mut); }
 .yc-dog-text { flex: 1; min-width: 0; }
-.yc-dog-text h2, .yc-nb-head h2, .yc-feed h2 { font-size: 17px; font-weight: 800; }
+.yc-dog-text h2, .yc-nb-head h2, .yc-feed h2, .yc-ranks h2, .yc-invite h2 { font-size: 17px; font-weight: 800; }
 .yc-dog-text p { margin-top: 4px; font-size: 14.5px; line-height: 1.55; color: var(--yc-mut); }
-.yc-nb, .yc-feed { margin-top: 16px; padding: 22px 26px; }
+.yc-nb, .yc-feed, .yc-ranks, .yc-invite { margin-top: 16px; padding: 22px 26px; }
 .yc-nb-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
 .yc-nb-head p { font-size: 14px; color: var(--yc-mut); }
 .yc-nb-rules { margin-top: 6px; font-size: 14px; line-height: 1.6; color: var(--yc-mut); }
@@ -228,9 +305,24 @@ onMounted(async () => {
 .yc-feed ul { margin-top: 10px; }
 .yc-feed li { display: flex; justify-content: space-between; gap: 16px; padding: 10px 0; border-top: 1px solid var(--yc-line); font-size: 14.5px; }
 .yc-feed time { flex: none; color: var(--yc-mut); }
+.yc-feed li > span { flex: 1; min-width: 0; }
+.yc-feed-go { flex: none; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+.yc-ranks-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; margin-top: 12px; }
+.yc-ranks h3 { font-size: 14px; font-weight: 700; color: var(--yc-mut); }
+.yc-ranks li { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-top: 1px solid var(--yc-line); font-size: 14.5px; }
+.yc-ranks ol { margin-top: 8px; }
+.yc-ranks li b { flex: none; width: 20px; font-weight: 800; color: var(--yc-mut); }
+.yc-ranks li.me b { color: inherit; }
+.yc-ranks li em { margin-left: auto; flex: none; font-style: normal; font-weight: 700; }
+.yc-invite { display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+.yc-invite > div { min-width: 0; }
+.yc-invite p { margin-top: 4px; font-size: 14.5px; line-height: 1.55; color: var(--yc-mut); }
+.yc-invite code { display: block; margin-top: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13.5px; }
 @media (max-width: 760px) {
   .yc-dog { flex-wrap: wrap; padding: 18px 20px; }
-  .yc-nb, .yc-feed { padding: 18px 20px; }
+  .yc-nb, .yc-feed, .yc-ranks, .yc-invite { padding: 18px 20px; }
+  .yc-ranks-cols { grid-template-columns: 1fr; gap: 18px; }
+  .yc-invite { flex-direction: column; align-items: stretch; }
   .yc-nb-head { flex-direction: column; gap: 2px; }
 }
 </style>

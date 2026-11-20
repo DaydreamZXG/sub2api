@@ -136,6 +136,7 @@ func RegisterUserRoutes(
 		authenticated.POST("/user/garden/crops/:id/water", h.Garden.Water)
 		authenticated.POST("/user/garden/dog/feed", h.Garden.FeedDog)
 		authenticated.GET("/user/garden/feed", h.Garden.Feed)
+		authenticated.GET("/user/garden/ranks", h.Garden.Ranks)
 		tickets := authenticated.Group("/tickets")
 		{
 			tickets.GET("", h.Ticket.List)

@@ -57,6 +57,8 @@ export interface GardenNeighbour {
   name: string
   /** The user's inviter or invitee: stays every day. */
   pinned: boolean
+  /** Took, or tried to take, from the user in the last 24 hours. */
+  took_from_you: boolean
   crops: number
 }
 
@@ -84,8 +86,23 @@ export interface GardenFeedItem {
   amount: number
   /** True when the user did it in someone else's garden. */
   mine: boolean
+  /** The other gardener. */
+  user_id: number
   name: string
   created_at: string
+}
+
+/** One line of this week's boards. */
+export interface GardenRank {
+  name: string
+  amount: number
+  count: number
+  me: boolean
+}
+
+export interface GardenRanks {
+  thieves: GardenRank[]
+  dogs: GardenRank[]
 }
 
 export async function getGardenNeighbours(): Promise<GardenNeighbour[]> {
@@ -115,6 +132,11 @@ export async function feedDog(): Promise<void> {
 /** Reading the feed marks it as seen. */
 export async function getGardenFeed(): Promise<GardenFeedItem[]> {
   const { data } = await apiClient.get<GardenFeedItem[]>('/user/garden/feed')
+  return data
+}
+
+export async function getGardenRanks(): Promise<GardenRanks> {
+  const { data } = await apiClient.get<GardenRanks>('/user/garden/ranks')
   return data
 }
 
