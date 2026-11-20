@@ -118,11 +118,21 @@ export default {
     noActiveSubscriptions: 'No Active Subscriptions',
     noActiveSubscriptionsDesc:
       "You don't have any active subscriptions. Contact administrator to get one.",
+    noActiveSubscriptionsBuy: "You don't have an active plan. Have a look at what is on offer.",
+    browsePlans: 'See the plans',
+    pricing: 'Pricing: {change}',
+    standardPrice: 'standard price',
+    duration: {
+      daysHours: '{d}d {h}h',
+      hoursMinutes: '{h}h {m}m',
+      minutes: '{m}m'
+    },
     failedToLoad: 'Failed to load subscriptions',
     status: {
       active: 'Active',
       expired: 'Expired',
-      revoked: 'Revoked'
+      revoked: 'Revoked',
+      suspended: 'Suspended'
     },
     usage: 'Usage',
     expires: 'Expires',

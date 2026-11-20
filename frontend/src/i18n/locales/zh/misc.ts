@@ -111,21 +111,31 @@ export default {
 
   // User Subscriptions Page
   userSubscriptions: {
-    title: '我的订阅',
-    description: '查看您的订阅计划和用量',
-    noActiveSubscriptions: '暂无有效订阅',
-    noActiveSubscriptionsDesc: '您没有任何有效订阅。请联系管理员获取订阅。',
-    failedToLoad: '加载订阅失败',
+    title: '包月套餐',
+    description: '看你的套餐什么时候到期、额度用了多少',
+    noActiveSubscriptions: '还没有包月套餐',
+    noActiveSubscriptionsDesc: '你现在没有生效的套餐。需要的话请联系管理员开通。',
+    noActiveSubscriptionsBuy: '你现在没有生效的套餐，可以去看看有哪些可选。',
+    browsePlans: '看看套餐',
+    pricing: '计价：{change}',
+    standardPrice: '标准价',
+    duration: {
+      daysHours: '{d} 天 {h} 小时',
+      hoursMinutes: '{h} 小时 {m} 分钟',
+      minutes: '{m} 分钟'
+    },
+    failedToLoad: '套餐没加载出来，请刷新再试',
     status: {
       active: '有效',
       expired: '已过期',
-      revoked: '已撤销'
+      revoked: '已撤销',
+      suspended: '已暂停'
     },
     usage: '用量',
     expires: '到期时间',
-    noExpiration: '无到期时间',
-    unlimited: '无限制',
-    unlimitedDesc: '该订阅无用量限制',
+    noExpiration: '长期有效',
+    unlimited: '不限量',
+    unlimitedDesc: '这个套餐不限用量',
     daily: '每日',
     weekly: '每周',
     monthly: '每月',
