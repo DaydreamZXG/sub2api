@@ -15,11 +15,9 @@ import (
 // paid_cost is the part of actual_cost that was real money: each user's charge times the share of their
 // credits that came from paid orders (and, when the settings say so, from manual grants and redeem codes).
 // Paid and gifted balance sit in one column, so they are taken to be spent in proportion.
-const profitHourlyUpsertSQL = `
-	WITH active AS (
-		-- Only the users charged in these hours: this runs every minute.
-		SELECT DISTINCT user_id FROM usage_logs WHERE created_at >= $1 AND created_at < $2
-	), paid AS (
+// profitPaidShareCTEs works out, for the users in a preceding CTE named active(user_id), the share of
+// their credits that was real money. It ends in the CTE share(user_id, paid_share).
+const profitPaidShareCTEs = `paid AS (
 		-- refund_amount is filled in when a refund is asked for; it counts once the balance was taken back,
 		-- which is also when total_recharged went down: refunded, or waiting for the gateway to confirm.
 		SELECT user_id, SUM(GREATEST(amount - bonus_amount
@@ -54,7 +52,13 @@ const profitHourlyUpsertSQL = `
 		LEFT JOIN paid p ON p.user_id = u.id
 		LEFT JOIN granted g ON g.user_id = u.id
 		LEFT JOIN taken t ON t.user_id = u.id
-	)
+	)`
+
+const profitHourlyUpsertSQL = `
+	WITH active AS (
+		-- Only the users charged in these hours: this runs every minute.
+		SELECT DISTINCT user_id FROM usage_logs WHERE created_at >= $1 AND created_at < $2
+	), ` + profitPaidShareCTEs + `
 	INSERT INTO profit_hourly (bucket_start, account_id, group_id, billing_type, requests, standard_cost, actual_cost, account_cost, paid_cost)
 	SELECT
 		date_trunc('hour', l.created_at AT TIME ZONE 'UTC') AT TIME ZONE 'UTC',
