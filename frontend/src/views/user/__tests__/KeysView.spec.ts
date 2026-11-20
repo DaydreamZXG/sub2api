@@ -7,6 +7,8 @@ import { keysAPI } from '@/api'
 import KeysView from '../KeysView.vue'
 
 const {
+  issueConnectCode,
+  openDesktopApp,
   listKeys,
   updateKey,
   getPublicSettings,
@@ -19,6 +21,8 @@ const {
   isCurrentStep,
   nextStep,
 } = vi.hoisted(() => ({
+  issueConnectCode: vi.fn(),
+  openDesktopApp: vi.fn(),
   listKeys: vi.fn(),
   updateKey: vi.fn(),
   getPublicSettings: vi.fn(),
@@ -82,7 +86,14 @@ vi.mock('@/stores/app', () => ({
   useAppStore: () => ({
     showError,
     showSuccess,
+    showInfo: vi.fn(),
   }),
+}))
+
+vi.mock('@/api/desktop', () => ({
+  issueConnectCode,
+  openDesktopApp,
+  stationOrigin: () => 'https://yeschoy.test',
 }))
 
 vi.mock('@/stores/onboarding', () => ({
@@ -340,25 +351,36 @@ describe('user KeysView column settings', () => {
     wrapper.unmount()
   })
 
-  it('sends an active key to the connect page and offers nothing to connect for a disabled one', async () => {
+  it('hands the account to the desktop app from a key row', async () => {
+    const connect = { code: 'c'.repeat(43), origin: 'https://yeschoy.test', expiresAt: 0, ttlSeconds: 300 }
+    issueConnectCode.mockResolvedValue(connect)
     const wrapper = await mountView()
-    expect(JSON.parse(wrapper.get('[data-test="key-connect"]').attributes('data-to')!))
-      .toEqual({ path: '/connect', query: { key: '1' } })
-    wrapper.unmount()
 
-    listKeys.mockResolvedValueOnce({ items: [{ ...createApiKey(), status: 'inactive' }], total: 1, page: 1, page_size: 20, pages: 1 })
-    const disabled = await mountView()
-    expect(disabled.get('[data-test="key-connect"]').attributes('disabled')).toBeDefined()
-    disabled.unmount()
+    await wrapper.get('[data-test="key-app"]').trigger('click')
+    await flushPromises()
+
+    expect(openDesktopApp).toHaveBeenCalledWith(connect)
+    wrapper.unmount()
   })
 
-  it('keeps command-line setup, disable, edit and delete in the more menu and closes it once one is chosen', async () => {
+  it('shows the API address without a trailing slash and copies it', async () => {
+    getPublicSettings.mockResolvedValue({ api_base_url: 'https://api.yeschoy.test/' })
+    const wrapper = await mountView()
+    const bar = wrapper.get('[data-test="api-address"]')
+
+    expect(bar.get('code').text()).toBe('https://api.yeschoy.test')
+    await bar.get('button').trigger('click')
+    expect(copyToClipboard).toHaveBeenCalledWith('https://api.yeschoy.test', 'keys.copied')
+    wrapper.unmount()
+  })
+
+  it('keeps the guide, disable, edit, delete and command-line setup in the more menu and closes it once one is chosen', async () => {
     const wrapper = await mountView()
     expect(wrapper.find('[data-test="key-delete"]').exists()).toBe(false)
 
     await wrapper.get('[data-test="key-more"]').trigger('click')
     expect(wrapper.get('[role="menu"]').findAll('[role="menuitem"]').map((item) => item.attributes('data-test')))
-      .toEqual(['key-manual', 'key-toggle', 'key-edit', 'key-delete'])
+      .toEqual(['key-guide', 'key-toggle', 'key-edit', 'key-delete', 'key-manual'])
 
     await wrapper.get('[data-test="key-delete"]').trigger('click')
     expect(wrapper.find('[role="menu"]').exists()).toBe(false)

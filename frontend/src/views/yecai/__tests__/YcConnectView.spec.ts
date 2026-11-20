@@ -25,6 +25,7 @@ vi.mock('@/api/groups', () => ({ userGroupsAPI: { getAvailable: vi.fn().mockReso
 vi.mock('@/stores', () => ({
   useAppStore: () => ({ cachedPublicSettings: null, showError, showInfo, showSuccess: vi.fn() })
 }))
+vi.mock('@/stores/app', () => ({ useAppStore: () => ({ showError, showInfo }) }))
 vi.mock('@/composables/useClipboard', () => ({ useClipboard: () => ({ copyToClipboard: vi.fn() }) }))
 vi.mock('vue-i18n', async (importOriginal) => ({
   ...(await importOriginal<typeof import('vue-i18n')>()),
@@ -83,27 +84,20 @@ describe('YcConnectView connect to app', () => {
   })
 })
 
-describe('YcConnectView key from the keys page', () => {
-  const keyNamed = (id: number, name: string) => ({ id, name, key: `sk-${name}`, status: 'active', group: null }) as unknown as ApiKey
-  const selected = async (search: string) => {
-    window.history.replaceState({}, '', `/connect${search}`)
-    vi.mocked(keysAPI.list).mockResolvedValueOnce({ items: [keyNamed(1, 'first'), keyNamed(2, 'second')] } as never)
+describe('YcConnectView filling a tool in by hand', () => {
+  it('offers the address with and without /v1 and the key, and keeps the command line folded away', async () => {
+    const key = { id: 1, name: 'first', key: 'sk-0123456789abcdef', status: 'active', group: null } as unknown as ApiKey
+    vi.mocked(keysAPI.list).mockResolvedValueOnce({ items: [key] } as never)
     const wrapper = mount(YcConnectView, {
       global: { stubs: { YcShell: { template: '<div><slot /></div>' }, UseKeyModal: true } }
     })
     await flushPromises()
-    const name = wrapper.get('.yc-opt.is-on').text()
+
+    const origin = window.location.origin
+    expect(wrapper.findAll('.yc-fill dd').map((dd) => dd.text())).toEqual([
+      origin, `${origin}/v1`, 'sk-0123…cdef', 'yc.connect.modelIdHint'
+    ])
+    expect(wrapper.get('details').attributes('open')).toBeUndefined()
     wrapper.unmount()
-    window.history.replaceState({}, '', '/')
-    return name
-  }
-
-  it('starts on the key named in ?key=', async () => {
-    expect(await selected('?key=2')).toBe('second')
-  })
-
-  it('starts on the first key when ?key= is missing or names a key that is not listed', async () => {
-    expect(await selected('')).toBe('first')
-    expect(await selected('?key=99')).toBe('first')
   })
 })

@@ -156,7 +156,8 @@ export default {
     lastUsedIP: '最近使用 IP',
     useKey: '使用密钥',
     useKeyAdvanced: '命令行配置',
-    connectNeedsActive: '这把密钥已停用，启用后才能接入工具',
+    connectApp: '接入野菜客户端',
+    addressHint: '把它和下面的密钥填进软件的设置里就能用。',
     useKeyModal: {
       title: '使用 API 密钥',
       description: '将以下环境变量添加到您的终端配置文件或直接在终端中运行。',

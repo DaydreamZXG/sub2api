@@ -30,7 +30,8 @@
     </section>
 
     <section class="yc-surface yc-way">
-      <h2 class="yc-sec-h2">{{ t('yc.connect.copyTitle') }}</h2>
+      <h2 class="yc-sec-h2">{{ t('yc.connect.fillTitle') }}</h2>
+      <p class="yc-note yc-fill-lead">{{ t('yc.connect.fillLead') }}</p>
 
       <div class="yc-step">
         <p class="yc-step-lab"><i>1</i>{{ t('yc.connect.pickKey') }}</p>
@@ -56,48 +57,63 @@
         <p v-if="key?.group?.app_only" class="yc-note">{{ t('yc.connect.appKeyNote') }}</p>
       </div>
 
-      <template v-if="key">
-        <div v-if="snippet" class="yc-step">
-          <p class="yc-step-lab"><i>2</i>{{ t('yc.connect.pickShell', { tool: snippet.tool }) }}</p>
-          <div class="yc-opts">
-            <button v-for="s in SHELLS" :key="s" type="button" class="yc-opt" :class="{ 'is-on': s === shell }" @click="shell = s">
-              {{ t(`yc.connect.shell.${s}`) }}
-            </button>
-          </div>
-        </div>
 
-        <div class="yc-step">
-          <p class="yc-step-lab"><i>{{ snippet ? 3 : 2 }}</i>{{ snippet ? t('yc.connect.paste') : t('yc.connect.files') }}</p>
-          <template v-if="snippet">
-            <pre class="yc-code">{{ snippet.masked }}</pre>
-            <div class="yc-way-cta">
-              <button type="button" class="yc-btn yc-btn-lime" @click="copy(snippet.text)">{{ t('yc.connect.copy') }}</button>
-              <span class="yc-note">{{ t('yc.connect.after', { tool: snippet.tool }) }}</span>
-            </div>
-          </template>
-          <p class="yc-note yc-step-more">
-            <button type="button" class="yc-link" @click="guide = true">{{ t(snippet ? 'yc.connect.fullGuide' : 'yc.connect.openGuide') }}</button>
-            <router-link to="/help/guide" class="yc-link yc-step-guide">{{ t('yc.connect.toolGuide') }} →</router-link>
-          </p>
+      <div v-if="key" class="yc-step">
+        <p class="yc-step-lab"><i>2</i>{{ t('yc.connect.fillStep') }}</p>
+        <dl class="yc-fill">
+          <div>
+            <dt>{{ t('yc.connect.baseUrl') }}</dt>
+            <dd class="yc-mono">{{ rootUrl }}</dd>
+            <button type="button" class="yc-opt" @click="copy(rootUrl)">{{ t('yc.connect.copyShort') }}</button>
+          </div>
+          <div>
+            <dt>{{ t('yc.connect.addrV1') }}</dt>
+            <dd class="yc-mono">{{ rootUrl }}/v1</dd>
+            <button type="button" class="yc-opt" @click="copy(`${rootUrl}/v1`)">{{ t('yc.connect.copyShort') }}</button>
+          </div>
+          <div>
+            <dt>{{ t('yc.connect.keyOf', { name: key.name }) }}</dt>
+            <dd class="yc-mono">{{ mask(key.key) }}</dd>
+            <button type="button" class="yc-opt" @click="copy(key.key)">{{ t('yc.connect.copyShort') }}</button>
+          </div>
+          <div>
+            <dt>{{ t('yc.connect.modelId') }}</dt>
+            <dd>{{ t('yc.connect.modelIdHint') }}</dd>
+            <router-link to="/prices" class="yc-opt">{{ t('yc.connect.toPrices') }}</router-link>
+          </div>
+        </dl>
+        <div class="yc-way-cta">
+          <router-link to="/help/guide" class="yc-btn yc-btn-lime">{{ t('yc.connect.toolGuide') }} →</router-link>
+          <span class="yc-note">{{ t('yc.connect.toolGuideHint') }}</span>
         </div>
-      </template>
+      </div>
+      <p class="yc-note yc-step-more"><router-link to="/keys" class="yc-link">{{ t('yc.connect.manageKeys') }} →</router-link></p>
     </section>
 
-    <details class="yc-surface yc-way yc-manual">
-      <summary>{{ t('yc.connect.manual') }}</summary>
-      <dl>
-        <div>
-          <dt>{{ t('yc.connect.baseUrl') }}</dt>
-          <dd class="yc-mono">{{ baseUrl }}</dd>
-          <button type="button" class="yc-opt" @click="copy(baseUrl)">{{ t('yc.connect.copyShort') }}</button>
+    <details v-if="key" class="yc-surface yc-way yc-manual">
+      <summary>{{ t('yc.connect.cliTitle') }}</summary>
+      <div v-if="snippet" class="yc-step">
+        <p class="yc-step-lab"><i>1</i>{{ t('yc.connect.pickShell', { tool: snippet.tool }) }}</p>
+        <div class="yc-opts">
+          <button v-for="s in SHELLS" :key="s" type="button" class="yc-opt" :class="{ 'is-on': s === shell }" @click="shell = s">
+            {{ t(`yc.connect.shell.${s}`) }}
+          </button>
         </div>
-        <div v-if="key">
-          <dt>{{ t('yc.connect.keyOf', { name: key.name }) }}</dt>
-          <dd class="yc-mono">{{ mask(key.key) }}</dd>
-          <button type="button" class="yc-opt" @click="copy(key.key)">{{ t('yc.connect.copyShort') }}</button>
-        </div>
-      </dl>
-      <p class="yc-note"><router-link to="/keys" class="yc-link">{{ t('yc.connect.manageKeys') }} →</router-link></p>
+      </div>
+
+      <div class="yc-step">
+        <p class="yc-step-lab"><i>{{ snippet ? 2 : 1 }}</i>{{ snippet ? t('yc.connect.paste') : t('yc.connect.files') }}</p>
+        <template v-if="snippet">
+          <pre class="yc-code">{{ snippet.masked }}</pre>
+          <div class="yc-way-cta">
+            <button type="button" class="yc-btn yc-btn-lime" @click="copy(snippet.text)">{{ t('yc.connect.copy') }}</button>
+            <span class="yc-note">{{ t('yc.connect.after', { tool: snippet.tool }) }}</span>
+          </div>
+        </template>
+        <p class="yc-note yc-step-more">
+          <button type="button" class="yc-link" @click="guide = true">{{ t(snippet ? 'yc.connect.fullGuide' : 'yc.connect.openGuide') }}</button>
+        </p>
+      </div>
     </details>
 
     <UseKeyModal
@@ -118,9 +134,9 @@ import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores'
 import { keysAPI } from '@/api/keys'
 import { userGroupsAPI } from '@/api/groups'
-import { issueConnectCode, openDesktopApp, stationOrigin } from '@/api/desktop'
 import type { ApiKey, Group } from '@/types'
 import { useClipboard } from '@/composables/useClipboard'
+import { useYcAppConnect } from '@/composables/useYcAppConnect'
 import { YC_CLIENT_DOWNLOADS, detectYcClientPlatform } from '@/utils/ycClient'
 import YcShell from '@/components/yecai/YcShell.vue'
 import UseKeyModal from '@/components/keys/UseKeyModal.vue'
@@ -141,8 +157,7 @@ const hasAppLine = computed(() => groups.value.some((g) => g.app_only))
 const manualGroups = computed(() => groups.value.filter((g) => !g.app_only))
 const loading = ref(true)
 const creating = ref(false)
-// The keys page links here with ?key=<id> so the visitor lands on the key they clicked.
-const keyId = ref<number | null>(Number(new URLSearchParams(window.location.search).get('key')) || null)
+const keyId = ref<number | null>(null)
 const guide = ref(false)
 
 const clientPlatform = detectYcClientPlatform()
@@ -154,6 +169,8 @@ const shell = ref<Shell>(clientPlatform === 'windows' ? 'powershell' : 'unix')
 const baseUrl = computed(() => appStore.cachedPublicSettings?.api_base_url || window.location.origin)
 // Claude Code appends /v1/messages itself, so it needs the address without /v1 (same as the full guide).
 const claudeBaseUrl = computed(() => baseUrl.value.replace(/([^/])\/v1\/?$/, '$1').replace(/\/+$/, ''))
+// The address without /v1; tools that want it spelled out get the second row.
+const rootUrl = claudeBaseUrl
 const key = computed(() => keys.value.find((k) => k.id === keyId.value) ?? keys.value[0] ?? null)
 
 function mask(secret: string): string {
@@ -216,24 +233,7 @@ onMounted(async () => {
   }
 })
 
-const handingOver = ref(false)
-
-// Hands this signed-in account to the installed desktop assistant with a one-time code.
-async function connectApp() {
-  if (!stationOrigin().startsWith('https://')) {
-    appStore.showError(t('yc.connect.appConnectNeedsHttps'))
-    return
-  }
-  handingOver.value = true
-  try {
-    openDesktopApp(await issueConnectCode())
-    appStore.showInfo(t('yc.connect.appConnectHint'))
-  } catch {
-    appStore.showError(t('yc.connect.appConnectFailed'))
-  } finally {
-    handingOver.value = false
-  }
-}
+const { handingOver, connectApp } = useYcAppConnect()
 </script>
 
 <style scoped>
@@ -252,20 +252,21 @@ async function connectApp() {
 .yc-opt small { font-size: 12px; font-weight: 500; opacity: 0.7; }
 .yc-opt-new { box-shadow: inset 0 0 0 1px var(--yc-dim); border-style: dashed; }
 .yc-step-more { margin-top: 14px; }
-.yc-step-guide { margin-left: 16px; }
 .yc-manual summary { cursor: pointer; font-size: 16px; font-weight: 650; list-style: none; }
 .yc-manual summary::after { content: '+'; float: right; color: var(--yc-dim); font-weight: 400; }
 .yc-manual[open] summary::after { content: '−'; }
-.yc-manual dl { margin: 18px 0 14px; display: grid; gap: 10px; }
-.yc-manual dl > div { display: grid; grid-template-columns: 140px minmax(0, 1fr) auto; gap: 14px; align-items: center; padding: 10px 14px; border-radius: 14px; background: var(--yc-fill); }
-.yc-manual dt { font-size: 13.5px; color: var(--yc-mut); }
-.yc-manual dd { font-size: 13.5px; overflow-wrap: anywhere; }
+.yc-fill-lead { margin-top: 8px; max-width: 640px; }
+.yc-fill { display: grid; gap: 10px; }
+.yc-fill > div { display: grid; grid-template-columns: 140px minmax(0, 1fr) auto; gap: 14px; align-items: center; padding: 10px 14px; border-radius: 14px; background: var(--yc-fill); }
+.yc-fill dt { font-size: 13.5px; color: var(--yc-mut); }
+.yc-fill dd { font-size: 13.5px; overflow-wrap: anywhere; }
+.yc-fill a.yc-opt { text-decoration: none; }
 @media (max-width: 760px) {
   .yc-way { padding: 22px 20px; }
   .yc-way-client { grid-template-columns: 1fr; }
   .yc-way-shot { margin: 0 -20px -22px; }
   .yc-way-shot img { border-left: 0; border-top: 1px solid var(--yc-line); }
-  .yc-manual dl > div { grid-template-columns: minmax(0, 1fr) auto; }
-  .yc-manual dt { grid-column: 1 / -1; }
+  .yc-fill > div { grid-template-columns: minmax(0, 1fr) auto; }
+  .yc-fill dt { grid-column: 1 / -1; }
 }
 </style>

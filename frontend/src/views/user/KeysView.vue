@@ -3,6 +3,21 @@
     <TablePageLayout>
       <template #filters>
         <div class="flex flex-col gap-3">
+          <div
+            data-test="api-address"
+            class="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-gray-200 bg-white px-4 py-3 dark:border-dark-700 dark:bg-dark-800"
+          >
+            <span class="text-sm font-medium text-gray-900 dark:text-white">{{ t('yc.connect.baseUrl') }}</span>
+            <code class="break-all rounded-lg bg-gray-100 px-2.5 py-1 font-mono text-sm text-gray-900 dark:bg-dark-700 dark:text-gray-100">{{ apiAddress }}</code>
+            <button class="btn btn-secondary btn-sm" @click="clipboardCopy(apiAddress, t('keys.copied'))">
+              <Icon name="copy" size="sm" />
+              {{ t('yc.connect.copyShort') }}
+            </button>
+            <span class="text-sm text-gray-500 dark:text-gray-400">
+              {{ t('keys.addressHint') }}
+              <router-link to="/help/guide" class="font-medium text-gray-900 underline decoration-2 underline-offset-2 dark:text-white">{{ t('yc.connect.toolGuide') }} →</router-link>
+            </span>
+          </div>
           <div class="flex flex-wrap items-center gap-3">
             <SearchInput
               v-model="filterSearch"
@@ -401,22 +416,13 @@
 
           <template #cell-actions="{ row }">
             <div class="flex items-center gap-2">
-              <router-link
-                v-if="row.status === 'active'"
-                data-test="key-connect"
-                class="btn btn-primary btn-sm whitespace-nowrap"
-                :to="{ path: '/connect', query: { key: String(row.id) } }"
-              >
-                {{ t('yc.connect.title') }}
-              </router-link>
               <button
-                v-else
-                data-test="key-connect"
+                data-test="key-app"
                 class="btn btn-primary btn-sm whitespace-nowrap"
-                disabled
-                :title="t('keys.connectNeedsActive')"
+                :disabled="handingOver"
+                @click="connectApp"
               >
-                {{ t('yc.connect.title') }}
+                {{ t('keys.connectApp') }}
               </button>
               <button
                 v-if="!publicSettings?.hide_ccs_import_button"
@@ -1088,15 +1094,16 @@
         class="action-menu-content fixed z-[9999] w-44 overflow-hidden rounded-xl bg-white py-1 shadow-lg ring-1 ring-black/5 dark:bg-dark-800 dark:ring-white/10"
         :style="{ top: menuPosition.top + 'px', left: menuPosition.left + 'px' }"
       >
-        <button
+        <router-link
           role="menuitem"
-          data-test="key-manual"
+          data-test="key-guide"
+          to="/help/guide"
           class="flex w-full items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-dark-700"
-          @click="runMenuAction(openUseKeyModal)"
+          @click="closeActionMenu"
         >
-          <Icon name="terminal" size="sm" />
-          {{ t('keys.useKeyAdvanced') }}
-        </button>
+          <Icon name="book" size="sm" />
+          {{ t('yc.connect.toolGuide') }}
+        </router-link>
         <button
           role="menuitem"
           data-test="key-toggle"
@@ -1124,6 +1131,16 @@
         >
           <Icon name="trash" size="sm" />
           {{ t('common.delete') }}
+        </button>
+        <div class="my-1 border-t border-gray-100 dark:border-dark-700"></div>
+        <button
+          role="menuitem"
+          data-test="key-manual"
+          class="flex w-full items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-dark-700"
+          @click="runMenuAction(openUseKeyModal)"
+        >
+          <Icon name="terminal" size="sm" />
+          {{ t('keys.useKeyAdvanced') }}
         </button>
       </div>
     </Teleport>
@@ -1252,6 +1269,7 @@
 	import { useAppStore } from '@/stores/app'
 	import { useOnboardingStore } from '@/stores/onboarding'
 	import { useClipboard } from '@/composables/useClipboard'
+	import { useYcAppConnect } from '@/composables/useYcAppConnect'
 import { getPersistedPageSize } from '@/composables/usePersistedPageSize'
 
 const { t } = useI18n()
@@ -2069,6 +2087,10 @@ const resetRateLimitUsage = async () => {
   }
 }
 
+const { handingOver, connectApp } = useYcAppConnect()
+// What a tool's settings ask for next to the key; shown without a trailing slash.
+const apiAddress = computed(() => (publicSettings.value?.api_base_url || window.location.origin).replace(/\/+$/, ''))
+
 const activeMenuId = ref<number | null>(null)
 const menuPosition = ref<{ top: number; left: number } | null>(null)
 const menuKey = computed(() => apiKeys.value.find((key) => key.id === activeMenuId.value) ?? null)
@@ -2085,7 +2107,7 @@ const openActionMenu = (key: ApiKey, event: MouseEvent) => {
   }
   const rect = (event.currentTarget as HTMLElement).getBoundingClientRect()
   const menuWidth = 176
-  const menuHeight = 168
+  const menuHeight = 212
   const padding = 8
   const below = rect.bottom + 4
   menuPosition.value = {

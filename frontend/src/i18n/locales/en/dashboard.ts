@@ -156,7 +156,8 @@ export default {
     lastUsedIP: 'Last Used IP',
     useKey: 'Use Key',
     useKeyAdvanced: 'Command-line setup',
-    connectNeedsActive: 'This key is disabled. Enable it to connect a tool.',
+    connectApp: 'Connect the Yecai app',
+    addressHint: 'Paste it and a key below into your tool’s settings.',
     useKeyModal: {
       title: 'Use API Key',
       description:
