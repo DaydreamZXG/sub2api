@@ -109,7 +109,7 @@ func (r *dashboardAggregationRepository) aggregateRangeInTx(ctx context.Context,
 	if err := r.upsertDailyAggregates(ctx, dayStart, dayEnd); err != nil {
 		return err
 	}
-	return nil
+	return r.upsertProfitHourly(ctx, hourStart, hourEnd)
 }
 
 func (r *dashboardAggregationRepository) RecomputeRange(ctx context.Context, start, end time.Time) error {
@@ -183,7 +183,7 @@ func (r *dashboardAggregationRepository) recomputeRangeInTx(ctx context.Context,
 	if err := r.upsertDailyAggregates(ctx, dayStart, dayEnd); err != nil {
 		return err
 	}
-	return nil
+	return r.upsertProfitHourly(ctx, hourStart, hourEnd)
 }
 
 func (r *dashboardAggregationRepository) GetAggregationWatermark(ctx context.Context) (time.Time, error) {
