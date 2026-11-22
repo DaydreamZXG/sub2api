@@ -266,7 +266,9 @@ func toDesktopPlan(g *service.PlazaGroup, rate float64, money desktopMoney) desk
 		Multiplier:   rate,
 		Models:       make([]desktopPlanModel, 0, len(g.Models)),
 	}
-	if g.PeakRateEnabled && g.PeakRateMultiplier > 0 && g.PeakRateMultiplier != 1 {
+	// 与 Group.PeakMultiplierAt 同口径：只有月卡分组按高峰倍率计费，倍率可以是 0（该时段免费）。
+	if plan.Subscription && g.PeakRateEnabled && g.PeakStart != "" && g.PeakEnd != "" &&
+		g.PeakRateMultiplier >= 0 && g.PeakRateMultiplier != 1 {
 		plan.Peak = []desktopPeak{{Start: g.PeakStart, End: g.PeakEnd, Multiplier: g.PeakRateMultiplier}}
 	}
 	for i := range g.Models {

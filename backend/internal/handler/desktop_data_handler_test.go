@@ -41,6 +41,7 @@ func TestToDesktopPlanPricesPerMillionTokensWithSurchargesKeptApart(t *testing.T
 		Name:                      "Garden",
 		Platform:                  domain.PlatformAnthropic,
 		RateMultiplier:            1,
+		SubscriptionType:          service.SubscriptionTypeSubscription,
 		AppOnly:                   true,
 		AppFallback:               true,
 		PeakRateEnabled:           true,
@@ -73,7 +74,7 @@ func TestToDesktopPlanPricesPerMillionTokensWithSurchargesKeptApart(t *testing.T
 	require.Equal(t, []string{"anthropic"}, plan.Formats)
 	require.True(t, plan.AppOnly)
 	require.True(t, plan.AppFallback)
-	require.False(t, plan.Subscription)
+	require.True(t, plan.Subscription)
 	require.Equal(t, 0.5, plan.Multiplier)
 	require.Equal(t, []desktopPeak{{Start: "09:00", End: "18:00", Multiplier: 1.5}}, plan.Peak)
 
@@ -118,6 +119,41 @@ func TestToDesktopPlanLeavesOutWhatDoesNotApply(t *testing.T) {
 	require.Equal(t, 0.04, *plan.Models[0].Price.PerRequest)
 	require.Nil(t, plan.Models[0].LongContext, "tiers are not billed unless the plan turns them on")
 	require.Nil(t, plan.Models[0].Official)
+}
+
+func TestToDesktopPlanShowsPeakHoursOnlyWhereTheyAreBilled(t *testing.T) {
+	peak := func(subscriptionType string, multiplier float64) []desktopPeak {
+		return toDesktopPlan(&service.PlazaGroup{
+			ID:                 1,
+			SubscriptionType:   subscriptionType,
+			PeakRateEnabled:    true,
+			PeakStart:          "01:00",
+			PeakEnd:            "05:00",
+			PeakRateMultiplier: multiplier,
+		}, 1, desktopMoney{Currency: "USD"}).Peak
+	}
+
+	require.Equal(t, []desktopPeak{{Start: "01:00", End: "05:00", Multiplier: 0}},
+		peak(service.SubscriptionTypeSubscription, 0), "a free window is still a peak period")
+	require.Nil(t, peak(service.SubscriptionTypeStandard, 1.5), "billing ignores peak hours outside subscription plans")
+}
+
+func TestToDesktopPlanPricesIndependentImagesWithTheImageMultiplier(t *testing.T) {
+	perImage := 0.04
+	plan := func(independent bool) desktopPlan {
+		return toDesktopPlan(&service.PlazaGroup{
+			ID:                   1,
+			ImageRateIndependent: independent,
+			ImageRateMultiplier:  0.5,
+			Models: []service.PlazaModel{{
+				Name:    "image-model",
+				Pricing: &service.ChannelModelPricing{BillingMode: service.BillingModeImage, PerRequestPrice: &perImage},
+			}},
+		}, 2, desktopMoney{Currency: "USD"})
+	}
+
+	require.InDelta(t, 0.02, *plan(true).Models[0].Price.PerRequest, 1e-9)
+	require.InDelta(t, 0.08, *plan(false).Models[0].Price.PerRequest, 1e-9)
 }
 
 func TestDesktopNoticeMapsAnnouncementToTheProtocolShape(t *testing.T) {
