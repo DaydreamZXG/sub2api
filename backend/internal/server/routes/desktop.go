@@ -6,6 +6,7 @@ import (
 	"github.com/Wei-Shaw/sub2api/internal/handler"
 	"github.com/Wei-Shaw/sub2api/internal/middleware"
 	servermiddleware "github.com/Wei-Shaw/sub2api/internal/server/middleware"
+	"github.com/Wei-Shaw/sub2api/internal/service"
 
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
@@ -13,7 +14,7 @@ import (
 
 // RegisterDesktopRoutes 注册桌面助手“一键连接”协议的站点侧接口。
 // 路径由桌面助手的公开协议规定，所以不在 /api/v1 下。
-func RegisterDesktopRoutes(r *gin.Engine, h *handler.Handlers, jwtAuth servermiddleware.JWTAuthMiddleware, redisClient *redis.Client) {
+func RegisterDesktopRoutes(r *gin.Engine, h *handler.Handlers, jwtAuth servermiddleware.JWTAuthMiddleware, redisClient *redis.Client, settingService *service.SettingService) {
 	rateLimiter := middleware.NewRateLimiter(redisClient)
 	desktop := r.Group("/api/desktop/v2")
 	desktop.Use(h.Desktop.ProtocolErrors)
@@ -32,7 +33,9 @@ func RegisterDesktopRoutes(r *gin.Engine, h *handler.Handlers, jwtAuth servermid
 
 	signedIn := desktop.Group("")
 	signedIn.Use(gin.HandlerFunc(jwtAuth))
+	// 退出登录始终可用；其余接口在后端模式下只对管理员开放，与 /api/v1 的用户接口一致。
 	signedIn.DELETE("/sessions/current", h.Desktop.EndSession)
+	signedIn.Use(servermiddleware.BackendModeUserGuard(settingService))
 	signedIn.GET("/account", h.Desktop.Account)
 	signedIn.GET("/plans", h.Desktop.Plans)
 	signedIn.GET("/keys", h.Desktop.ListKeys)
