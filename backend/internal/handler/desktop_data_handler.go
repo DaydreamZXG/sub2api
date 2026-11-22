@@ -448,6 +448,14 @@ func (h *DesktopHandler) CreateKey(c *gin.Context) {
 		desktopError(c, http.StatusForbidden, "plan_not_allowed")
 		return
 	}
+	if errors.Is(err, service.ErrAPIKeyCountExceeded) {
+		desktopError(c, http.StatusConflict, "key_limit_reached")
+		return
+	}
+	if errors.Is(err, service.ErrAPIKeyCreateLimited) {
+		desktopError(c, http.StatusTooManyRequests, "rate_limited")
+		return
+	}
 	if err != nil {
 		desktopError(c, http.StatusInternalServerError, "internal_error")
 		return
