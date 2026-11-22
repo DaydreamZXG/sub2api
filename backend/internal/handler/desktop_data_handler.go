@@ -275,7 +275,12 @@ func toDesktopPlan(g *service.PlazaGroup, rate float64, money desktopMoney) desk
 				CacheWrite: desktopPerMillion(p.CacheWritePrice, money.charged, rate),
 			}
 			if p.PerRequestPrice != nil {
-				v := money.charged(*p.PerRequestPrice * rate)
+				// 图片倍率独立时，按次价乘图片倍率而不是分组/用户倍率，与计费一致。
+				requestRate := rate
+				if p.BillingMode == service.BillingModeImage && g.ImageRateIndependent {
+					requestRate = g.ImageRateMultiplier
+				}
+				v := money.charged(*p.PerRequestPrice * requestRate)
 				model.Price.PerRequest = &v
 			}
 			if g.LongContextPricingEnabled && len(p.Intervals) > 1 {
