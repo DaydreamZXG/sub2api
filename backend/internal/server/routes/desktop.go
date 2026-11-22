@@ -23,8 +23,27 @@ func RegisterDesktopRoutes(r *gin.Engine, h *handler.Handlers, jwtAuth servermid
 		FailureMode: middleware.RateLimitFailClose,
 	}), h.Desktop.ExchangeConnectCode)
 
+	// 站点自述：桌面助手靠它认出这个站支持授权连接，以及各接口在哪。
+	desktop.GET("/bootstrap", h.Desktop.Bootstrap)
+	// 续登录：凭 refresh token，无登录态。
+	desktop.POST("/sessions/refresh", rateLimiter.LimitWithOptions("desktop-session-refresh", 30, time.Minute, middleware.RateLimitOptions{
+		FailureMode: middleware.RateLimitFailClose,
+	}), h.Desktop.RefreshSession)
+
 	signedIn := desktop.Group("")
 	signedIn.Use(gin.HandlerFunc(jwtAuth))
+	signedIn.DELETE("/sessions/current", h.Desktop.EndSession)
+	signedIn.GET("/account", h.Desktop.Account)
+	signedIn.GET("/plans", h.Desktop.Plans)
+	signedIn.GET("/keys", h.Desktop.ListKeys)
+	signedIn.POST("/keys", rateLimiter.LimitWithOptions("desktop-key-create", 30, time.Minute, middleware.RateLimitOptions{
+		FailureMode: middleware.RateLimitFailClose,
+	}), h.Desktop.CreateKey)
+	signedIn.POST("/keys/:id/reveal", h.Desktop.RevealKey)
+	signedIn.DELETE("/keys/:id", h.Desktop.DeleteKey)
+	signedIn.GET("/usage/summary", h.Desktop.UsageSummary)
+	signedIn.GET("/usage/records", h.Desktop.UsageRecords)
+	signedIn.GET("/notices", h.Desktop.Notices)
 	signedIn.POST("/connect-codes", rateLimiter.LimitWithOptions("desktop-connect-issue", 20, time.Minute, middleware.RateLimitOptions{
 		FailureMode: middleware.RateLimitFailClose,
 	}), h.Desktop.IssueConnectCode)

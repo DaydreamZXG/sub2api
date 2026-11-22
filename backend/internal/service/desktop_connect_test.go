@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"net/http"
 	"testing"
 	"time"
 )
@@ -174,5 +175,22 @@ func TestDesktopAppTokenBelongsToOneUserAndOneDevice(t *testing.T) {
 	}
 	if svc.IsAppRequest(ctx, first, 7) || !svc.IsAppRequest(ctx, second, 7) {
 		t.Error("connecting the same device again must replace its previous token")
+	}
+}
+
+func TestAppTokenFromHeadersAcceptsBothNames(t *testing.T) {
+	current := http.Header{}
+	current.Set("X-Desktop-App-Token", "new")
+	current.Set("X-Yeschoy-App-Token", "old")
+	if got := AppTokenFromHeaders(current); got != "new" {
+		t.Fatalf("got %q, want the current header to win", got)
+	}
+	legacy := http.Header{}
+	legacy.Set("X-Yeschoy-App-Token", "old")
+	if got := AppTokenFromHeaders(legacy); got != "old" {
+		t.Fatalf("got %q, want the legacy header to still work", got)
+	}
+	if got := AppTokenFromHeaders(http.Header{}); got != "" {
+		t.Fatalf("got %q, want empty", got)
 	}
 }

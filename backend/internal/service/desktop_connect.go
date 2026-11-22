@@ -8,6 +8,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"net"
+	"net/http"
 	"net/url"
 	"strings"
 	"time"
@@ -20,7 +21,9 @@ const (
 	// DesktopConnectCodeTTL 是一次性连接码的有效期，协议要求不超过 300 秒。
 	DesktopConnectCodeTTL = 300 * time.Second
 	// AppTokenHeader 是桌面助手转发请求时携带设备凭证的请求头。
-	AppTokenHeader = "X-Yeschoy-App-Token"
+	AppTokenHeader = "X-Desktop-App-Token"
+	// LegacyAppTokenHeader 是同一个请求头的旧名字，继续认。
+	LegacyAppTokenHeader = "X-Yeschoy-App-Token"
 
 	appTokenPrefix        = "yca_"
 	desktopDeviceIDMaxLen = 128
@@ -214,4 +217,12 @@ func (s *DesktopConnectService) IsAppRequest(ctx context.Context, token string, 
 // RefreshTokenTTL is how long a refresh token issued now stays valid.
 func (s *AuthService) RefreshTokenTTL() time.Duration {
 	return time.Duration(s.cfg.JWT.RefreshTokenExpireDays) * 24 * time.Hour
+}
+
+// AppTokenFromHeaders 取出请求携带的设备凭证，新旧两个头都认。
+func AppTokenFromHeaders(h http.Header) string {
+	if token := h.Get(AppTokenHeader); token != "" {
+		return token
+	}
+	return h.Get(LegacyAppTokenHeader)
 }

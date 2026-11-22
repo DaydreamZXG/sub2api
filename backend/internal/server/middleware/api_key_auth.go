@@ -173,7 +173,7 @@ func apiKeyAuthWithSubscription(apiKeyService *service.APIKeyService, subscripti
 		}
 		// 仅限 app 的线路：Key 自己的分组先通过上面的校验，没带本人 app 凭证的请求再改用
 		// 普通价分组（没有配置则拒绝），换入的分组同样要可用且允许该用户使用。
-		resolvedKey, err := apiKeyService.ResolveAppLine(c.Request.Context(), apiKey, c.GetHeader(service.AppTokenHeader))
+		resolvedKey, err := apiKeyService.ResolveAppLine(c.Request.Context(), apiKey, service.AppTokenFromHeaders(c.Request.Header))
 		if err != nil {
 			if errors.Is(err, service.ErrAppOnlyLine) {
 				AbortWithError(c, http.StatusForbidden, "APP_ONLY_LINE", "This API key only works through the YESCHOY app")
