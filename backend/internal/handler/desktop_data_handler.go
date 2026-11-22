@@ -125,6 +125,11 @@ func (h *DesktopHandler) RefreshSession(c *gin.Context) {
 		return
 	}
 	pair, err := h.authService.RefreshTokenPair(c.Request.Context(), req.RefreshToken)
+	if errors.Is(err, service.ErrServiceUnavailable) {
+		// 站点自己的故障，refresh token 没被消费：让客户端稍后重试，而不是当成掉登录。
+		desktopError(c, http.StatusServiceUnavailable, "service_unavailable")
+		return
+	}
 	if err != nil {
 		desktopError(c, http.StatusUnauthorized, "session_expired")
 		return
