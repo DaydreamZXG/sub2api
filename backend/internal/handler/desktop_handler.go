@@ -17,11 +17,36 @@ import (
 // Its responses use the protocol's own envelope ({success, data} / {success, code}),
 // not this project's usual one, because the desktop app parses them strictly.
 type DesktopHandler struct {
-	connectService *service.DesktopConnectService
+	connectService      *service.DesktopConnectService
+	authService         *service.AuthService
+	userService         *service.UserService
+	apiKeyService       *service.APIKeyService
+	plazaService        *service.ModelPlazaService
+	usageService        *service.UsageService
+	announcementService *service.AnnouncementService
+	settingService      *service.SettingService
 }
 
-func NewDesktopHandler(connectService *service.DesktopConnectService) *DesktopHandler {
-	return &DesktopHandler{connectService: connectService}
+func NewDesktopHandler(
+	connectService *service.DesktopConnectService,
+	authService *service.AuthService,
+	userService *service.UserService,
+	apiKeyService *service.APIKeyService,
+	plazaService *service.ModelPlazaService,
+	usageService *service.UsageService,
+	announcementService *service.AnnouncementService,
+	settingService *service.SettingService,
+) *DesktopHandler {
+	return &DesktopHandler{
+		connectService:      connectService,
+		authService:         authService,
+		userService:         userService,
+		apiKeyService:       apiKeyService,
+		plazaService:        plazaService,
+		usageService:        usageService,
+		announcementService: announcementService,
+		settingService:      settingService,
+	}
 }
 
 type issueConnectCodeRequest struct {

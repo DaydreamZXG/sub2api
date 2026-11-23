@@ -211,6 +211,13 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true, requiresAdmin: false, title: 'Connect a tool', titleKey: 'yc.connect.title' }
   },
   {
+    // The address the desktop app opens; fixed by the desktop connect protocol.
+    path: '/desktop/connect',
+    name: 'DesktopConnect',
+    component: () => import('@/views/yecai/YcConnectView.vue'),
+    meta: { requiresAuth: true, requiresAdmin: false, title: 'Connect a tool', titleKey: 'yc.connect.title' }
+  },
+  {
     path: '/bills',
     name: 'Bills',
     component: () => import('@/views/yecai/YcBillsView.vue'),

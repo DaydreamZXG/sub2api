@@ -131,6 +131,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRoute, useRouter } from 'vue-router'
 import { useAppStore } from '@/stores'
 import { keysAPI } from '@/api/keys'
 import { userGroupsAPI } from '@/api/groups'
@@ -237,6 +238,16 @@ onMounted(async () => {
 })
 
 const { handingOver, connectApp } = useYcAppConnect()
+
+// The desktop app opens /desktop/connect?auto=1: hand over without another click.
+// The flag is dropped so reloading the page does not hand over again.
+const route = useRoute()
+const router = useRouter()
+onMounted(() => {
+  if (route.query.auto !== '1') return
+  void router.replace({ path: route.path, query: { ...route.query, auto: undefined } })
+  void connectApp()
+})
 </script>
 
 <style scoped>

@@ -6,7 +6,9 @@ import { keysAPI } from '@/api/keys'
 import type { ApiKey } from '@/types'
 import YcConnectView from '../YcConnectView.vue'
 
-const { issueConnectCode, stationOrigin, openDesktopApp, showError, showInfo } = vi.hoisted(() => ({
+const { issueConnectCode, stationOrigin, openDesktopApp, showError, showInfo, route, replace } = vi.hoisted(() => ({
+  route: { path: '/connect', query: {} as Record<string, string> },
+  replace: vi.fn(),
   issueConnectCode: vi.fn(),
   stationOrigin: vi.fn(),
   openDesktopApp: vi.fn(),
@@ -19,6 +21,11 @@ vi.mock('@/api/desktop', async (importOriginal) => ({
   issueConnectCode,
   stationOrigin,
   openDesktopApp
+}))
+vi.mock('vue-router', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('vue-router')>()),
+  useRoute: () => route,
+  useRouter: () => ({ replace })
 }))
 vi.mock('@/api/keys', () => ({ keysAPI: { list: vi.fn().mockResolvedValue({ items: [] }) } }))
 vi.mock('@/api/groups', () => ({ userGroupsAPI: { getAvailable: vi.fn().mockResolvedValue([]) } }))
@@ -44,7 +51,9 @@ const clickConnect = async () => {
 
 describe('YcConnectView connect to app', () => {
   beforeEach(() => {
-    for (const fn of [issueConnectCode, stationOrigin, openDesktopApp, showError, showInfo]) fn.mockReset()
+    for (const fn of [issueConnectCode, stationOrigin, openDesktopApp, showError, showInfo, replace]) fn.mockReset()
+    route.path = '/connect'
+    route.query = {}
     stationOrigin.mockReturnValue('https://yeschoy.test')
   })
 
@@ -75,6 +84,26 @@ describe('YcConnectView connect to app', () => {
 
     expect(issueConnectCode).not.toHaveBeenCalled()
     expect(showError).toHaveBeenCalledWith('yc.connect.appConnectNeedsHttps')
+  })
+
+  it('hands over by itself when the desktop app opened the page, and only once', async () => {
+    const connect = { code: 'c'.repeat(43), origin: 'https://yeschoy.test', expiresAt: 0, ttlSeconds: 300 }
+    issueConnectCode.mockResolvedValue(connect)
+    route.path = '/desktop/connect'
+    route.query = { auto: '1' }
+
+    mount(YcConnectView, { global: { stubs: { YcShell: { template: '<div><slot /></div>' }, UseKeyModal: true } } })
+    await flushPromises()
+
+    expect(openDesktopApp).toHaveBeenCalledWith(connect)
+    expect(replace).toHaveBeenCalledWith({ path: '/desktop/connect', query: { auto: undefined } })
+  })
+
+  it('waits for the click when the page was opened by hand', async () => {
+    mount(YcConnectView, { global: { stubs: { YcShell: { template: '<div><slot /></div>' }, UseKeyModal: true } } })
+    await flushPromises()
+
+    expect(issueConnectCode).not.toHaveBeenCalled()
   })
 
   it('builds the deep link the desktop app expects', () => {

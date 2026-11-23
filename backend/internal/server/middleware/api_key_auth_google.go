@@ -135,7 +135,7 @@ func APIKeyAuthWithSubscriptionGoogle(apiKeyService *service.APIKeyService, subs
 		}
 		// 同 api_key_auth.go：Key 自己的分组通过校验后，没带本人 app 凭证的请求再改用普通价分组
 		// （没有配置则拒绝），换入的分组同样要可用且允许该用户使用。
-		resolvedKey, err := apiKeyService.ResolveAppLine(c.Request.Context(), apiKey, c.GetHeader(service.AppTokenHeader))
+		resolvedKey, err := apiKeyService.ResolveAppLine(c.Request.Context(), apiKey, service.AppTokenFromHeaders(c.Request.Header))
 		if err != nil {
 			if errors.Is(err, service.ErrAppOnlyLine) {
 				abortWithGoogleError(c, 403, "This API key only works through the YESCHOY app")
