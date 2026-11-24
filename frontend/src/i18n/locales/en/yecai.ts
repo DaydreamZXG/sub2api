@@ -6,7 +6,7 @@ export default {
     eyebrow: 'AI model access',
     titleA: 'Connect to AI',
     titleB: 'without the setup',
-    lead: 'Install YesChoy, pick an AI classmate, and connect Claude Code or Codex in one click. Prices are in yuan, every request is on record, and unused balance is refundable.'
+    lead: 'Wire AI models into Claude Code or Codex. Install the YesChoy client and pick a classmate for one click, or paste in the endpoint yourself. Prices are in yuan, every request is on record, and unused balance is refundable.'
   },
   pain: {
     before: 'Before',

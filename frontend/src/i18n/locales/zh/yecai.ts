@@ -6,7 +6,7 @@ export default {
     eyebrow: 'AI 模型接入服务',
     titleA: '接入 AI',
     titleB: '不用再折腾配置',
-    lead: '装上 YesChoy 客户端，挑个 AI 同学，点一下就接好 Claude Code、Codex。价格直接写人民币，每一笔都查得到，没用完的可以退。'
+    lead: '给 Claude Code、Codex 接好 AI 模型。装个 YesChoy 客户端挑个同学点一下就行，也可以手动填接口地址。价格直接写人民币，每一笔都查得到，没用完的可以退。'
   },
   pain: {
     before: '以前',

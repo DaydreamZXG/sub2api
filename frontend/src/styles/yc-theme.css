@@ -3,67 +3,68 @@
  * neutral grays. <html> carries `yc-theme` (see index.html), so every page, the admin
  * console included, shares it.
  */
-/* Light: indigo tints and fills on neutral grays. */
+/* Light: Stripe-violet tints and fills on cool blue-grays. */
 .yc-theme {
-  --dark-50: 250 250 250;
-  --dark-100: 245 245 245;
-  --dark-200: 229 229 229;
-  --dark-300: 212 212 212;
-  --dark-400: 163 163 163;
-  --dark-500: 115 115 115;
-  --dark-600: 82 82 82;
-  --dark-700: 38 38 38;
-  --dark-800: 23 23 23;
-  --dark-900: 10 10 10;
-  --dark-950: 0 0 0;
-  --primary-50: 245 245 255;
-  --primary-100: 237 237 252;
-  --primary-200: 221 221 249;
-  --primary-300: 192 192 243;
-  --primary-400: 146 146 232;
-  --primary-500: 110 110 222;
-  --primary-600: 91 91 214;
-  --primary-700: 76 76 190;
-  --primary-800: 62 62 160;
-  --primary-900: 50 50 128;
-  --primary-950: 30 30 80;
+  --dark-50: 246 249 252;
+  --dark-100: 240 244 249;
+  --dark-200: 227 232 238;
+  --dark-300: 209 217 227;
+  --dark-400: 154 168 189;
+  --dark-500: 106 124 148;
+  --dark-600: 66 86 110;
+  --dark-700: 34 54 82;
+  --dark-800: 18 32 55;
+  --dark-900: 10 18 36;
+  --dark-950: 6 12 26;
+  --primary-50: 243 243 255;
+  --primary-100: 237 236 255;
+  --primary-200: 223 221 255;
+  --primary-300: 196 192 255;
+  --primary-400: 156 150 255;
+  --primary-500: 124 115 255;
+  --primary-600: 99 91 251;
+  --primary-700: 79 70 229;
+  --primary-800: 66 56 199;
+  --primary-900: 55 47 165;
+  --primary-950: 34 28 101;
 }
 
-/* Dark: lighter indigo reads on near-black surfaces. */
+/* Dark: lighter violet reads on deep-navy surfaces. */
 .yc-theme.dark {
-  --primary-50: 245 245 255;
-  --primary-100: 237 237 252;
-  --primary-200: 221 221 249;
-  --primary-300: 192 192 243;
-  --primary-400: 158 158 245;
-  --primary-500: 130 130 235;
-  --primary-600: 110 110 222;
-  --primary-700: 91 91 214;
-  --primary-800: 76 76 190;
-  --primary-900: 50 50 128;
-  --primary-950: 30 30 80;
+  --primary-50: 243 243 255;
+  --primary-100: 237 236 255;
+  --primary-200: 223 221 255;
+  --primary-300: 196 192 255;
+  --primary-400: 166 159 255;
+  --primary-500: 143 136 255;
+  --primary-600: 124 115 255;
+  --primary-700: 99 91 251;
+  --primary-800: 79 70 229;
+  --primary-900: 66 56 199;
+  --primary-950: 34 28 101;
 }
 
-/* The main call to action is the near-black button used across the user pages. */
+/* The main call to action is the violet pill used across the user pages. */
 .yc-theme .btn-primary {
-  background-image: none;
-  background-color: #171717;
+  background-image: linear-gradient(90deg, #635bff, #7a73ff);
+  background-color: transparent;
   color: #ffffff;
-  box-shadow: none;
+  border-radius: 999px;
+  box-shadow: 0 4px 14px -4px rgb(99 91 255 / 0.5);
 }
-.yc-theme .btn-primary:hover:not(:disabled) { background-color: #383838; }
-.yc-theme.dark .btn-primary { background-color: #ededed; color: #0a0a0a; }
-.yc-theme.dark .btn-primary:hover:not(:disabled) { background-color: #ffffff; }
-.yc-theme .btn-primary:focus-visible { outline: 2px solid #5b5bd6; outline-offset: 2px; }
+.yc-theme .btn-primary:hover:not(:disabled) { opacity: 0.92; }
+.yc-theme.dark .btn-primary { background-image: linear-gradient(90deg, #7a73ff, #9c96ff); color: #ffffff; }
+.yc-theme.dark .btn-primary:hover:not(:disabled) { opacity: 0.92; }
+.yc-theme .btn-primary:focus-visible { outline: 2px solid #635bff; outline-offset: 2px; }
 
 /* The YESCHOY wordmark that sits with the default site name. */
 .yc-wordmark {
   font-style: normal;
   font-weight: 800;
   letter-spacing: 0.2em;
-  background: linear-gradient(90deg, #5f9e00, #14a37f 55%, #1787c2);
+  background: linear-gradient(90deg, #e07f2e, #1fa463 30%, #2b8fd4 60%, #7e52e0 85%, #e06a9e);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
-.dark .yc-wordmark { background-image: linear-gradient(90deg, #d2ff3a, #6cf59a 55%, #22d3ee); }
+.dark .yc-wordmark { background-image: linear-gradient(90deg, #ffb066, #5ee6a8 30%, #6fc4ff 60%, #c9a3ff 85%, #ffb3d4); }
