@@ -44,6 +44,7 @@
         <figure class="yc-hero-shot">
           <figcaption aria-hidden="true"><i></i><i></i><i></i><span>{{ siteName }}</span></figcaption>
           <img :src="preview" :alt="t('yc.client.shotAlt')" width="1440" height="860" />
+          <img :src="previewDark" alt="" aria-hidden="true" width="1440" height="860" class="yc-hero-shot-dark" />
         </figure>
         <div v-if="site" class="yc-live" aria-live="off">
           <p class="yc-live-lab"><i aria-hidden="true"></i>{{ t('yc.live.label') }}</p>
@@ -188,6 +189,7 @@ import { YC_CLIENT_DOWNLOADS, YC_CLIENT_PAGE, detectYcClientPlatform } from '@/u
 import { FeatureFlags, isFeatureFlagEnabled } from '@/utils/featureFlags'
 import shot from '@/assets/yecai/yeschoy-roster-showcase.webp'
 import preview from '@/assets/yecai/yeschoy-console-preview.webp'
+import previewDark from '@/assets/yecai/yeschoy-console-preview-dark.webp'
 import '@/styles/yecai.css'
 
 const { t } = useI18n()
@@ -391,6 +393,9 @@ onMounted(async () => {
 .yc-hero-shot figcaption i:nth-child(3) { background: #28c840; }
 .yc-hero-shot figcaption span { margin-left: 8px; }
 .yc-hero-shot img { display: block; width: 100%; height: auto; }
+.yc-hero-shot img.yc-hero-shot-dark { display: none; }
+:global(.dark .yc .yc-hero-shot img.yc-hero-shot-dark) { display: block; }
+:global(.dark .yc .yc-hero-shot img:not(.yc-hero-shot-dark)) { display: none; }
 .yc-hero-flow { margin-top: clamp(48px, 7vw, 88px); }
 
 .yc-pain { padding-top: clamp(96px, 14vw, 184px); }
