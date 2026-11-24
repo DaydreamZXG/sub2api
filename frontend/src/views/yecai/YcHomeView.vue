@@ -13,7 +13,7 @@
           <a href="#faq">{{ t('yc.nav.faq') }}</a>
         </nav>
         <div class="yc-top-actions">
-          <YcThemeSwitch />
+          <YcThemeSwitch class="yc-hide-sm" />
           <LocaleSwitcher />
           <a :href="YC_CLIENT_PAGE" class="yc-btn yc-btn-ghost yc-btn-sm">{{ t('yc.nav.client') }}</a>
           <router-link v-if="isAuthenticated" :to="consolePath" class="yc-btn yc-btn-lime yc-btn-sm">{{ t('yc.cta.console') }}</router-link>
@@ -483,6 +483,7 @@ onMounted(async () => {
 @media (max-width: 480px) {
   .yc-hide-sm { display: none; }
   .yc-top-in { gap: 12px; }
+  .yc-brand :deep(.yc-lockup-text) { display: none; }
 }
 @media (prefers-reduced-motion: no-preference) {
   .yc-lead, .yc-hero-cta, .yc-hero-flow { animation: yc-rise 1s cubic-bezier(0.16, 1, 0.3, 1) 0.35s both; }
