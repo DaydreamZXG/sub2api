@@ -32,10 +32,15 @@ func officialModelKey(name string) string {
 	var b strings.Builder
 	for _, r := range strings.ToLower(name) {
 		if (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9') {
-			b.WriteRune(r)
+			_, _ = b.WriteRune(r)
 		}
 	}
 	return b.String()
+}
+
+type officialPriceName struct {
+	row  int
+	name string
 }
 
 // NormalizeOfficialPriceBook trims names, drops empty ones and rejects entries the price list cannot use.
@@ -43,7 +48,7 @@ func NormalizeOfficialPriceBook(entries []OfficialPriceEntry) ([]OfficialPriceEn
 	if len(entries) > maxOfficialPriceBookEntries {
 		return nil, fmt.Errorf("at most %d models", maxOfficialPriceBookEntries)
 	}
-	seen := map[string]string{}
+	seen := map[string]officialPriceName{}
 	out := make([]OfficialPriceEntry, 0, len(entries))
 	for i, e := range entries {
 		names := make([]string, 0, len(e.Models))
@@ -54,9 +59,12 @@ func NormalizeOfficialPriceBook(entries []OfficialPriceEntry) ([]OfficialPriceEn
 				continue
 			}
 			if first, dup := seen[key]; dup {
-				return nil, fmt.Errorf("model %q is listed twice (also as %q)", n, first)
+				if first.row == i {
+					continue
+				}
+				return nil, fmt.Errorf("model %q is listed twice (also as %q)", n, first.name)
 			}
-			seen[key] = n
+			seen[key] = officialPriceName{row: i, name: n}
 			names = append(names, n)
 		}
 		if len(names) == 0 {
