@@ -636,7 +636,8 @@ func (h *ChannelHandler) GetModelDefaultPricing(c *gin.Context) {
 	pricing, err := h.billingService.GetModelPricing(model)
 	if err != nil {
 		// 模型不在定价列表中；官方价目表里有就用它
-		if book == nil || (book.USDInput == nil && book.CNYInput == nil) {
+		if book == nil || (book.USDInput == nil && book.USDOutput == nil && book.USDCacheRead == nil &&
+			book.CNYInput == nil && book.CNYOutput == nil && book.CNYCacheRead == nil) {
 			response.Success(c, gin.H{"found": false})
 			return
 		}
