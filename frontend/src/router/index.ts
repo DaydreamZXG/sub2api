@@ -908,6 +908,8 @@ const BACKEND_MODE_CALLBACK_PATHS = [
   '/auth/wechat/payment/callback',
 ]
 const BACKEND_MODE_PENDING_AUTH_PATHS = ['/register', '/email-verify']
+// Leave the site for the client release page.
+const BACKEND_MODE_EXTERNAL_PATHS = ['/download', '/client']
 
 function isBackendModePublicRouteAllowed(path: string, hasPendingAuthSession: boolean): boolean {
   if (BACKEND_MODE_ALLOWED_PATHS.some((allowedPath) => path === allowedPath || path.startsWith(allowedPath))) {
@@ -915,6 +917,10 @@ function isBackendModePublicRouteAllowed(path: string, hasPendingAuthSession: bo
   }
 
   if (BACKEND_MODE_CALLBACK_PATHS.some((callbackPath) => path === callbackPath)) {
+    return true
+  }
+
+  if (BACKEND_MODE_EXTERNAL_PATHS.includes(path)) {
     return true
   }
 
