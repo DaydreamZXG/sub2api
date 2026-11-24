@@ -93,6 +93,7 @@
 
 .yc-theme .table-container { border-radius: 16px; }
 .yc-theme .table th { font-size: 12.5px; font-weight: 600; letter-spacing: 0.02em; background: rgb(var(--dark-50)); }
+.yc-theme.dark .table th { background: rgb(10 18 36 / 0.6); }
 .yc-theme .table tbody tr:hover { background: rgb(99 91 255 / 0.04); }
 
 .yc-theme .tabs { border-radius: 999px; }
