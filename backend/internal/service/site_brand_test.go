@@ -7,10 +7,10 @@ func TestBrandSiteName(t *testing.T) {
 		stored string
 		want   string
 	}{
-		{stored: "", want: "野菜"},
-		{stored: "   ", want: "野菜"},
-		{stored: "Sub2API", want: "野菜"},
-		{stored: " sub2api ", want: "野菜"},
+		{stored: "", want: "YesChoy"},
+		{stored: "   ", want: "YesChoy"},
+		{stored: "Sub2API", want: "YesChoy"},
+		{stored: " sub2api ", want: "YesChoy"},
 		{stored: "My Station", want: "My Station"},
 		{stored: " 野菜 AI ", want: "野菜 AI"},
 	}

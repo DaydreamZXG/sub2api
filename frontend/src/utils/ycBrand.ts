@@ -1,6 +1,5 @@
 // The site's own name and wordmark, used until the operator sets a site name in admin settings.
-export const YC_BRAND_NAME = '野菜'
-export const YC_WORDMARK = 'YESCHOY'
+export const YC_BRAND_NAME = 'YesChoy'
 
 const STOCK_NAMES = ['', 'Sub2API']
 const STOCK_SUBTITLE = 'Subscription to API Conversion Platform'

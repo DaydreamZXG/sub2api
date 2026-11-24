@@ -15,6 +15,7 @@
         <div class="yc-top-actions">
           <YcThemeSwitch />
           <LocaleSwitcher />
+          <a :href="YC_CLIENT_PAGE" class="yc-btn yc-btn-ghost yc-btn-sm">{{ t('yc.nav.client') }}</a>
           <router-link v-if="isAuthenticated" :to="consolePath" class="yc-btn yc-btn-lime yc-btn-sm">{{ t('yc.cta.console') }}</router-link>
           <template v-else>
             <router-link to="/login" class="yc-btn yc-btn-ghost yc-btn-sm yc-hide-sm">{{ t('yc.cta.login') }}</router-link>
@@ -179,7 +180,7 @@ import { useYcPrices } from '@/composables/useYcPrices'
 import { getSiteStats, type SiteStats } from '@/api/siteStats'
 import { sanitizeUrl } from '@/utils/url'
 import { ycSiteName } from '@/utils/ycBrand'
-import { YC_CLIENT_DOWNLOADS, detectYcClientPlatform } from '@/utils/ycClient'
+import { YC_CLIENT_DOWNLOADS, YC_CLIENT_PAGE, detectYcClientPlatform } from '@/utils/ycClient'
 import { FeatureFlags, isFeatureFlagEnabled } from '@/utils/featureFlags'
 import shot from '@/assets/yecai/yeschoy-roster-showcase.webp'
 import '@/styles/yecai.css'

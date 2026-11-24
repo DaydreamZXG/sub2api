@@ -3,7 +3,6 @@
     <img :src="logo || '/logo.svg'" alt="" />
     <span class="yc-lockup-text">
       <b>{{ name }}</b>
-      <i v-if="wordmark" class="yc-wordmark">{{ wordmark }}</i>
     </span>
   </span>
 </template>
@@ -12,15 +11,13 @@
 import { computed } from 'vue'
 import { useAppStore } from '@/stores'
 import { sanitizeUrl } from '@/utils/url'
-import { isStockSiteName, ycSiteName, YC_WORDMARK } from '@/utils/ycBrand'
+import { ycSiteName } from '@/utils/ycBrand'
 
 defineProps<{ stacked?: boolean }>()
 
 const appStore = useAppStore()
 const rawName = computed(() => appStore.cachedPublicSettings?.site_name || appStore.siteName)
 const name = computed(() => ycSiteName(rawName.value))
-// The wordmark belongs to the default name; a site with its own name shows only that.
-const wordmark = computed(() => (isStockSiteName(rawName.value) ? YC_WORDMARK : ''))
 const logo = computed(() =>
   sanitizeUrl(appStore.cachedPublicSettings?.site_logo || appStore.siteLogo || '', {
     allowRelative: true,

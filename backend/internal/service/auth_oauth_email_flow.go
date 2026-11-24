@@ -46,7 +46,7 @@ func (s *AuthService) SendPendingOAuthVerifyCode(ctx context.Context, email stri
 		return nil, err
 	}
 
-	siteName := "野菜"
+	siteName := "YesChoy"
 	if s.settingService != nil {
 		siteName = s.settingService.GetSiteName(ctx)
 	}

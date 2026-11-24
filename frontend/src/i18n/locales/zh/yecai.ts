@@ -1,5 +1,5 @@
 export default {
-  nav: { aria: '页面导航', pains: '解决什么', prices: '价格', faq: '常见问题', docs: '文档' },
+  nav: { aria: '页面导航', pains: '解决什么', prices: '价格', faq: '常见问题', docs: '文档', client: '客户端' },
   cta: { start: '开始使用', login: '登录', console: '进入控制台' },
   flow: { aria: '你的工具通过一把密钥连到各家模型', key: '你的密钥' },
   hero: {

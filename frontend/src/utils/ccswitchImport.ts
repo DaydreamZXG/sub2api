@@ -120,7 +120,7 @@ model = ${JSON.stringify(config.model)}
 web_search = "live"
 
 [model_providers.yecai]
-name = "野菜"
+name = "YesChoy"
 base_url = ${JSON.stringify(config.endpoint)}
 wire_api = "responses"
 ${buildCodexApiKeyAuthConfig(input.apiKey)}

@@ -1122,11 +1122,11 @@ export XAI_API_KEY="${apiKey}"`
   // Text models only (Responses). Image/video: Imagine model IDs on media endpoints / feature overrides.
   // Credential order: api_key field → env_key → signed-in session → XAI_API_KEY global fallback.
   const modelsListUrl = `${baseUrl.replace(/\/+$/, '')}/models`
-  const configContent = `# Grok Build CLI → 野菜 Grok group (API key auth).
+  const configContent = `# Grok Build CLI → YesChoy Grok group (API key auth).
 # Docs: ~/.grok/docs/user-guide/05-configuration.md + 11-custom-models.md
 # Verify after save: grok inspect
 #
-# IMPORTANT: api_backend must be "responses" for the 野菜 Grok group (POST /v1/responses).
+# IMPORTANT: api_backend must be "responses" for the YesChoy Grok group (POST /v1/responses).
 # If omitted, Grok Build defaults to chat_completions (/v1/chat/completions).
 # Keep api_backend = "responses" on every model entry.
 #
@@ -1141,7 +1141,7 @@ models_list_url = "${modelsListUrl}"        # optional override (env: GROK_MODEL
 xai_api_base_url = "${baseUrl}"             # public xAI API base override for gateway routing
 cli_chat_proxy_base_url = "${baseUrl}"      # CLI chat-proxy base (env: GROK_CLI_CHAT_PROXY_BASE_URL)
 
-# Prefer API key when using a custom gateway (matches 野菜).
+# Prefer API key when using a custom gateway (matches YesChoy).
 # Requires XAI_API_KEY env or per-model env_key / api_key.
 [auth]
 preferred_method = "api_key"
@@ -1149,7 +1149,7 @@ preferred_method = "api_key"
 [model."grok-4.5"]
 model = "grok-4.5"                          # id sent to the API
 name = "Grok 4.5"                           # shown in /model picker
-description = "Grok 4.5 via 野菜 (Responses)"
+description = "Grok 4.5 via YesChoy (Responses)"
 # base_url inherits from [endpoints].models_base_url; override only if needed:
 # base_url = "${baseUrl}"
 env_key = "XAI_API_KEY"                     # or: api_key = "${apiKey}"  (not recommended)
@@ -1212,7 +1212,7 @@ image_description = "grok-4.5"              # vision/describe-image helper model
 [session]
 auto_compact_threshold_percent = 80         # auto-compact at this % of context_window (default 85)
 
-# Imagine tools: model IDs go to 野菜 media endpoints (not the text [model.*] catalog).
+# Imagine tools: model IDs go to YesChoy media endpoints (not the text [model.*] catalog).
 # Enable only if the Grok group allows image/video generation.
 [features]
 image_gen = true
@@ -1259,7 +1259,7 @@ function generateGrokCodexFiles(baseUrl: string, apiKey: string): FileConfig[] {
       envContent = `export YECAI_API_KEY="${apiKey}"`
   }
 
-  const configContent = `# Codex CLI → 野菜 Grok group
+  const configContent = `# Codex CLI → YesChoy Grok group
 # Docs: Codex config reference (model_providers.*, wire_api = "responses")
 #
 # Text models only. Image/video: grok-imagine-image / grok-imagine-video on media endpoints.
@@ -1276,7 +1276,7 @@ ${codexLocalCatalogToml.value}# Optional:
 # windows_wsl_setup_acknowledged = true
 
 [model_providers.yecai]
-name = "野菜 Grok"
+name = "YesChoy Grok"
 base_url = "${baseUrl}"
 ${codexModelCatalogMode.value === 'remote' ? `model_catalog_url = "${escapeTomlBasicString(buildCodexModelCatalogUrl(baseUrl))}"\n` : ''}# Prefer env_key (variable NAME). Do not combine with experimental_bearer_token.
 env_key = "YECAI_API_KEY"
@@ -1285,7 +1285,7 @@ env_key = "YECAI_API_KEY"
 wire_api = "responses"
 # API-key providers: do not require ChatGPT OAuth login
 requires_openai_auth = false
-# Grok/野菜 path is HTTP/SSE; disable WS (Codex may otherwise try WebSocket first)
+# Grok/YesChoy path is HTTP/SSE; disable WS (Codex may otherwise try WebSocket first)
 supports_websockets = false
 
 ${codexModelCatalogMode.value === 'remote' ? '[features]\napi_key_model_discovery = true\n\n# Optional:' : '# Optional:\n# [features]'}
@@ -1344,14 +1344,14 @@ function generateRoutedCodexFiles(
     ? `$env:YECAI_API_KEY="${apiKey}"`
     : `export YECAI_API_KEY="${apiKey}"`
 
-  const configContent = `# Codex CLI -> 野菜 ${label} group
+  const configContent = `# Codex CLI -> YesChoy ${label} group
 model_provider = "yecai"
 model = "${model}"
 review_model = "${model}"
 disable_response_storage = true
 ${codexLocalCatalogToml.value}
 [model_providers.yecai]
-name = "野菜 ${label}"
+name = "YesChoy ${label}"
 base_url = "${baseUrl}"
 ${codexModelCatalogMode.value === 'remote' ? `model_catalog_url = "${escapeTomlBasicString(buildCodexModelCatalogUrl(baseUrl))}"\n` : ''}env_key = "YECAI_API_KEY"
 wire_api = "responses"
@@ -2061,7 +2061,7 @@ function generateOpenCodeConfig(platform: string, baseUrl: string, apiKey: strin
   } else if (platform === 'grok') {
     // Custom provider pointing at Sub2API OpenAI-compatible Responses/Chat endpoints.
     provider[platform].npm = '@ai-sdk/openai-compatible'
-    provider[platform].name = 'Grok via 野菜'
+    provider[platform].name = 'Grok via YesChoy'
     provider[platform].models = grokModels
   }
 
