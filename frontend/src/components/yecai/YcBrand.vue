@@ -1,6 +1,6 @@
 <template>
   <span class="yc-lockup" :class="{ 'is-stacked': stacked }">
-    <img :src="logo || '/logo.svg'" alt="" />
+    <img :src="logo || '/yeschoy-logo.svg'" alt="" />
     <span class="yc-lockup-text">
       <b>{{ name }}</b>
     </span>
