@@ -84,7 +84,6 @@ describe('PlazaModelPricingTable', () => {
     }
   })
 
-======
   it('copies the exact model ID from the clicked pricing row', async () => {
     const model = tokenModel({
       name: 'provider/Model-v2',
@@ -106,7 +105,6 @@ describe('PlazaModelPricingTable', () => {
     wrapper.unmount()
   })
 
-4d31
   it.each([false, true])('shows independent 12h prices without a 1h label (intervals=%s)', (intervals) => {
     const model = tokenModel({ name: 'gpt-6-luna', platform: 'openai' })
     model.pricing!.cache_write_price = null
