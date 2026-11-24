@@ -480,10 +480,13 @@ onMounted(async () => {
   .yc-price-row s, .yc-price-row > span:last-child { display: none; }
   .yc-price-list { padding: 4px 8px 8px; }
 }
-@media (max-width: 480px) {
+@media (max-width: 680px) {
   .yc-hide-sm { display: none; }
   .yc-top-in { gap: 12px; }
-  .yc-brand :deep(.yc-lockup-text) { display: none; }
+  .yc-brand :deep(.yc-lockup-text) {
+    position: absolute; width: 1px; height: 1px; overflow: hidden;
+    clip: rect(0 0 0 0); white-space: nowrap;
+  }
 }
 @media (prefers-reduced-motion: no-preference) {
   .yc-lead, .yc-hero-cta, .yc-hero-flow { animation: yc-rise 1s cubic-bezier(0.16, 1, 0.3, 1) 0.35s both; }
