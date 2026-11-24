@@ -26,8 +26,8 @@ func TestNormalizeOfficialPriceBookRejectsWhatThePriceListCannotUse(t *testing.T
 	_, err = NormalizeOfficialPriceBook([]OfficialPriceEntry{{Models: []string{"m"}, CNYInput: bookFloat(-1)}})
 	require.Error(t, err)
 
-	out, err := NormalizeOfficialPriceBook([]OfficialPriceEntry{{Models: []string{" deepseek-flash ", ""}, CNYInput: bookFloat(1)}})
-	require.NoError(t, err)
+	out, err := NormalizeOfficialPriceBook([]OfficialPriceEntry{{Models: []string{" deepseek-flash ", "", "DeepSeek-Flash"}, CNYInput: bookFloat(1)}})
+	require.NoError(t, err, "the same name twice in one row is harmless")
 	require.Equal(t, []string{"deepseek-flash"}, out[0].Models)
 }
 
