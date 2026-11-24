@@ -57,7 +57,10 @@ func parseChatRequestForBridge(body []byte, platform string, req *apicompat.Chat
 			req.Messages = append(req.Messages, msg.ChatMessage)
 			continue
 		}
-		if msg.Content != nil {
+		// `content: null` unmarshals to the literal bytes `null` in a RawMessage;
+		// Kimi sends it that way on tool-declaring system messages. Only real
+		// content blocks the bridge.
+		if len(msg.Content) != 0 && string(msg.Content) != "null" {
 			return fmt.Errorf("messages[%d]: Kimi system tools cannot be used with content", i)
 		}
 		var tools []apicompat.ChatTool

@@ -3474,6 +3474,7 @@ import OllamaCloudUsageSettings from '@/components/account/OllamaCloudUsageSetti
 import {
   applyAntigravityProjectID,
   applyHeaderOverride,
+  buildHeaderOverridesObject,
   applyInterceptWarmup,
   applyOpenCodeGoProtocolRules,
   applyPlanType,
@@ -4571,7 +4572,16 @@ const upstreamGroupSource = computed(() => {
   if (!account) return null
   const apiKey = editApiKey.value.trim()
   if (apiKey && billingBaseUrl.value) {
-    return { platform: account.platform, base_url: billingBaseUrl.value, api_key: apiKey, proxy_id: form.proxy_id }
+    const overrides = headerOverrideEnabled.value
+      ? buildHeaderOverridesObject(headerOverrideRows.value)
+      : undefined
+    return {
+      platform: account.platform,
+      base_url: billingBaseUrl.value,
+      api_key: apiKey,
+      proxy_id: form.proxy_id,
+      ...(overrides && Object.keys(overrides).length ? { header_overrides: overrides } : {})
+    }
   }
   if (billingBaseUrl.value === savedBillingBaseUrl.value && form.proxy_id === account.proxy_id && !apiKey) {
     return { account_id: account.id }

@@ -4232,6 +4232,7 @@ import {
   providerNativeProtocols,
   providerRoutesByModel,
   resolveProviderAccountMode,
+  buildHeaderOverridesObject,
   validateHeaderOverrideRows,
   type CnAccountMode,
   type CnApiProtocol,
@@ -4662,9 +4663,17 @@ const upstreamGroupSource = computed(() => {
   const antigravity = form.platform === 'antigravity'
   const baseURL = antigravity ? upstreamBaseUrl.value.trim() : previewBaseUrl.value
   const apiKey = (antigravity ? upstreamApiKey.value : apiKeyValue.value).trim()
-  return baseURL && apiKey
-    ? { platform: form.platform, base_url: baseURL, api_key: apiKey, proxy_id: form.proxy_id }
-    : null
+  if (!baseURL || !apiKey) return null
+  const overrides = headerOverrideEnabled.value
+    ? buildHeaderOverridesObject(headerOverrideRows.value)
+    : undefined
+  return {
+    platform: form.platform,
+    base_url: baseURL,
+    api_key: apiKey,
+    proxy_id: form.proxy_id,
+    ...(overrides && Object.keys(overrides).length ? { header_overrides: overrides } : {})
+  }
 })
 
 const syncPreviewCredentials = computed(() => {

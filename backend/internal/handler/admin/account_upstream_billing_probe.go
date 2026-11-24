@@ -99,11 +99,12 @@ func (h *AccountHandler) PreviewUpstreamGroup(c *gin.Context) {
 		return
 	}
 	var req struct {
-		AccountID int64  `json:"account_id" binding:"min=0"`
-		Platform  string `json:"platform"`
-		BaseURL   string `json:"base_url"`
-		APIKey    string `json:"api_key"`
-		ProxyID   *int64 `json:"proxy_id" binding:"omitempty,gt=0"`
+		AccountID       int64             `json:"account_id" binding:"min=0"`
+		Platform        string            `json:"platform"`
+		BaseURL         string            `json:"base_url"`
+		APIKey          string            `json:"api_key"`
+		ProxyID         *int64            `json:"proxy_id" binding:"omitempty,gt=0"`
+		HeaderOverrides map[string]string `json:"header_overrides"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.BadRequest(c, "Invalid group preview request")
@@ -113,7 +114,7 @@ func (h *AccountHandler) PreviewUpstreamGroup(c *gin.Context) {
 	var account *service.Account
 	if req.AccountID > 0 {
 		// A stored key must only be sent with its stored URL, headers and proxy.
-		if req.Platform != "" || req.BaseURL != "" || req.APIKey != "" || req.ProxyID != nil {
+		if req.Platform != "" || req.BaseURL != "" || req.APIKey != "" || req.ProxyID != nil || len(req.HeaderOverrides) > 0 {
 			response.BadRequest(c, "Use either a saved account or draft credentials")
 			return
 		}
@@ -128,9 +129,20 @@ func (h *AccountHandler) PreviewUpstreamGroup(c *gin.Context) {
 			response.BadRequest(c, "A supported platform, base URL and API key are required")
 			return
 		}
+		credentials := map[string]any{"base_url": strings.TrimSpace(req.BaseURL), "api_key": strings.TrimSpace(req.APIKey)}
+		if len(req.HeaderOverrides) > 0 {
+			// Draft previews must send the same custom headers a saved account would,
+			// or relays that gate on them reject the preview.
+			overrides := make(map[string]any, len(req.HeaderOverrides))
+			for name, value := range req.HeaderOverrides {
+				overrides[name] = value
+			}
+			credentials["header_override_enabled"] = true
+			credentials["header_overrides"] = overrides
+		}
 		account = &service.Account{
 			Platform: req.Platform, Type: service.AccountTypeAPIKey, ProxyID: req.ProxyID,
-			Credentials: map[string]any{"base_url": strings.TrimSpace(req.BaseURL), "api_key": strings.TrimSpace(req.APIKey)},
+			Credentials: credentials,
 		}
 		if req.ProxyID != nil {
 			proxy, err := h.adminService.GetProxy(ctx, *req.ProxyID)

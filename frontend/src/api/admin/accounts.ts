@@ -1055,6 +1055,8 @@ export type UpstreamGroupSource = { account_id: number } | {
   base_url: string
   api_key: string
   proxy_id?: number | null
+  /** Draft previews must send the same header overrides the saved account would. */
+  header_overrides?: Record<string, string>
 }
 
 export async function previewUpstreamGroup(source: UpstreamGroupSource, signal?: AbortSignal) {
