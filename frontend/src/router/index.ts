@@ -14,6 +14,7 @@ import { getSetupStatus } from '@/api/setup'
 import { resolveCompletedSetupRedirectPath } from './setupRedirect'
 import { resolveRouteDocumentTitle } from './title'
 import { ycSiteName } from '@/utils/ycBrand'
+import { YC_CLIENT_PAGE } from '@/utils/ycClient'
 
 /**
  * Route definitions with lazy loading
@@ -216,6 +217,18 @@ const routes: RouteRecordRaw[] = [
     name: 'DesktopConnect',
     component: () => import('@/views/yecai/YcConnectView.vue'),
     meta: { requiresAuth: true, requiresAdmin: false, title: 'Connect a tool', titleKey: 'yc.connect.title' }
+  },
+  {
+    // Old links to the client download page; it now lives on yeschoy.app.
+    path: '/download',
+    alias: '/client',
+    name: 'ClientDownload',
+    component: () => import('@/views/NotFoundView.vue'),
+    meta: { requiresAuth: false, title: 'Download' },
+    beforeEnter: () => {
+      window.location.replace(YC_CLIENT_PAGE)
+      return false
+    }
   },
   {
     path: '/bills',

@@ -88,8 +88,7 @@
                 <p class="yc-client-note">{{ t('yc.client.manual') }}</p>
                 <figure class="yc-shot">
                   <figcaption aria-hidden="true"><i></i><i></i><i></i><span>{{ t('yc.client.window') }}</span></figcaption>
-                  <img class="yc-shot-light" :src="shotLight" :alt="t('yc.client.shotAlt')" width="1820" height="880" loading="lazy" />
-                  <img class="yc-shot-dark" :src="shotDark" :alt="t('yc.client.shotAlt')" width="1826" height="873" loading="lazy" />
+                  <img :src="shot" :alt="t('yc.client.shotAlt')" width="1820" height="880" loading="lazy" />
                 </figure>
               </template>
               <p v-if="p.id === 'help' && contactInfo" class="yc-vs-contact">{{ contactInfo }}</p>
@@ -182,8 +181,7 @@ import { sanitizeUrl } from '@/utils/url'
 import { ycSiteName } from '@/utils/ycBrand'
 import { YC_CLIENT_DOWNLOADS, detectYcClientPlatform } from '@/utils/ycClient'
 import { FeatureFlags, isFeatureFlagEnabled } from '@/utils/featureFlags'
-import shotLight from '@/assets/yecai/yecai-client-apps-light-showcase.webp'
-import shotDark from '@/assets/yecai/yecai-client-apps-dark-showcase.webp'
+import shot from '@/assets/yecai/yeschoy-roster-showcase.webp'
 import '@/styles/yecai.css'
 
 const { t } = useI18n()
@@ -425,9 +423,6 @@ onMounted(async () => {
 .yc-shot figcaption i { width: 9px; height: 9px; border-radius: 50%; background: var(--yc-line); }
 .yc-shot figcaption span { margin-left: 8px; }
 .yc-shot img { display: block; width: 100%; height: auto; }
-.yc-shot-dark { display: none !important; }
-:global(.dark .yc .yc-shot-light) { display: none; }
-:global(.dark .yc .yc-shot-dark) { display: block !important; }
 .yc-vs-after { transform: perspective(1100px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transition: transform 0.25s ease-out; }
 .yc-vs-after::after { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; background: radial-gradient(380px circle at var(--sx, 50%) var(--sy, 50%), rgb(200 255 0 / 0.22), transparent 65%); opacity: 0; transition: opacity 0.3s ease; }
 .yc-vs-after:hover::after { opacity: 1; }

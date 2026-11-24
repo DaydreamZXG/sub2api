@@ -24,8 +24,7 @@
         </div>
       </div>
       <picture class="yc-way-shot" aria-hidden="true">
-        <img :src="shotLight" class="yc-only-light" alt="" loading="lazy" />
-        <img :src="shotDark" class="yc-only-dark" alt="" loading="lazy" />
+        <img :src="shot" alt="" loading="lazy" />
       </picture>
     </section>
 
@@ -142,8 +141,7 @@ import { YC_CLIENT_DOWNLOADS, detectYcClientPlatform } from '@/utils/ycClient'
 import { FeatureFlags, isFeatureFlagEnabled } from '@/utils/featureFlags'
 import YcShell from '@/components/yecai/YcShell.vue'
 import UseKeyModal from '@/components/keys/UseKeyModal.vue'
-import shotLight from '@/assets/yecai/yecai-client-apps-light-showcase.webp'
-import shotDark from '@/assets/yecai/yecai-client-apps-dark-showcase.webp'
+import shot from '@/assets/yecai/yeschoy-roster-showcase.webp'
 
 type Shell = 'unix' | 'powershell' | 'cmd'
 const SHELLS: Shell[] = ['unix', 'powershell', 'cmd']
@@ -258,8 +256,6 @@ onMounted(() => {
 .yc-way-cta { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; margin-top: 18px; }
 .yc-way-shot { margin: -28px -30px -28px 0; align-self: stretch; }
 .yc-way-shot img { width: 100%; height: 100%; min-height: 220px; object-fit: cover; object-position: left top; border-left: 1px solid var(--yc-line); }
-.yc-only-dark, :global(.dark .yc .yc-only-light) { display: none; }
-:global(.dark .yc .yc-only-dark) { display: block; }
 .yc-step { margin-top: 24px; }
 .yc-step-lab { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; font-size: 15.5px; font-weight: 650; }
 .yc-step-lab i { flex: none; width: 24px; height: 24px; display: grid; place-items: center; border-radius: 50%; background: var(--yc-lime); color: var(--yc-on-lime); font-style: normal; font-size: 13px; font-weight: 800; }
