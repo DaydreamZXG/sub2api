@@ -27,7 +27,18 @@
         <tr v-for="{ model: m, period, key } in rows" :key="key" :class="{ 'pzt-period': period }">
           <td class="pzt-model">
             <div class="pzt-model-in">
-              <span class="pzt-name">{{ m.name }}</span>
+              <span class="pzt-name">
+                <span class="pzt-name-text">{{ m.name }}</span>
+                <button
+                  type="button"
+                  class="pzt-copy"
+                  :title="t('modelPlaza.table.copyModelId', { model: m.name })"
+                  :aria-label="t('modelPlaza.table.copyModelId', { model: m.name })"
+                  @click="copyToClipboard(m.name)"
+                >
+                  <Icon name="copy" size="sm" aria-hidden="true" />
+                </button>
+              </span>
               <span v-if="period" class="pzt-chip pzt-chip-mono" :title="timePricingRowHint(m)">
                 <span v-if="m.time_pricing?.weekdays_only" class="pzt-chip-word">{{
                   t('modelPlaza.table.timePricingWeekdays')
@@ -221,6 +232,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import Icon from '@/components/icons/Icon.vue'
+import { useClipboard } from '@/composables/useClipboard'
 import { resolveIntervalPrices, yuanText } from '@/utils/pricing'
 import { platformLabel } from '@/utils/platformColors'
 import { priceChangeLabel } from '@/utils/ycPriceWords'
@@ -269,6 +282,7 @@ const props = defineProps<{
 }>()
 
 const { t } = useI18n()
+const { copyToClipboard } = useClipboard()
 
 const PER_MILLION = 1_000_000
 
