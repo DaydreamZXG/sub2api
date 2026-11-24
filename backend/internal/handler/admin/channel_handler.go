@@ -662,6 +662,18 @@ func (h *ChannelHandler) GetModelDefaultPricing(c *gin.Context) {
 	var bookCNY OfficialCNYTriple
 	if book != nil {
 		bookCNY = OfficialCNYTriple{book.CNYInput, book.CNYOutput, book.CNYCacheRead}
+		// The book's USD prices are the official ones the price list compares with; prefill the same.
+		local := *pricing
+		pricing = &local
+		for dst, v := range map[*float64]*float64{
+			&pricing.InputPricePerToken:     book.USDInput,
+			&pricing.OutputPricePerToken:    book.USDOutput,
+			&pricing.CacheReadPricePerToken: book.USDCacheRead,
+		} {
+			if v != nil {
+				*dst = *v / 1e6
+			}
+		}
 	}
 	cacheWritePrice := pricing.CacheCreationPricePerToken
 	var cacheWrite1hPrice *float64
