@@ -472,10 +472,10 @@ function tokenIntervals(m: PlazaModel): UserPricingInterval[] {
 }
 
 /** 官方阶梯(后端按目录规则合成,不受分组开关影响)。 */
-/** Catalog context tiers; an entered official yuan price replaces them with the flat price it states. */
+/** Catalog context tiers; on yuan pages an entered official input/output price replaces them with the flat price it states. */
 function officialIntervals(m: PlazaModel): UserPricingInterval[] {
   const o = m.official_pricing
-  if (o?.cny_input_price != null || o?.cny_output_price != null || o?.cny_cache_read_price != null) return []
+  if (!inUsd.value && (o?.cny_input_price != null || o?.cny_output_price != null)) return []
   return sortByContext(o?.intervals ?? [])
 }
 
