@@ -656,6 +656,8 @@ export default {
     subscription: '包月',
     exclusiveTooltip: '管理员单独开给你的线路',
     publicTooltip: '所有用户都能用的线路',
+    vsChannelPrice: '比渠道定价',
+    protocol: '{platform} 兼容接口',
     columns: {
       groups: '你能用的线路',
       supportedModels: '支持的模型（点一下看价格）'
@@ -694,6 +696,8 @@ export default {
     loadFailed: '加载模型广场失败',
     noSearchResult: '没有匹配的模型',
     anonymousHint: '登录后能看到你的专属线路和专属价格',
+    lead: '所有价格都是人民币，单位是每百万 Token。划线价是官方价按 1 美元 ≈ {rate} 元折算，只用来对比。点开一个模型，能看到它在每条线路上的价格、缓存价和分时段价格。',
+    list: { lines: '{n} 条线路', from: '起', other: '其他', cacheRead: '缓存读取', vsOfficial: '比官方价' },
     filters: {
       platformLabel: '平台',
       groupLabel: '线路',
@@ -738,7 +742,7 @@ export default {
       officialShort: '官方',
       paidPrice: '你付的价格',
       officialPrice: '官方价（仅供对比）',
-      rate: '折扣',
+      rate: '比官方价',
       unitPerMillion: '¥ / 百万 Token',
       perUnitRequest: '/ 次',
       perUnitImage: '/ 张',

@@ -79,7 +79,7 @@ const links = computed<NavLink[]>(() => {
   return [
     { to: '/dashboard', text: t('yc.shell.start') },
     { to: '/connect', text: t('yc.shell.connect') },
-    ...on(full && flag(FeatureFlags.modelPlaza), { to: '/prices', text: t('yc.shell.prices'), also: ['/model-plaza'] }),
+    ...on(full && flag(FeatureFlags.modelPlaza), { to: '/model-plaza', text: t('yc.shell.prices'), also: ['/prices'] }),
     ...on(full, { to: '/bills', text: t('yc.shell.bills'), also: ['/usage'] }),
     ...on(full, { to: '/topup', text: t('yc.shell.topUp'), also: ['/purchase', '/orders', '/redeem', '/payment'] }),
     ...on(full && hasGarden.value, { to: '/garden', text: t('yc.shell.garden'), dot: gardenNews.value }),

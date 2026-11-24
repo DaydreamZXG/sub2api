@@ -4,7 +4,6 @@
       <div class="pzg-title">
         <PlatformIcon :platform="group.platform as GroupPlatform" size="sm" />
         <h2 class="pzg-name">{{ group.name }}</h2>
-        <span v-if="priceTag" data-test="plaza-line-price" class="yc-badge yc-badge-lime">{{ priceTag }}</span>
         <span v-if="group.app_only" class="yc-badge">{{ t('yc.prices.appOnly') }}</span>
         <span v-if="group.subscription_type === 'subscription'" class="yc-badge">{{ t('modelPlaza.badges.subscription') }}</span>
         <span v-if="group.is_exclusive" class="yc-badge">{{ t('modelPlaza.badges.exclusive') }}</span>
@@ -65,11 +64,6 @@ const peakNote = computed(() => {
     change: priceChangeLabel(t, props.group.peak_rate_multiplier)
   })
 })
-
-/** The line's price next to the standard one, in words; empty at the standard price. */
-const priceTag = computed(() =>
-  priceChangeLabel(t, props.group.user_rate_multiplier ?? props.group.rate_multiplier)
-)
 
 /**
  * 分组关闭了长上下文阶梯、但组内有模型官方带阶梯时提示:实付列只展示基础档,

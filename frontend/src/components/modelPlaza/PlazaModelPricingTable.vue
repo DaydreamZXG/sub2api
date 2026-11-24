@@ -220,7 +220,7 @@
               :class="{ 'is-plain': !priceChangeLabel(t, rowRate(m)) }"
               :data-rate="rowRate(m)"
               :title="t('modelPlaza.table.rawRate', { rate: rowRate(m) })"
-              >{{ rateLabel(rowRate(m)) }}</span
+              >{{ shareLabel(m) }}</span
             >
           </td>
         </tr>
@@ -383,6 +383,18 @@ function official(value: number | null | undefined): string {
 /** A multiplier in words; the standard price has its own label. */
 function rateLabel(rate: number): string {
   return priceChangeLabel(t, rate) || t('modelPlaza.table.standardPrice')
+}
+
+/**
+ * The standard row next to the official price, the same comparison the model list makes;
+ * the multiplier when there is no official token price to compare with.
+ */
+function shareLabel(m: PlazaModel): string {
+  const paid = m.pricing?.input_price
+  const listed = m.official_pricing?.input_price
+  if (billingMode(m) !== BILLING_MODE_TOKEN || paid == null || !listed) return rateLabel(rowRate(m))
+  const share = (paid * effectiveRate.value) / unitsPerYuan.value / (listed * cnyPerUsd.value)
+  return rateLabel(Math.round(share * 1000) / 1000)
 }
 
 /** The multiplier a standard (non time-of-day) row is charged at. */
