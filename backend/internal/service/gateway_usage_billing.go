@@ -1023,7 +1023,10 @@ func (s *GatewayService) upstreamPriceFactorApplies(ctx context.Context, result 
 	if result.upstreamPriceFactor() == 1 {
 		return false
 	}
-	return s.resolveChannelPricing(ctx, billingModel, apiKey) == nil
+	resolved := s.resolveChannelPricing(ctx, billingModel, apiKey)
+	// A channel entry without a billing price (e.g. one holding only official reference prices) bills at the default price.
+	return resolved == nil ||
+		(resolved.Source == PricingSourceChannel && resolved.channelPricing != nil && pricingNeedsFallback(resolved.channelPricing))
 }
 
 // applyUpstreamPriceFactor 把上游端点价格倍数作用于按 token 计费的费用，按次等其他计费模式不受影响。
