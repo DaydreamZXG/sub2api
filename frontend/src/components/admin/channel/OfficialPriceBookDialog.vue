@@ -39,7 +39,7 @@
     </div>
     <template #footer>
       <button type="button" class="btn btn-secondary" @click="emit('close')">{{ t('common.cancel') }}</button>
-      <button type="button" class="btn btn-primary" :disabled="loading || saving" @click="save">{{ t('common.save') }}</button>
+      <button type="button" class="btn btn-primary" :disabled="loading || saving || loadFailed" @click="save">{{ t('common.save') }}</button>
     </template>
   </BaseDialog>
 </template>
@@ -66,6 +66,8 @@ type Row = { key: number; models: string } & Record<PriceField, number | string 
 const rows = ref<Row[]>([])
 const loading = ref(false)
 const saving = ref(false)
+// Saving replaces the whole book, so never save rows that were not loaded.
+const loadFailed = ref(false)
 let nextKey = 0
 
 function toRow(e: OfficialPriceEntry): Row {
@@ -91,9 +93,11 @@ function toEntry(r: Row): OfficialPriceEntry {
 
 async function load() {
   loading.value = true
+  loadFailed.value = false
   try {
     rows.value = (await getOfficialPriceBook()).map(toRow)
   } catch (err) {
+    loadFailed.value = true
     appStore.showError(extractApiErrorMessage(err, t('admin.channels.officialBook.loadFailed')))
   } finally {
     loading.value = false
@@ -101,6 +105,7 @@ async function load() {
 }
 
 async function save() {
+  if (loadFailed.value) return
   saving.value = true
   try {
     rows.value = (await updateOfficialPriceBook(rows.value.map(toEntry))).map(toRow)
