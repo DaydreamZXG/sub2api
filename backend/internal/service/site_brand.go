@@ -3,7 +3,7 @@ package service
 import "strings"
 
 const (
-	brandSiteName = "野菜"
+	brandSiteName = "YesChoy"
 	// The name a fresh install stores in the site_name setting.
 	stockSiteName = "Sub2API"
 )

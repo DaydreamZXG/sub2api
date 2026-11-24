@@ -71,7 +71,7 @@ export interface ModelPlazaGroup {
   peak_end: string
   peak_rate_multiplier: number
   is_exclusive: boolean
-  /** 仅限野菜 app 的线路：只有通过 app 发出的请求按这个价格计费。 */
+  /** 仅限 YesChoy 客户端 的线路：只有通过 app 发出的请求按这个价格计费。 */
   app_only?: boolean
   /** The app-only line also takes requests sent without the app, billed on another line. */
   app_fallback?: boolean

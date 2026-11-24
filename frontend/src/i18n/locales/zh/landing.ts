@@ -192,8 +192,8 @@ export default {
 
   // Setup Wizard
   setup: {
-    title: '野菜 安装向导',
-    description: '配置您的 野菜 实例',
+    title: 'YesChoy 安装向导',
+    description: '配置您的 YesChoy 实例',
     database: {
       title: '数据库配置',
       description: '连接到您的 PostgreSQL 数据库',

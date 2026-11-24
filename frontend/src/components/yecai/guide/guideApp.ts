@@ -87,7 +87,7 @@ export function mountGuide(root: HTMLElement, D: GuideData): () => void {
       }).join('')
       const fold = (title: string, html: string) => `<details class="fold"><summary>${esc(title)}</summary><div class="prose">${html}</div></details>`
       const addr = [['OpenAI 格式（大多数软件）', 'https://yeschoy.com/v1'], ['Anthropic / Gemini 原生格式', 'https://yeschoy.com'], ['软件要“完整接口地址”时', 'https://yeschoy.com/v1/chat/completions']]
-      const steps = [['拿密钥', '在野菜 AI 后台创建一枚 API 密钥'], ['填地址', '把下面的地址填进你的工具'], ['选模型', '从模型定价页复制完整模型 ID']]
+      const steps = [['拿密钥', '在YesChoy 后台创建一枚 API 密钥'], ['填地址', '把下面的地址填进你的工具'], ['选模型', '从模型定价页复制完整模型 ID']]
       return `<section class="hero"><div class="hero-text"><span class="hero-tag">${D.tools.length} 个工具 · ${errorTotal} 条报错解法</span>
         <h1>${esc(D.title)}</h1><div class="lead"><p>选你的工具，只看它的配置和报错。</p></div>
         ${searchBox('搜工具名或报错，比如 Cursor、401、模型列表为空')}</div>${HERO_ART}</section>
@@ -95,7 +95,7 @@ export function mountGuide(root: HTMLElement, D: GuideData): () => void {
         <div data-g="out"><section class="quick" data-sub>
           <header><b>地址速查</b>${lineSwitch()}</header>
           ${addr.map(([label, url]) => `<div class="quick-row"><span>${label}</span><code>${url}</code></div>`).join('')}
-          <p>点地址就能复制。密钥在野菜 AI 后台创建，模型 ID 从“模型定价”页完整复制。</p></section>
+          <p>点地址就能复制。密钥在YesChoy 后台创建，模型 ID 从“模型定价”页完整复制。</p></section>
         <h2 class="sec">按类别找工具</h2><div class="cats">${cats}</div>
         <h2 class="sec">新手先看</h2>${D.start.map((s) => fold(s.title, s.html)).join('')}
         ${fold('关于这份指南', `${D.intro}<ul>${D.meta.map((m) => `<li>${esc(m)}</li>`).join('')}</ul>`)}</div>`

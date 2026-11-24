@@ -629,7 +629,7 @@ export interface Group {
   // Claude Code 客户端限制
   claude_code_only: boolean
   fallback_group_id: number | null
-  // 仅限野菜 app 的线路
+  // 仅限 YesChoy 客户端 的线路
   app_only?: boolean
   app_fallback_group_id?: number | null
   fallback_group_id_on_invalid_request: number | null

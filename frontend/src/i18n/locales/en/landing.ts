@@ -192,8 +192,8 @@ export default {
 
   // Setup Wizard
   setup: {
-    title: 'Yecai Setup',
-    description: 'Configure your Yecai instance',
+    title: 'YesChoy Setup',
+    description: 'Configure your YesChoy instance',
     database: {
       title: 'Database Configuration',
       description: 'Connect to your PostgreSQL database',

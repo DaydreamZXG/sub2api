@@ -6,6 +6,7 @@
       </router-link>
       <nav ref="nav" class="yc-side-nav" :aria-label="t('yc.nav.aria')">
         <router-link v-for="l in links" :key="l.to" :to="l.to" :class="{ 'is-on': isOn(l), 'has-dot': l.dot }">{{ l.text }}</router-link>
+        <a :href="YC_CLIENT_PAGE">{{ t('yc.nav.client') }}</a>
         <p class="yc-side-more">{{ t('yc.shell.more') }}</p>
         <router-link v-for="l in more" :key="l.to" :to="l.to" class="is-minor" :class="{ 'is-on': isOn(l) }">{{ l.text }}</router-link>
         <YcThemeSwitch class="yc-side-narrow" />
@@ -34,6 +35,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAdminSettingsStore, useAuthStore, useAppStore } from '@/stores'
 import YcBrand from '@/components/yecai/YcBrand.vue'
+import { YC_CLIENT_PAGE } from '@/utils/ycClient'
 import YcThemeSwitch from '@/components/yecai/YcThemeSwitch.vue'
 import { FeatureFlags, isFeatureFlagEnabled } from '@/utils/featureFlags'
 import { availableLocales, setLocale } from '@/i18n'

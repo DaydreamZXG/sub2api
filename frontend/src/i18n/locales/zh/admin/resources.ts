@@ -603,7 +603,7 @@ export default {
       title: '成长等级',
       description: '用户累计充值越多，用 app 接入时价格越低',
       enable: '开启成长等级',
-      enableHint: '开启后，用户通过野菜 app 使用“仅限野菜 app”的线路时，按等级在线路价格上再打折。其他线路和不经过 app 的请求不受影响。',
+      enableHint: '开启后，用户通过 YesChoy 客户端 使用“仅限 YesChoy 客户端”的线路时，按等级在线路价格上再打折。其他线路和不经过 app 的请求不受影响。',
       name: '等级名称',
       threshold: '累计充值达到（余额）',
       discount: 'app 价再减（%）',

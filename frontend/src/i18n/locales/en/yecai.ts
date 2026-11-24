@@ -1,5 +1,5 @@
 export default {
-  nav: { aria: 'Page navigation', pains: 'What we fix', prices: 'Prices', faq: 'FAQ', docs: 'Docs' },
+  nav: { aria: 'Page navigation', pains: 'What we fix', prices: 'Prices', faq: 'FAQ', docs: 'Docs', client: 'Client' },
   cta: { start: 'Get started', login: 'Sign in', console: 'Open console' },
   flow: { aria: 'Your tools reach every model through one key', key: 'Your key' },
   hero: {
