@@ -34,7 +34,7 @@ type Source struct {
 
 // DefaultSources are free, keyless endpoints, tried in order.
 var DefaultSources = []Source{
-	{URL: "https://api.frankfurter.app/latest?from=USD&to=CNY", Parse: parseRatesCNY},
+	{URL: "https://api.frankfurter.dev/v1/latest?base=USD&symbols=CNY", Parse: parseRatesCNY},
 	{URL: "https://open.er-api.com/v6/latest/USD", Parse: parseRatesCNY},
 }
 
