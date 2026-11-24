@@ -149,6 +149,21 @@
             </div>
           </div>
 
+          <template v-if="enableOfficialCny">
+            <label class="mt-3 block text-xs font-medium text-gray-500 dark:text-gray-400">
+              {{ t('admin.channels.form.officialCnyPrices') }}
+              <span class="ml-1 font-normal text-gray-400">¥/MTok</span>
+            </label>
+            <p class="mt-0.5 text-xs text-gray-400">{{ t('admin.channels.form.officialCnyHint') }}</p>
+            <div class="mt-1 grid max-w-3xl grid-cols-1 gap-2 sm:grid-cols-3">
+              <div v-for="field in OFFICIAL_CNY_FIELDS" :key="field.key">
+                <label class="text-xs text-gray-400">{{ t(field.label) }}</label>
+                <input :value="entry[field.key]" @input="emitField(field.key, ($event.target as HTMLInputElement).value)"
+                  type="number" step="any" min="0" class="input mt-0.5 text-sm" :placeholder="t('admin.channels.form.officialCnyPlaceholder')" />
+              </div>
+            </div>
+          </template>
+
           <div v-if="enableTierMultipliers" class="mt-3 grid max-w-3xl grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
             <div>
               <label class="text-xs text-gray-400">{{ t('admin.channels.form.fastMultiplier') }}</label>
@@ -332,11 +347,19 @@ const props = withDefaults(defineProps<{
   hideTokenIntervals?: boolean
   enableTimePricing?: boolean
   enableTierMultipliers?: boolean
+  enableOfficialCny?: boolean
 }>(), {
   hideTokenIntervals: false,
   enableTimePricing: false,
   enableTierMultipliers: false,
+  enableOfficialCny: false,
 })
+
+const OFFICIAL_CNY_FIELDS = [
+  { key: 'official_cny_input_price', label: 'admin.channels.form.inputPrice' },
+  { key: 'official_cny_output_price', label: 'admin.channels.form.outputPrice' },
+  { key: 'official_cny_cache_read_price', label: 'admin.channels.form.cacheReadPrice' },
+] as const
 
 const emit = defineEmits<{
   update: [entry: PricingFormEntry]

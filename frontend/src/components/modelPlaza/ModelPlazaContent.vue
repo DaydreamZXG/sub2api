@@ -65,11 +65,11 @@
             </span>
             <span class="pz-cell" :data-label="t('modelPlaza.table.input')">
               <b class="yc-num">{{ money(m.input) }}<small v-if="m.varies && m.input != null">{{ t('modelPlaza.list.from') }}</small></b>
-              <s v-if="m.officialInput != null">{{ officialMoney(m.officialInput) }}</s>
+              <s v-if="m.officialInput != null">{{ officialText(m.official, 'input_price') }}</s>
             </span>
             <span class="pz-cell" :data-label="t('modelPlaza.table.output')">
               <b class="yc-num">{{ money(m.output) }}<small v-if="m.varies && m.output != null">{{ t('modelPlaza.list.from') }}</small></b>
-              <s v-if="m.officialOutput != null">{{ officialMoney(m.officialOutput) }}</s>
+              <s v-if="m.officialOutput != null">{{ officialText(m.official, 'output_price') }}</s>
             </span>
             <span class="pz-cell" :data-label="t('modelPlaza.list.cacheRead')">
               <span class="yc-num">{{ money(m.cacheRead) }}</span>
@@ -101,10 +101,10 @@ import DOMPurify from 'dompurify'
 import Icon from '@/components/icons/Icon.vue'
 import ModelIcon from '@/components/common/ModelIcon.vue'
 import PlazaGroupSection from './PlazaGroupSection.vue'
-import type { ModelPlazaGroup, ModelPlazaResponse, PlazaModel } from '@/api/modelPlaza'
+import type { ModelPlazaGroup, ModelPlazaResponse, PlazaModel, PlazaOfficialPricing } from '@/api/modelPlaza'
 import { useAuthStore } from '@/stores/auth'
 import { cnyPerUsd, officialInUsd, unitsPerYuan } from '@/composables/ycMoneyState'
-import { usdText, yuanText } from '@/utils/pricing'
+import { officialUsdPerToken, officialYuanPerToken, usdText, yuanText, type OfficialField } from '@/utils/pricing'
 import { priceChangeLabel } from '@/utils/ycPriceWords'
 import { familiesOf, modelFamily } from '@/utils/modelFamily'
 import { BILLING_MODE_TOKEN } from '@/utils/billingMode'
@@ -149,6 +149,8 @@ interface PlazaModelRow {
   input: number | null
   output: number | null
   cacheRead: number | null
+  official: PlazaOfficialPricing | null
+  /** Official prices in yuan per million tokens, the basis of the discount. */
   officialInput: number | null
   officialOutput: number | null
   /** Headline input price as a share of the official one, null without an official price. */
@@ -165,8 +167,9 @@ function paid(value: number | null | undefined, g: ModelPlazaGroup): number | nu
   return value == null ? null : (value * rateOf(g) * PER_MILLION) / unitsPerYuan.value
 }
 
-function listed(value: number | null | undefined): number | null {
-  return value == null ? null : value * PER_MILLION * cnyPerUsd.value
+function listed(o: PlazaOfficialPricing | null, field: OfficialField): number | null {
+  const v = officialYuanPerToken(o, field, cnyPerUsd.value)
+  return v == null ? null : v * PER_MILLION
 }
 
 function varies(e: PlazaEntry): boolean {
@@ -208,7 +211,7 @@ const models = computed<PlazaModelRow[]>(() => {
     const head = entries[0]
     const f = modelFamily(name)
     const official = entries.find((e) => e.model.official_pricing)?.model.official_pricing ?? null
-    const officialInput = listed(official?.input_price)
+    const officialInput = listed(official, 'input_price')
     rows.push({
       name,
       familyKey: f?.key ?? 'other',
@@ -218,8 +221,9 @@ const models = computed<PlazaModelRow[]>(() => {
       input: head.input,
       output: head.input == null ? null : paid(head.model.pricing?.output_price, head.group),
       cacheRead: head.input == null ? null : paid(head.model.pricing?.cache_read_price, head.group),
+      official,
       officialInput,
-      officialOutput: listed(official?.output_price),
+      officialOutput: listed(official, 'output_price'),
       share: head.input != null && officialInput ? Math.round((head.input / officialInput) * 1000) / 1000 : null,
       varies: varies(head)
     })
@@ -249,9 +253,11 @@ function money(value: number | null): string {
   return value == null ? '-' : yuanText(value)
 }
 
-/** Official prices are kept in yuan for the discount; non-Chinese pages show them in dollars. */
-function officialMoney(yuanAmount: number): string {
-  return officialInUsd(locale?.value) ? usdText(yuanAmount / cnyPerUsd.value) : yuanText(yuanAmount)
+/** Chinese pages show official prices in yuan, other languages in dollars. */
+function officialText(o: PlazaOfficialPricing | null, field: OfficialField): string {
+  const v = officialInUsd(locale?.value) ? officialUsdPerToken(o, field, cnyPerUsd.value) : officialYuanPerToken(o, field, cnyPerUsd.value)
+  if (v == null) return '-'
+  return officialInUsd(locale?.value) ? usdText(v * PER_MILLION) : yuanText(v * PER_MILLION)
 }
 </script>
 

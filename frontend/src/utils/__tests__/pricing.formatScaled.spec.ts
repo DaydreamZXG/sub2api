@@ -1,5 +1,5 @@
 import { officialInUsd } from '@/composables/ycMoneyState'
-import { usdText, yuanText } from '@/utils/pricing'
+import { officialUsdPerToken, officialYuanPerToken, usdText, yuanText } from '@/utils/pricing'
 import { describe, expect, it } from 'vitest'
 import { formatScaled } from '../pricing'
 
@@ -37,5 +37,21 @@ describe('official price currency', () => {
     expect(usdText(0.15)).toBe('$0.15')
     expect(usdText(0.0015)).toBe('$0.0015')
     expect(yuanText(0.15 * 6.6647)).toBe('¥0.9997')
+  })
+})
+
+describe('official prices', () => {
+  const base = { input_price: 1.5e-7, output_price: 6e-7, cache_write_price: null, cache_read_price: null }
+
+  it('uses the entered yuan price and falls back to the daily rate', () => {
+    expect(officialYuanPerToken({ ...base, cny_input_price: 1e-6 }, 'input_price', 7)).toBe(1e-6)
+    expect(officialYuanPerToken(base, 'output_price', 7)).toBeCloseTo(4.2e-6)
+    expect(officialYuanPerToken(base, 'cache_read_price', 7)).toBeNull()
+    expect(officialYuanPerToken(null, 'input_price', 7)).toBeNull()
+  })
+
+  it('keeps the catalog dollars and converts a yuan-only price', () => {
+    expect(officialUsdPerToken({ ...base, cny_input_price: 1e-6 }, 'input_price', 7)).toBe(1.5e-7)
+    expect(officialUsdPerToken({ ...base, input_price: null, cny_input_price: 7e-6 }, 'input_price', 7)).toBeCloseTo(1e-6)
   })
 })

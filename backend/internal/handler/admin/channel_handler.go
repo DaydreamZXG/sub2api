@@ -74,6 +74,9 @@ type channelModelPricingRequest struct {
 	ImageInputPrice            *float64                   `json:"image_input_price" binding:"omitempty,min=0"`
 	ImageOutputPrice           *float64                   `json:"image_output_price" binding:"omitempty,min=0"`
 	PerRequestPrice            *float64                   `json:"per_request_price" binding:"omitempty,min=0"`
+	OfficialCNYInputPrice      *float64                   `json:"official_cny_input_price" binding:"omitempty,min=0"`
+	OfficialCNYOutputPrice     *float64                   `json:"official_cny_output_price" binding:"omitempty,min=0"`
+	OfficialCNYCacheReadPrice  *float64                   `json:"official_cny_cache_read_price" binding:"omitempty,min=0"`
 	Intervals                  []pricingIntervalRequest   `json:"intervals"`
 	TimePricing                *channelTimePricingRequest `json:"time_pricing"`
 }
@@ -151,6 +154,9 @@ type channelModelPricingResponse struct {
 	ImageInputPrice            *float64                    `json:"image_input_price"`
 	ImageOutputPrice           *float64                    `json:"image_output_price"`
 	PerRequestPrice            *float64                    `json:"per_request_price"`
+	OfficialCNYInputPrice      *float64                    `json:"official_cny_input_price"`
+	OfficialCNYOutputPrice     *float64                    `json:"official_cny_output_price"`
+	OfficialCNYCacheReadPrice  *float64                    `json:"official_cny_cache_read_price"`
 	Intervals                  []pricingIntervalResponse   `json:"intervals"`
 	TimePricing                *channelTimePricingResponse `json:"time_pricing"`
 }
@@ -284,6 +290,9 @@ func pricingToResponse(p *service.ChannelModelPricing) channelModelPricingRespon
 		ImageInputPrice:            p.ImageInputPrice,
 		ImageOutputPrice:           p.ImageOutputPrice,
 		PerRequestPrice:            p.PerRequestPrice,
+		OfficialCNYInputPrice:      p.OfficialCNYInputPrice,
+		OfficialCNYOutputPrice:     p.OfficialCNYOutputPrice,
+		OfficialCNYCacheReadPrice:  p.OfficialCNYCacheReadPrice,
 		Intervals:                  intervals,
 		TimePricing:                timePricingToResponse(p.TimePricing),
 	}
@@ -387,6 +396,9 @@ func pricingRequestToService(reqs []channelModelPricingRequest, allowChannelMult
 			ImageInputPrice:            r.ImageInputPrice,
 			ImageOutputPrice:           r.ImageOutputPrice,
 			PerRequestPrice:            r.PerRequestPrice,
+			OfficialCNYInputPrice:      r.OfficialCNYInputPrice,
+			OfficialCNYOutputPrice:     r.OfficialCNYOutputPrice,
+			OfficialCNYCacheReadPrice:  r.OfficialCNYCacheReadPrice,
 			Intervals:                  intervals,
 			TimePricing:                timePricingRequestToService(r.TimePricing),
 		})

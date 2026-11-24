@@ -1,9 +1,14 @@
+import { officialUsdPerToken, officialYuanPerToken } from '@/utils/pricing'
 import { computed, ref } from 'vue'
 import { getModelPlaza, type ModelPlazaGroup } from '@/api/modelPlaza'
 import { useYcMoney } from '@/composables/useYcMoney'
 
 const PER_MILLION = 1_000_000
 const FEATURED = ['claude', 'gpt', 'gemini', 'grok', 'deepseek']
+
+function perMillion(v: number | null): number | null {
+  return v == null ? null : v * PER_MILLION
+}
 
 export interface YcPrice {
   name: string
@@ -13,6 +18,8 @@ export interface YcPrice {
   /** Official price restated in ¥, null when unknown. */
   officialInput: number | null
   officialOutput: number | null
+  /** Official input price in $ per million tokens, for pages in other languages. */
+  officialInputUsd?: number | null
   /** Charged price as a share of the official one (0-1), null when unknown or not cheaper. */
   share: number | null
   /** Every line selling this model: open lines, then app-only, then plan-only, cheapest first. The headline price is the first one. */
@@ -91,8 +98,9 @@ export function useYcPrices() {
           name: m.name,
           input: line.input,
           output: line.output,
-          officialInput: o?.input_price != null ? o.input_price * PER_MILLION * cnyPerUsd.value : null,
-          officialOutput: o?.output_price != null ? o.output_price * PER_MILLION * cnyPerUsd.value : null,
+          officialInput: perMillion(officialYuanPerToken(o, 'input_price', cnyPerUsd.value)),
+          officialOutput: perMillion(officialYuanPerToken(o, 'output_price', cnyPerUsd.value)),
+          officialInputUsd: perMillion(officialUsdPerToken(o, 'input_price', cnyPerUsd.value)),
           share: null,
           varies: false,
           lines: [line],

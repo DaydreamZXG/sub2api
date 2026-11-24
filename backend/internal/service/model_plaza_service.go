@@ -16,6 +16,10 @@ type PlazaOfficialPricing struct {
 	CacheWrite1hPrice  *float64 // 1h 缓存写入，仅计费会区分 5m/1h 时给出
 	CacheWrite12hPrice *float64 // OpenAI 12h cache-write price
 	CacheReadPrice     *float64
+	// Official yuan prices per token the admin entered on the line; nil restates the USD price at the daily rate.
+	CNYInputPrice     *float64
+	CNYOutputPrice    *float64
+	CNYCacheReadPrice *float64
 	// Intervals 官方长上下文阶梯（多档时给出），不受分组开关影响。
 	Intervals []PricingInterval
 }
@@ -219,8 +223,9 @@ func (s *ModelPlazaService) ListGroups(ctx context.Context) ([]PlazaGroup, error
 		})
 		g := groupEnt[gid]
 		for j := range pg.Models {
+			configured := pg.Models[j].Pricing
 			s.fillDisplayPricing(ctx, &pg.Models[j], g)
-			pg.Models[j].OfficialPricing = s.lookupOfficialPricing(ctx, pg.Models[j].Name, officialMemo)
+			pg.Models[j].OfficialPricing = withOfficialCNY(s.lookupOfficialPricing(ctx, pg.Models[j].Name, officialMemo), configured)
 		}
 		out = append(out, *pg)
 	}
@@ -389,4 +394,19 @@ func (s *ModelPlazaService) lookupOfficialPricing(ctx context.Context, modelName
 	}
 	memo[modelName] = result
 	return result
+}
+
+// withOfficialCNY adds the official yuan prices entered on the line, without touching the shared catalog entry.
+func withOfficialCNY(official *PlazaOfficialPricing, p *ChannelModelPricing) *PlazaOfficialPricing {
+	if p == nil || (p.OfficialCNYInputPrice == nil && p.OfficialCNYOutputPrice == nil && p.OfficialCNYCacheReadPrice == nil) {
+		return official
+	}
+	var out PlazaOfficialPricing
+	if official != nil {
+		out = *official
+	}
+	out.CNYInputPrice = p.OfficialCNYInputPrice
+	out.CNYOutputPrice = p.OfficialCNYOutputPrice
+	out.CNYCacheReadPrice = p.OfficialCNYCacheReadPrice
+	return &out
 }

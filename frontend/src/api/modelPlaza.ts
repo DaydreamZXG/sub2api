@@ -17,6 +17,10 @@ export interface PlazaOfficialPricing {
   cache_write_1h_price?: number | null
   cache_write_12h_price?: number | null
   cache_read_price: number | null
+  /** Official yuan prices per token entered by the admin; absent means restate the USD price at the daily rate. */
+  cny_input_price?: number | null
+  cny_output_price?: number | null
+  cny_cache_read_price?: number | null
   /** 官方长上下文阶梯（多档模型才有），不受分组开关影响。 */
   intervals?: UserPricingInterval[]
 }

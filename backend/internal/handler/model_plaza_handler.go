@@ -44,6 +44,10 @@ type modelPlazaOfficialPricing struct {
 	CacheWrite1hPrice  *float64 `json:"cache_write_1h_price,omitempty"`
 	CacheWrite12hPrice *float64 `json:"cache_write_12h_price,omitempty"`
 	CacheReadPrice     *float64 `json:"cache_read_price"`
+	// Official yuan prices per token the admin entered; absent means restate the USD price.
+	CNYInputPrice     *float64 `json:"cny_input_price,omitempty"`
+	CNYOutputPrice    *float64 `json:"cny_output_price,omitempty"`
+	CNYCacheReadPrice *float64 `json:"cny_cache_read_price,omitempty"`
 	// Intervals 官方长上下文阶梯，仅多档模型给出。
 	Intervals []userPricingIntervalDTO `json:"intervals,omitempty"`
 }
@@ -286,6 +290,9 @@ func toModelPlazaOfficialPricing(p *service.PlazaOfficialPricing) *modelPlazaOff
 		CacheWrite1hPrice:  p.CacheWrite1hPrice,
 		CacheWrite12hPrice: p.CacheWrite12hPrice,
 		CacheReadPrice:     p.CacheReadPrice,
+		CNYInputPrice:      p.CNYInputPrice,
+		CNYOutputPrice:     p.CNYOutputPrice,
+		CNYCacheReadPrice:  p.CNYCacheReadPrice,
 		Intervals:          toUserPricingIntervals(p.Intervals),
 	}
 }

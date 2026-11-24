@@ -57,6 +57,10 @@ export interface ChannelModelPricing {
   image_input_price: number | null
   image_output_price: number | null
   per_request_price: number | null
+  /** Official yuan prices per token, for the price list only; billing never reads them. */
+  official_cny_input_price?: number | null
+  official_cny_output_price?: number | null
+  official_cny_cache_read_price?: number | null
   intervals: PricingInterval[]
   time_pricing: ChannelTimePricing | null
 }
