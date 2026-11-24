@@ -2,7 +2,7 @@
   <div class="pz">
     <header>
       <h1 class="yc-page-h1">{{ t('yc.prices.title') }}</h1>
-      <p class="yc-page-lead">{{ t('modelPlaza.lead', { rate: cnyPerUsd }) }}</p>
+      <p class="yc-page-lead">{{ t('modelPlaza.lead', { rate: cnyPerUsd.toFixed(2) }) }}</p>
     </header>
 
     <!-- Price notes written by the admin (Markdown). -->
@@ -107,6 +107,7 @@ import { cnyPerUsd, unitsPerYuan } from '@/composables/ycMoneyState'
 import { yuanText } from '@/utils/pricing'
 import { priceChangeLabel } from '@/utils/ycPriceWords'
 import { familiesOf, modelFamily } from '@/utils/modelFamily'
+import { BILLING_MODE_TOKEN } from '@/utils/billingMode'
 
 const props = defineProps<{
   response: ModelPlazaResponse | null
@@ -179,11 +180,17 @@ function varies(e: PlazaEntry): boolean {
   )
 }
 
-/** Open pay-as-you-go lines first, so the headline is a price anyone can get with any tool. */
+/** Priced lines first, then open pay-as-you-go ones, so the headline is a price anyone can get with any tool. */
 function lineOrder(a: PlazaEntry, b: PlazaEntry): number {
+  const unpriced = (e: PlazaEntry) => Number(e.input == null)
   const plan = (e: PlazaEntry) => Number(e.group.subscription_type === 'subscription')
   const app = (e: PlazaEntry) => Number(e.group.app_only === true)
-  return plan(a) - plan(b) || app(a) - app(b) || (a.input ?? Infinity) - (b.input ?? Infinity)
+  return unpriced(a) - unpriced(b) || plan(a) - plan(b) || app(a) - app(b) || (a.input ?? 0) - (b.input ?? 0)
+}
+
+/** Per-request and per-image models are priced per unit in the line table, not per token. */
+function tokenBilled(m: PlazaModel): boolean {
+  return (m.pricing?.billing_mode || BILLING_MODE_TOKEN) === BILLING_MODE_TOKEN
 }
 
 const models = computed<PlazaModelRow[]>(() => {
@@ -191,7 +198,7 @@ const models = computed<PlazaModelRow[]>(() => {
   for (const group of props.response?.groups ?? []) {
     for (const model of group.models) {
       const entries = byName.get(model.name) ?? []
-      entries.push({ group, model, input: paid(model.pricing?.input_price, group) })
+      entries.push({ group, model, input: tokenBilled(model) ? paid(model.pricing?.input_price, group) : null })
       byName.set(model.name, entries)
     }
   }
@@ -209,8 +216,8 @@ const models = computed<PlazaModelRow[]>(() => {
       rank: f?.rank ?? Number.MAX_SAFE_INTEGER,
       entries,
       input: head.input,
-      output: paid(head.model.pricing?.output_price, head.group),
-      cacheRead: paid(head.model.pricing?.cache_read_price, head.group),
+      output: head.input == null ? null : paid(head.model.pricing?.output_price, head.group),
+      cacheRead: head.input == null ? null : paid(head.model.pricing?.cache_read_price, head.group),
       officialInput,
       officialOutput: listed(official?.output_price),
       share: head.input != null && officialInput ? Math.round((head.input / officialInput) * 1000) / 1000 : null,
