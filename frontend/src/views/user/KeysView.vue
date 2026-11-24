@@ -2064,24 +2064,23 @@ onUnmounted(() => {
 .yk-num { font-variant-numeric: tabular-nums; font-weight: 650; }
 .yk-dim { color: var(--yc-dim); }
 .yk-bad { color: #d92d20; }
-.yk-link { font-weight: 600; text-decoration: underline; text-decoration-color: var(--yc-lime); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+.yk-link { font-weight: 600; text-decoration: underline; text-decoration-color: var(--yc-accent); text-decoration-thickness: 2px; text-underline-offset: 3px; }
 
-.yk-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 36px; padding: 0 14px; border-radius: 999px; font-size: 14px; font-weight: 600; white-space: nowrap; transition: transform 0.15s, box-shadow 0.15s, background 0.15s; }
+.yk-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 36px; padding: 0 14px; border-radius: 8px; font-size: 14px; font-weight: 600; white-space: nowrap; transition: transform 0.15s, box-shadow 0.15s, background 0.15s; }
 .yk-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .yk-btn:not(:disabled):active { transform: scale(0.97); }
-.yk-btn-lime { background: var(--yc-lime); color: var(--yc-on-lime); box-shadow: 0 0 0 1px rgb(11 15 12 / 0.9); }
-.yk-btn-lime:not(:disabled):hover { box-shadow: 0 0 0 1px rgb(11 15 12 / 0.9), 0 3px 0 0 rgb(11 15 12 / 0.9); transform: translateY(-1px); }
+.yk-btn-lime { background: var(--yc-lime); color: var(--yc-on-lime); }
+.yk-btn-lime:not(:disabled):hover { opacity: 0.86; }
 .yk-btn-ink { background: var(--yc-ink); color: var(--yc-paper); }
 .yk-btn-ghost { color: var(--yc-ink); box-shadow: inset 0 0 0 1px var(--yc-line); background: var(--yc-paper); }
 .yk-btn-ghost:not(:disabled):hover, .yk-btn-on { background: var(--yc-fill); }
 .yk-btn-icon { width: 36px; padding: 0; }
 
-.yk-address { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px; padding: 16px 20px; border-radius: 20px; background: var(--yc-ink); color: var(--yc-paper); }
-.yk-address-label { display: inline-flex; align-items: center; height: 24px; padding: 0 10px; border-radius: 999px; font-size: 12.5px; font-weight: 650; background: var(--yc-lime); color: var(--yc-on-lime); }
+.yk-address { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px; padding: 16px 20px; border-radius: 12px; border: 1px solid var(--yc-line); background: var(--yc-paper); color: var(--yc-ink); }
+.yk-address-label { display: inline-flex; align-items: center; height: 24px; padding: 0 10px; border-radius: 999px; font-size: 12.5px; font-weight: 600; background: var(--yc-accent-soft); color: var(--yc-accent); }
 .yk-address-url { font-size: 15px; word-break: break-all; }
-.yk-address .yk-btn-ghost { height: 30px; padding: 0 12px; font-size: 13px; background: transparent; color: inherit; box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.28); }
-.dark .yk-address .yk-btn-ghost { box-shadow: inset 0 0 0 1px rgb(11 15 12 / 0.28); }
-.yk-address .yk-btn-ghost:hover { background: rgb(128 128 128 / 0.22); }
+.yk-address .yk-btn-ghost { height: 30px; padding: 0 12px; font-size: 13px; background: transparent; color: inherit; box-shadow: inset 0 0 0 1px var(--yc-line); }
+.yk-address .yk-btn-ghost:hover { background: var(--yc-fill); }
 .yk-address-hint { flex: 1 1 100%; font-size: 13.5px; opacity: 0.78; }
 
 .yk-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
@@ -2122,7 +2121,7 @@ onUnmounted(() => {
 .yk-line:hover { background: var(--yc-fill); }
 .yk-line-name { font-weight: 650; overflow-wrap: anywhere; }
 .yk-line-change { font-size: 12.5px; color: var(--yc-mut); text-decoration: underline; text-underline-offset: 3px; }
-.yk-tag { display: inline-flex; align-items: center; height: 20px; padding: 0 8px; border-radius: 999px; font-size: 12px; font-weight: 600; background: var(--yc-lime); color: var(--yc-on-lime); }
+.yk-tag { display: inline-flex; align-items: center; height: 20px; padding: 0 8px; border-radius: 999px; font-size: 12px; font-weight: 600; background: var(--yc-accent-soft); color: var(--yc-accent); }
 .yk-pending { display: inline-block; width: 48px; height: 12px; border-radius: 6px; background: var(--yc-fill); animation: yk-pulse 1.2s ease-in-out infinite; }
 .yk-quota { max-width: 360px; margin-top: 12px; }
 

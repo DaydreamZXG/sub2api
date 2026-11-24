@@ -363,14 +363,14 @@ onMounted(async () => {
 .yc-top { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--yc-bg) 78%, transparent); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); border-bottom: 1px solid var(--yc-line); }
 .yc-progress { position: absolute; left: 0; right: 0; bottom: -2px; height: 2px; background: var(--yc-lime); transform-origin: left; }
 .yc-top-in { height: 64px; display: flex; align-items: center; gap: 28px; }
-.yc-brand { display: flex; align-items: center; gap: 10px; font-weight: 750; font-size: 17px; letter-spacing: -0.01em; white-space: nowrap; }
+.yc-brand { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 17px; letter-spacing: -0.01em; white-space: nowrap; }
 .yc-top-nav { display: flex; gap: 26px; margin-right: auto; font-size: 14.5px; color: var(--yc-mut); }
 .yc-top-nav a:hover { color: var(--yc-ink); }
 .yc-top-actions { display: flex; align-items: center; gap: 10px; margin-left: auto; }
 
 .yc-hero { position: relative; padding-top: clamp(64px, 10vw, 128px); text-align: center; }
-.yc-hero::before { content: ''; position: absolute; z-index: 0; left: 50%; top: 4%; width: min(900px, 110%); aspect-ratio: 2 / 1; transform: translateX(-50%); background: radial-gradient(closest-side, rgb(0 113 227 / 0.42), transparent 72%); filter: blur(48px); pointer-events: none; }
-:global(.dark .yc .yc-hero::before) { background: radial-gradient(closest-side, rgb(0 113 227 / 0.16), transparent 72%); }
+.yc-hero::before { content: ''; position: absolute; z-index: 0; left: 50%; top: 4%; width: min(900px, 110%); aspect-ratio: 2 / 1; transform: translateX(-50%); background: radial-gradient(closest-side, rgb(91 91 214 / 0.14), transparent 72%); filter: blur(48px); pointer-events: none; }
+:global(.dark .yc .yc-hero::before) { background: radial-gradient(closest-side, rgb(91 91 214 / 0.12), transparent 72%); }
 .yc-hero > * { position: relative; z-index: 1; }
 .yc-hero > .yc-hero-dots { position: absolute; z-index: 0; top: 0; left: 50%; width: 100vw; height: min(100%, 880px); transform: translateX(-50%); pointer-events: none; }
 .yc-hero-dots i { position: absolute; inset: 0; background-size: 26px 26px; background-position: center top; }
@@ -378,8 +378,8 @@ onMounted(async () => {
 .yc-hero-dots i:last-child { background-image: radial-gradient(circle, var(--yc-ink) 1.7px, transparent 2.2px); -webkit-mask-image: radial-gradient(210px circle at var(--mx, 50%) var(--my, 30%), #000, transparent); mask-image: radial-gradient(210px circle at var(--mx, 50%) var(--my, 30%), #000, transparent); opacity: 0; transition: opacity 0.45s ease; }
 .yc-hero-dots.is-live i:last-child { opacity: 1; }
 :global(.dark .yc .yc-hero-dots i:first-child) { background-image: radial-gradient(circle, rgb(244 246 241 / 0.14) 1.1px, transparent 1.6px); }
-:global(.dark .yc .yc-hero-dots i:last-child) { background-image: radial-gradient(circle, #0a84ff 1.7px, transparent 2.2px); }
-.yc-h1 { margin-top: 22px; font-size: clamp(40px, 8.4vw, 104px); line-height: 1.03; letter-spacing: -0.05em; font-weight: 800; }
+:global(.dark .yc .yc-hero-dots i:last-child) { background-image: radial-gradient(circle, #5b5bd6 1.7px, transparent 2.2px); }
+.yc-h1 { margin-top: 22px; font-size: clamp(40px, 8.4vw, 104px); line-height: 1.03; letter-spacing: -0.05em; font-weight: 650; }
 .yc-h1-line { display: block; }
 .yc-lead { max-width: 640px; margin: 30px auto 0; font-size: clamp(16px, 1.7vw, 20px); line-height: 1.7; color: var(--yc-mut); text-wrap: pretty; }
 .yc-hero-cta { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 38px; }
@@ -397,7 +397,7 @@ onMounted(async () => {
 .yc-pain .yc-h2 { position: relative; margin-top: 16px; font-size: clamp(30px, 5.4vw, 64px); line-height: 1.14; letter-spacing: -0.04em; }
 .yc-pain-old { color: var(--yc-dim); }
 .yc-vs { display: grid; grid-template-columns: 1fr 1.15fr; gap: 20px; margin-top: clamp(36px, 5vw, 60px); align-items: stretch; }
-.yc-vs-col { padding: 28px 30px 30px; border-radius: 24px; }
+.yc-vs-col { padding: 28px 30px 30px; border-radius: 12px; }
 .yc-vs-before { border: 1px dashed var(--yc-line); color: var(--yc-mut); }
 .yc-vs-lab { display: inline-block; padding: 4px 12px; border-radius: 999px; font-size: 12.5px; font-weight: 700; letter-spacing: 0.06em; }
 .yc-vs-before .yc-vs-lab { background: var(--yc-fill); color: var(--yc-mut); }
@@ -425,7 +425,7 @@ onMounted(async () => {
 .yc-shot figcaption span { margin-left: 8px; }
 .yc-shot img { display: block; width: 100%; height: auto; }
 .yc-vs-after { transform: perspective(1100px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transition: transform 0.25s ease-out; }
-.yc-vs-after::after { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; background: radial-gradient(380px circle at var(--sx, 50%) var(--sy, 50%), rgb(0 113 227 / 0.22), transparent 65%); opacity: 0; transition: opacity 0.3s ease; }
+.yc-vs-after::after { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; background: radial-gradient(380px circle at var(--sx, 50%) var(--sy, 50%), rgb(91 91 214 / 0.22), transparent 65%); opacity: 0; transition: opacity 0.3s ease; }
 .yc-vs-after:hover::after { opacity: 1; }
 .yc-vs-contact { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--yc-line); font-size: 15px; color: var(--yc-mut); white-space: pre-line; }
 
@@ -463,7 +463,7 @@ onMounted(async () => {
 .yc-faq-list summary span { color: var(--yc-dim); font-weight: 400; transition: transform 0.2s ease; }
 .yc-faq-list details[open] summary span { transform: rotate(45deg); }
 .yc-faq-list details p { padding: 0 40px 24px 0; color: var(--yc-mut); line-height: 1.75; }
-.yc-final { position: relative; overflow: hidden; margin-top: clamp(96px, 14vw, 184px); padding: clamp(48px, 8vw, 96px) 24px; border-radius: 32px; background: var(--yc-lime); color: var(--yc-on-lime); text-align: center; }
+.yc-final { position: relative; overflow: hidden; margin-top: clamp(96px, 14vw, 184px); padding: clamp(48px, 8vw, 96px) 24px; border-radius: 12px; background: var(--yc-lime); color: var(--yc-on-lime); text-align: center; }
 .yc-final::before { content: ''; position: absolute; inset: 0; background: linear-gradient(115deg, rgb(255 255 255 / 0.55), transparent 38%); pointer-events: none; }
 .yc-final > * { position: relative; }
 .yc-final .yc-h2 { margin: 0 auto 32px; max-width: 640px; }
@@ -544,7 +544,7 @@ onMounted(async () => {
   /* The highlighter is drawn across each headline as it comes into view. */
   .yc-home .yc-mark { background-repeat: no-repeat; background-size: 0% 100%; }
   .yc-home .is-in .yc-mark { animation: yc-draw 0.9s cubic-bezier(0.3, 0.7, 0.2, 1) 0.3s both; }
-  :global(.dark .yc.yc-home .yc-mark) { background: linear-gradient(90deg, #0a84ff 50%, var(--yc-ink) 50%) 100% 0 / 200% 100% no-repeat; -webkit-background-clip: text; background-clip: text; color: transparent; }
+  :global(.dark .yc.yc-home .yc-mark) { background: linear-gradient(90deg, #5b5bd6 50%, var(--yc-ink) 50%) 100% 0 / 200% 100% no-repeat; -webkit-background-clip: text; background-clip: text; color: transparent; }
   :global(.dark .yc.yc-home .is-in .yc-mark) { animation: yc-draw-dark 0.9s cubic-bezier(0.3, 0.7, 0.2, 1) 0.3s both; }
 
   /* Before: struck out one by one. Now: ticked one by one. */

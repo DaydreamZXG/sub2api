@@ -68,6 +68,6 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.yc-auth-glow { top: -22rem; left: 50%; width: 52rem; height: 40rem; transform: translateX(-50%); border-radius: 50%; background: radial-gradient(closest-side, rgb(0 113 227 / 0.28), transparent); }
-.dark .yc-auth-glow { background: radial-gradient(closest-side, rgb(0 113 227 / 0.1), transparent); }
+.yc-auth-glow { top: -22rem; left: 50%; width: 52rem; height: 40rem; transform: translateX(-50%); border-radius: 50%; background: radial-gradient(closest-side, rgb(91 91 214 / 0.28), transparent); }
+.dark .yc-auth-glow { background: radial-gradient(closest-side, rgb(91 91 214 / 0.1), transparent); }
 </style>

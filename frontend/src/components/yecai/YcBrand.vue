@@ -30,14 +30,14 @@ const logo = computed(() =>
 .yc-lockup { display: inline-flex; align-items: center; gap: 10px; white-space: nowrap; }
 .yc-lockup img { width: 32px; height: 32px; border-radius: 9px; object-fit: contain; flex: none; }
 .yc-lockup-text { display: flex; flex-direction: column; line-height: 1.05; }
-.yc-lockup b { font-size: 17px; font-weight: 800; letter-spacing: 0.02em; color: var(--yc-ink); }
+.yc-lockup b { font-size: 17px; font-weight: 650; letter-spacing: 0.02em; color: var(--yc-ink); }
 .yc-lockup i {
   margin-top: 3px;
   font-size: 9.5px;
 }
 
 .yc-lockup.is-stacked { flex-direction: column; gap: 14px; }
-.yc-lockup.is-stacked img { width: 64px; height: 64px; border-radius: 18px; }
+.yc-lockup.is-stacked img { width: 64px; height: 64px; border-radius: 12px; }
 .yc-lockup.is-stacked .yc-lockup-text { align-items: center; }
 .yc-lockup.is-stacked b { font-size: 30px; letter-spacing: 0.04em; }
 .yc-lockup.is-stacked i { margin-top: 8px; font-size: 12px; letter-spacing: 0.32em; margin-right: -0.32em; }

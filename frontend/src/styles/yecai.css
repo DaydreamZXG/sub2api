@@ -1,48 +1,54 @@
-/* Design tokens for the user-facing pages: Apple-style neutrals with one blue accent, follows the `dark` class. */
+/* Design tokens for the user-facing pages: neutral grays, hairline borders, a near-black
+   primary action and one indigo accent. Follows the `dark` class. */
 .yc {
-  --yc-bg: #f5f5f7;
+  --yc-bg: #fafafa;
   --yc-paper: #ffffff;
-  --yc-ink: #1d1d1f;
-  --yc-mut: #6e6e73;
-  --yc-dim: #86868b;
-  --yc-line: rgb(0 0 0 / 0.08);
-  --yc-fill: rgb(0 0 0 / 0.04);
-  --yc-lime: #0071e3;
+  --yc-ink: #171717;
+  --yc-mut: #737373;
+  --yc-dim: #a3a3a3;
+  --yc-line: #eaeaea;
+  --yc-fill: rgb(0 0 0 / 0.035);
+  --yc-lime: #171717;
   --yc-on-lime: #ffffff;
-  --yc-ok: #248a3d;
+  --yc-accent: #5b5bd6;
+  --yc-accent-soft: #ededfc;
+  --yc-ok: #16a34a;
   background: var(--yc-bg);
   color: var(--yc-ink);
   font-feature-settings: 'tnum';
   -webkit-font-smoothing: antialiased;
 }
 .dark .yc {
-  --yc-bg: #000000;
-  --yc-paper: #1c1c1e;
-  --yc-ink: #f5f5f7;
-  --yc-mut: rgb(245 245 247 / 0.7);
-  --yc-dim: rgb(245 245 247 / 0.45);
-  --yc-line: rgb(255 255 255 / 0.1);
-  --yc-fill: rgb(255 255 255 / 0.06);
-  --yc-lime: #0a84ff;
-  --yc-ok: #30d158;
+  --yc-bg: #0a0a0a;
+  --yc-paper: #111111;
+  --yc-ink: #ededed;
+  --yc-mut: #a1a1a1;
+  --yc-dim: #737373;
+  --yc-line: #262626;
+  --yc-fill: rgb(255 255 255 / 0.05);
+  --yc-lime: #ededed;
+  --yc-on-lime: #0a0a0a;
+  --yc-accent: #9e9ef5;
+  --yc-accent-soft: rgb(158 158 245 / 0.14);
+  --yc-ok: #4ade80;
 }
 .yc-wrap { width: 100%; max-width: 1120px; margin: 0 auto; padding: 0 24px; }
-.yc-mark { color: var(--yc-lime); }
-.yc-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 46px; padding: 0 24px; border-radius: 999px; font-weight: 650; font-size: 15px; white-space: nowrap; transition: transform 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease; }
+.yc-mark { color: var(--yc-accent); }
+.yc-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 44px; padding: 0 20px; border-radius: 10px; font-weight: 600; font-size: 15px; white-space: nowrap; transition: transform 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease; }
 .yc-btn:active { transform: scale(0.97); }
 .yc-btn-lime { background: var(--yc-lime); color: var(--yc-on-lime); }
-.yc-btn-lime:hover { filter: brightness(1.08); }
-.yc-btn-ghost { color: var(--yc-ink); box-shadow: inset 0 0 0 1px var(--yc-line); }
+.yc-btn-lime:hover { opacity: 0.86; }
+.yc-btn-ghost { color: var(--yc-ink); background: var(--yc-paper); box-shadow: inset 0 0 0 1px var(--yc-line); }
 .yc-btn-ghost:hover { background: var(--yc-fill); }
-.yc-btn-sm { height: 36px; padding: 0 16px; font-size: 14px; }
+.yc-btn-sm { height: 34px; padding: 0 14px; font-size: 13.5px; border-radius: 8px; }
 .yc-eyebrow { font-size: 12.5px; font-weight: 650; letter-spacing: 0.14em; text-transform: uppercase; color: var(--yc-mut); }
-.yc-h2 { font-size: clamp(28px, 4vw, 44px); line-height: 1.12; letter-spacing: -0.03em; font-weight: 750; text-wrap: balance; }
-.yc-card { background: var(--yc-paper); border: 1px solid var(--yc-line); border-radius: 20px; }
+.yc-h2 { font-size: clamp(28px, 4vw, 44px); line-height: 1.12; letter-spacing: -0.025em; font-weight: 650; text-wrap: balance; }
+.yc-card { background: var(--yc-paper); border: 1px solid var(--yc-line); border-radius: 12px; }
 .yc :focus-visible:not(.yc-legacy *) { outline: 2px solid var(--yc-ink); outline-offset: 3px; border-radius: 6px; }
-.dark .yc :focus-visible:not(.yc-legacy *) { outline-color: var(--yc-lime); }
-.yc-surface { position: relative; background: var(--yc-paper); border: 1px solid var(--yc-line); border-radius: 20px; box-shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 8px 24px -12px rgb(0 0 0 / 0.12); }
-.dark .yc .yc-surface { box-shadow: 0 1px 0 rgb(255 255 255 / 0.05) inset, 0 24px 60px -30px rgb(0 0 0 / 0.9); }
-.yc-num { font-variant-numeric: tabular-nums; letter-spacing: -0.04em; font-weight: 800; }
+.dark .yc :focus-visible:not(.yc-legacy *) { outline-color: var(--yc-accent); }
+.yc-surface { position: relative; background: var(--yc-paper); border: 1px solid var(--yc-line); border-radius: 12px; box-shadow: 0 1px 2px rgb(0 0 0 / 0.03); }
+.dark .yc .yc-surface { box-shadow: none; }
+.yc-num { font-variant-numeric: tabular-nums; letter-spacing: -0.03em; font-weight: 650; }
 .yc-reveal { opacity: 0; transform: translateY(28px); transition: opacity 0.8s cubic-bezier(0.2, 0.7, 0.2, 1), transform 0.8s cubic-bezier(0.2, 0.7, 0.2, 1); }
 .yc-reveal.is-in { opacity: 1; transform: none; }
 @media (prefers-reduced-motion: reduce) {
@@ -50,24 +56,24 @@
 }
 
 /* Signed-in pages */
-.yc-page-h1 { font-size: clamp(30px, 4.6vw, 48px); line-height: 1.12; letter-spacing: -0.035em; font-weight: 800; }
+.yc-page-h1 { font-size: clamp(26px, 3.4vw, 34px); line-height: 1.2; letter-spacing: -0.025em; font-weight: 650; }
 .yc-page-lead { max-width: 620px; margin-top: 10px; font-size: 16px; line-height: 1.6; color: var(--yc-mut); }
-.yc-sec-h2 { font-size: 22px; line-height: 1.25; letter-spacing: -0.02em; font-weight: 750; }
+.yc-sec-h2 { font-size: 20px; line-height: 1.3; letter-spacing: -0.015em; font-weight: 600; }
 .yc-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
 .yc-badge { display: inline-flex; align-items: center; height: 24px; padding: 0 10px; border-radius: 999px; background: var(--yc-ink); color: var(--yc-bg); font-size: 12px; font-weight: 700; white-space: nowrap; }
-.yc-badge-lime { background: var(--yc-lime); color: var(--yc-on-lime); }
+.yc-badge-lime { background: var(--yc-accent-soft); color: var(--yc-accent); }
 .yc-opts { display: flex; flex-wrap: wrap; gap: 8px; }
-.yc-opt { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 16px; border-radius: 999px; box-shadow: inset 0 0 0 1px var(--yc-line); font-size: 14.5px; font-weight: 600; color: var(--yc-mut); transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease; }
+.yc-opt { display: inline-flex; align-items: center; gap: 8px; min-height: 38px; padding: 0 14px; border-radius: 8px; box-shadow: inset 0 0 0 1px var(--yc-line); font-size: 14.5px; font-weight: 600; color: var(--yc-mut); transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease; }
 .yc-opt:hover { color: var(--yc-ink); background: var(--yc-fill); }
 .yc-opt:active { transform: scale(0.97); }
 .yc-opt.is-on { background: var(--yc-ink); color: var(--yc-bg); box-shadow: none; }
 .yc-opt:disabled { opacity: 0.5; cursor: default; }
-.yc-code { margin: 0; padding: 18px 20px; border-radius: 16px; background: #1d1d1f; color: #f5f5f7; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13.5px; line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; }
+.yc-code { margin: 0; padding: 18px 20px; border-radius: 10px; background: #171717; color: #ededed; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13.5px; line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; }
 .dark .yc .yc-code { background: #000; box-shadow: inset 0 0 0 1px var(--yc-line); }
-.yc-input { width: 100%; height: 46px; padding: 0 16px; border-radius: 14px; background: var(--yc-paper); box-shadow: inset 0 0 0 1px var(--yc-line); font-size: 15px; color: var(--yc-ink); outline: none; transition: box-shadow 0.15s ease; }
+.yc-input { width: 100%; height: 42px; padding: 0 14px; border-radius: 8px; background: var(--yc-paper); box-shadow: inset 0 0 0 1px var(--yc-line); font-size: 15px; color: var(--yc-ink); outline: none; transition: box-shadow 0.15s ease; }
 .yc-input::placeholder { color: var(--yc-dim); }
 .yc-input:focus { box-shadow: inset 0 0 0 2px var(--yc-ink); }
-.dark .yc .yc-input:focus { box-shadow: inset 0 0 0 2px var(--yc-lime); }
+.yc-input:focus, .dark .yc .yc-input:focus { box-shadow: inset 0 0 0 1px var(--yc-ink), 0 0 0 3px var(--yc-fill); }
 .yc-note { font-size: 13.5px; line-height: 1.6; color: var(--yc-mut); }
 .yc-link { text-decoration: underline; text-decoration-color: var(--yc-dim); text-underline-offset: 3px; }
 .yc-link:hover { text-decoration-color: currentColor; }

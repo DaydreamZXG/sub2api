@@ -39,6 +39,6 @@ const description = computed(() =>
 
 <style scoped>
 .yc-legacy-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; margin-bottom: 20px; }
-.yc-legacy-head h1 { font-size: 28px; line-height: 1.25; letter-spacing: -0.03em; font-weight: 800; }
+.yc-legacy-head h1 { font-size: 28px; line-height: 1.25; letter-spacing: -0.03em; font-weight: 650; }
 .yc-legacy-head p { font-size: 13.5px; color: var(--yc-mut); }
 </style>

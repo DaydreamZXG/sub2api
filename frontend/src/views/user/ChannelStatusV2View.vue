@@ -972,7 +972,7 @@ details > summary::-webkit-details-marker {
 .ycv :deep(.page-header),
 .ycv :deep(.border-b) { border-color: var(--yc-line) !important; }
 .ycv :deep(.page-title) { color: var(--yc-ink) !important; font-weight: 760; }
-.ycv :deep(.page-title > span) { background: var(--yc-ink) !important; color: var(--yc-lime) !important; }
+.ycv :deep(.page-title > span) { background: var(--yc-accent-soft) !important; color: var(--yc-accent) !important; }
 .ycv :deep(.stat-label) { font-size: 12px !important; font-weight: 500 !important; letter-spacing: 0 !important; text-transform: none !important; color: var(--yc-mut) !important; }
 .ycv :deep(.tabs) { padding: 3px; border-radius: 999px; background: var(--yc-fill) !important; }
 .ycv :deep(.tab) { border-radius: 999px !important; background: transparent; box-shadow: none !important; color: var(--yc-mut) !important; }

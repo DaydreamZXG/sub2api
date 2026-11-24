@@ -27,6 +27,20 @@
       </div>
     </section>
 
+    <section class="yc-surface yc-mates">
+      <header>
+        <h2>{{ t('yc.dash.mates') }}</h2>
+        <a :href="YC_CLIENT_PAGE">{{ t('yc.dash.matesGo') }} →</a>
+      </header>
+      <div class="yc-mate-row">
+        <div v-for="m in MATES" :key="m.brand" class="yc-mate" :style="{ '--c': m.color }">
+          <i :style="{ backgroundImage: `url(${roster})`, backgroundPosition: `${m.x}% 15%` }" aria-hidden="true"></i>
+          <b>{{ t(m.name) }}</b>
+          <small>{{ m.brand }}</small>
+        </div>
+      </div>
+    </section>
+
     <YcGrowthCard />
 
     <section class="yc-surface yc-recent">
@@ -63,6 +77,17 @@ import YcShell from '@/components/yecai/YcShell.vue'
 import YcGrowthCard from '@/components/yecai/YcGrowthCard.vue'
 import { useYcMoney } from '@/composables/useYcMoney'
 import { priceChangeLabel } from '@/utils/ycPriceWords'
+import { YC_CLIENT_PAGE } from '@/utils/ycClient'
+import roster from '@/assets/yecai/yeschoy-roster-showcase.webp'
+
+// Horizontal position of each classmate's face in the roster artwork.
+const MATES = [
+  { name: 'yc.dash.mateJuzi', brand: 'Claude', color: '#ea7a2c', x: 5.4 },
+  { name: 'yc.dash.mateAqing', brand: 'GPT', color: '#16a36a', x: 27.8 },
+  { name: 'yc.dash.mateXiaojing', brand: 'DeepSeek', color: '#2f8fe0', x: 49.7 },
+  { name: 'yc.dash.mateYueyue', brand: 'Kimi', color: '#4d7fe0', x: 71.9 },
+  { name: 'yc.dash.mateDoubao', brand: 'Doubao', color: '#e0679b', x: 92.7 }
+]
 
 const { t } = useI18n()
 const authStore = useAuthStore()
@@ -141,28 +166,33 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.yc-dash-h1 { font-size: clamp(30px, 4.6vw, 48px); line-height: 1.12; letter-spacing: -0.035em; font-weight: 800; }
-.yc-next { display: flex; align-items: center; gap: 14px; margin-top: 24px; padding: 14px 18px; border-radius: 16px; background: var(--yc-lime); color: var(--yc-on-lime); font-size: 15.5px; }
-.yc-next-tag { flex: none; padding: 3px 10px; border-radius: 999px; background: var(--yc-on-lime); color: var(--yc-lime); font-size: 12px; font-weight: 700; }
-.yc-next-text { flex: 1; font-weight: 600; }
-.yc-next-go { flex: none; font-weight: 750; }
-.yc-tiles { display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 16px; margin-top: 28px; }
-.yc-tile { padding: 26px 28px 28px; }
-.yc-tile-lab { font-size: 13px; font-weight: 650; color: var(--yc-mut); }
-.yc-tile-num { margin-top: 8px; font-size: clamp(36px, 4.2vw, 52px); line-height: 1.1; }
-.yc-tile-sub { margin-top: 10px; font-size: 13.5px; color: var(--yc-mut); }
-.yc-wallet { position: relative; overflow: hidden; border-radius: 24px; background: var(--yc-lime); color: var(--yc-on-lime); box-shadow: 0 1px 0 rgb(255 255 255 / 0.7) inset, 0 24px 48px -24px rgb(0 113 227 / 0.75); }
-.yc-wallet::before { content: ''; position: absolute; inset: 0; background: linear-gradient(120deg, rgb(255 255 255 / 0.6), transparent 42%), radial-gradient(circle at 100% 100%, rgb(11 15 12 / 0.1), transparent 55%); pointer-events: none; }
-.yc-wallet > * { position: relative; }
-.yc-wallet .yc-tile-lab, .yc-wallet .yc-tile-sub { color: rgb(11 15 12 / 0.7); }
-.yc-wallet .yc-tile-num { font-size: clamp(44px, 5.4vw, 68px); }
-.yc-wallet-btn { margin-top: 20px; background: var(--yc-on-lime); color: var(--yc-lime); }
-.yc-wallet-btn:hover { box-shadow: 0 10px 22px -8px rgb(11 15 12 / 0.65); transform: translateY(-2px); }
-.yc-recent { margin-top: 16px; padding: 24px 26px; }
+.yc-dash-h1 { font-size: clamp(26px, 3.4vw, 34px); line-height: 1.2; letter-spacing: -0.025em; font-weight: 650; }
+.yc-next { display: flex; align-items: center; gap: 12px; margin-top: 20px; padding: 12px 14px 12px 16px; border-radius: 12px; background: var(--yc-paper); border: 1px solid var(--yc-line); color: var(--yc-ink); font-size: 14.5px; transition: border-color 0.15s ease; }
+.yc-next:hover { border-color: var(--yc-dim); }
+.yc-next-tag { flex: none; padding: 3px 9px; border-radius: 999px; background: var(--yc-accent-soft); color: var(--yc-accent); font-size: 12px; font-weight: 600; }
+.yc-next-text { flex: 1; font-weight: 500; }
+.yc-next-go { flex: none; padding: 6px 12px; border-radius: 8px; background: var(--yc-lime); color: var(--yc-on-lime); font-size: 13px; font-weight: 600; }
+.yc-tiles { display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 16px; margin-top: 16px; }
+.yc-tile { padding: 22px 24px; }
+.yc-tile-lab { font-size: 13px; font-weight: 500; color: var(--yc-mut); }
+.yc-tile-num { margin-top: 8px; font-size: clamp(28px, 3vw, 34px); line-height: 1.15; }
+.yc-tile-sub { margin-top: 6px; font-size: 13px; color: var(--yc-mut); }
+.yc-wallet { border-radius: 12px; border: 1px solid color-mix(in srgb, var(--yc-accent) 22%, var(--yc-line)); background: linear-gradient(180deg, var(--yc-paper), color-mix(in srgb, var(--yc-accent) 5%, var(--yc-paper))); }
+.yc-wallet .yc-tile-num { font-size: clamp(36px, 4vw, 48px); }
+.yc-wallet-btn { margin-top: 16px; background: var(--yc-lime); color: var(--yc-on-lime); }
+.yc-wallet-btn:hover { opacity: 0.86; }
+.yc-mates { margin-top: 16px; padding: 22px 24px; }
+.yc-mates header, .yc-recent header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.yc-mates h2 { font-size: 17px; letter-spacing: -0.01em; font-weight: 600; }
+.yc-mates header a, .yc-recent header a { font-size: 13.5px; font-weight: 500; color: var(--yc-accent); }
+.yc-mate-row { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
+.yc-mate { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 16px 6px 14px; border: 1px solid var(--yc-line); border-radius: 10px; font-size: 14px; }
+.yc-mate i { width: 44px; height: 44px; margin-bottom: 8px; border-radius: 50%; background-size: 1000% auto; background-repeat: no-repeat; box-shadow: 0 0 0 1px var(--yc-line); }
+.yc-mate b { font-weight: 600; }
+.yc-mate small { font-size: 12px; font-weight: 500; color: var(--c); }
+.yc-recent { margin-top: 16px; padding: 22px 24px; }
 .yc-recent header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px; }
-.yc-recent h2 { font-size: 19px; letter-spacing: -0.015em; font-weight: 750; }
-.yc-recent header a { font-size: 14px; color: var(--yc-mut); }
-.yc-recent header a:hover { color: var(--yc-ink); }
+.yc-recent h2 { font-size: 17px; letter-spacing: -0.01em; font-weight: 600; }
 .yc-row { width: 100%; display: grid; grid-template-columns: 120px 1fr auto 16px; gap: 14px; align-items: center; padding: 14px 0; border-top: 1px solid var(--yc-line); text-align: left; font-size: 15px; }
 .yc-row-time { font-size: 13.5px; color: var(--yc-mut); }
 .yc-row-model { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 14px; }
@@ -174,7 +204,13 @@ onMounted(async () => {
 .yc-empty { padding: 28px 0 12px; border-top: 1px solid var(--yc-line); color: var(--yc-mut); }
 .yc-tip { margin-top: 10px; font-size: 12.5px; color: var(--yc-dim); }
 @media (max-width: 760px) {
-  .yc-tiles { grid-template-columns: 1fr; }
+  .yc-tiles { grid-template-columns: 1fr 1fr; }
+  .yc-wallet { grid-column: 1 / -1; }
+  .yc-mate-row { gap: 4px; }
+  .yc-mate { font-size: 13px; }
+  .yc-mate i { width: 40px; height: 40px; }
+  .yc-mate small { font-size: 11px; }
+  .yc-mate { padding: 12px 2px; border: 0; }
   .yc-next { flex-wrap: wrap; }
   .yc-row { grid-template-columns: 1fr auto 16px; }
   .yc-row-time { grid-column: 1 / -1; margin-bottom: -10px; }

@@ -26,9 +26,9 @@ const CAT_ICON = [
   svg('<path d="M4 8h13l-3-3M20 16H7l3 3"/>'),
   svg('<circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="12" r="2.5"/><circle cx="6" cy="18" r="2.5"/><path d="M8.5 6.8l7 4M8.5 17.2l7-4"/>')
 ]
-const HERO_ART = `<svg class="hero-art" viewBox="0 0 240 240" aria-hidden="true"><rect x="20" y="20" width="200" height="200" rx="48" fill="#1d1d1f"/><circle cx="120" cy="120" r="74" fill="#0a84ff" opacity=".14"/>
-  <path d="M120 186V104" stroke="#0a84ff" stroke-width="9" stroke-linecap="round"/><path d="M120 128c-34 2-52-18-54-46 30-2 52 14 54 46z" fill="#0a84ff"/><path d="M120 110c2-32 22-50 52-50 0 30-18 50-52 50z" fill="#0a84ff"/>
-  <path d="M84 190h72" stroke="#f4f6ef" stroke-width="9" stroke-linecap="round" opacity=".9"/><circle cx="182" cy="170" r="5" fill="#0a84ff"/><circle cx="58" cy="150" r="4" fill="#f4f6ef" opacity=".6"/></svg>`
+const HERO_ART = `<svg class="hero-art" viewBox="0 0 240 240" aria-hidden="true"><rect x="20" y="20" width="200" height="200" rx="48" fill="#171717"/><circle cx="120" cy="120" r="74" fill="#5b5bd6" opacity=".14"/>
+  <path d="M120 186V104" stroke="#5b5bd6" stroke-width="9" stroke-linecap="round"/><path d="M120 128c-34 2-52-18-54-46 30-2 52 14 54 46z" fill="#5b5bd6"/><path d="M120 110c2-32 22-50 52-50 0 30-18 50-52 50z" fill="#5b5bd6"/>
+  <path d="M84 190h72" stroke="#f4f6ef" stroke-width="9" stroke-linecap="round" opacity=".9"/><circle cx="182" cy="170" r="5" fill="#5b5bd6"/><circle cx="58" cy="150" r="4" fill="#f4f6ef" opacity=".6"/></svg>`
 
 // Codex spells its placeholder out: 请替换为支持Responses的模型ID.
 const MODEL_PLACEHOLDER = /请替换为(?:支持Responses的)?模型ID/g

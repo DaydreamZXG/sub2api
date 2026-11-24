@@ -258,7 +258,7 @@ onMounted(() => {
 .yc-way-shot img { width: 100%; height: 100%; min-height: 220px; object-fit: cover; object-position: left top; border-left: 1px solid var(--yc-line); }
 .yc-step { margin-top: 24px; }
 .yc-step-lab { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; font-size: 15.5px; font-weight: 650; }
-.yc-step-lab i { flex: none; width: 24px; height: 24px; display: grid; place-items: center; border-radius: 50%; background: var(--yc-lime); color: var(--yc-on-lime); font-style: normal; font-size: 13px; font-weight: 800; }
+.yc-step-lab i { flex: none; width: 24px; height: 24px; display: grid; place-items: center; border-radius: 50%; background: var(--yc-lime); color: var(--yc-on-lime); font-style: normal; font-size: 13px; font-weight: 650; }
 .yc-opt small { font-size: 12px; font-weight: 500; opacity: 0.7; }
 .yc-opt-new { box-shadow: inset 0 0 0 1px var(--yc-dim); border-style: dashed; }
 .yc-step-more { margin-top: 14px; }

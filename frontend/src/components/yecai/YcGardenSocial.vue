@@ -290,23 +290,23 @@ onMounted(async () => {
 
 <style scoped>
 /* The yard under the field: the kennel and the dog, on the same dark ground in both themes. */
-.yc-dog { display: flex; align-items: center; gap: 18px; padding: 16px 26px 20px; border-top: 1px dashed rgb(244 246 241 / 0.16); border-radius: 0 0 28px 28px; background: #1d1d1f; color: #f4f6f1; }
+.yc-dog { display: flex; align-items: center; gap: 18px; padding: 16px 26px 20px; border-top: 1px dashed rgb(244 246 241 / 0.16); border-radius: 0 0 28px 28px; background: #171717; color: #f4f6f1; }
 .dark .yc .yc-dog { box-shadow: 0 0 0 1px var(--yc-line); }
 .yc-dog-yard { flex: none; width: 124px; height: 80px; }
 .yc-dog-yard .roof { fill: var(--yc-lime); }
 .yc-dog-yard .wall { fill: #f4f6f1; }
-.yc-dog-yard .door { fill: #1d1d1f; }
+.yc-dog-yard .door { fill: #171717; }
 .yc-dog-yard .head { fill: var(--yc-lime); }
 .yc-dog-yard .ear { fill: #f4f6f1; }
-.yc-dog-yard .eye { fill: #1d1d1f; }
-.yc-dog-yard .line { fill: none; stroke: #1d1d1f; stroke-width: 2.4; stroke-linecap: round; }
+.yc-dog-yard .eye { fill: #171717; }
+.yc-dog-yard .line { fill: none; stroke: #171717; stroke-width: 2.4; stroke-linecap: round; }
 .yc-dog.hungry .yc-dog-yard .head { fill: #5d665f; }
 .yc-dog.hungry .yc-dog-yard .ear { fill: #3a423c; }
 .yc-dog:not(.hungry) .yc-dog-yard g { animation: yc-dog-bob 2.8s ease-in-out infinite; }
 @keyframes yc-dog-bob { 50% { translate: 0 -3px; } }
 @media (prefers-reduced-motion: reduce) { .yc-dog .yc-dog-yard g { animation: none; } }
 .yc-dog-text { flex: 1; min-width: 0; }
-.yc-dog-text h2, .yc-nb-head h2, .yc-feed h2, .yc-ranks h2, .yc-invite h2 { font-size: 17px; font-weight: 800; }
+.yc-dog-text h2, .yc-nb-head h2, .yc-feed h2, .yc-ranks h2, .yc-invite h2 { font-size: 17px; font-weight: 650; }
 .yc-dog-text p { margin-top: 4px; font-size: 14.5px; line-height: 1.55; color: rgb(244 246 241 / 0.66); }
 .yc-nb, .yc-feed, .yc-ranks, .yc-invite { margin-top: 16px; padding: 22px 26px; }
 .yc-nb-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
@@ -316,7 +316,7 @@ onMounted(async () => {
 .yc-nb-list { margin-top: 12px; }
 .yc-nb-list > li { border-top: 1px solid var(--yc-line); }
 .yc-nb-row { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 0; text-align: left; font-size: 15px; }
-.yc-nb-row i { display: grid; place-items: center; flex: none; width: 32px; height: 32px; border-radius: 50%; background: var(--yc-fill); font-style: normal; font-weight: 800; }
+.yc-nb-row i { display: grid; place-items: center; flex: none; width: 32px; height: 32px; border-radius: 50%; background: var(--yc-fill); font-style: normal; font-weight: 650; }
 .yc-nb-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 650; }
 .yc-nb-count { margin-left: auto; flex: none; font-size: 14px; color: var(--yc-mut); }
 .yc-nb-crops { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin: 2px 0 18px; }
@@ -331,7 +331,7 @@ onMounted(async () => {
 .yc-ranks h3 { font-size: 14px; font-weight: 700; color: var(--yc-mut); }
 .yc-ranks li { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-top: 1px solid var(--yc-line); font-size: 14.5px; }
 .yc-ranks ol { margin-top: 8px; }
-.yc-ranks li b { flex: none; width: 20px; font-weight: 800; color: var(--yc-mut); }
+.yc-ranks li b { flex: none; width: 20px; font-weight: 650; color: var(--yc-mut); }
 .yc-ranks li.me b { color: inherit; }
 .yc-ranks li em { margin-left: auto; flex: none; font-style: normal; font-weight: 700; }
 .yc-invite { display: flex; align-items: center; justify-content: space-between; gap: 18px; }

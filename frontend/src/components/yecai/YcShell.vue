@@ -152,16 +152,16 @@ onMounted(() => {
 
 <style scoped>
 .yc-shell { min-height: 100vh; display: grid; grid-template-columns: 232px minmax(0, 1fr); }
-.yc-side { position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; padding: 22px 14px 18px; border-right: 1px solid var(--yc-line); background: color-mix(in srgb, var(--yc-paper) 70%, transparent); }
-.yc-side-brand { display: flex; align-items: center; gap: 10px; padding: 0 10px 22px; font-weight: 750; font-size: 17px; white-space: nowrap; }
+.yc-side { position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; padding: 22px 14px 18px; border-right: 1px solid var(--yc-line); background: var(--yc-bg); }
+.yc-side-brand { display: flex; align-items: center; gap: 10px; padding: 0 10px 22px; font-weight: 600; font-size: 17px; white-space: nowrap; }
 .yc-side-nav { display: flex; flex-direction: column; gap: 2px; }
-.yc-side-nav a, .yc-side-nav button { position: relative; text-align: left; padding: 10px 14px; border-radius: 12px; font-size: 15px; color: var(--yc-mut); white-space: nowrap; transition: background-color 0.15s ease, color 0.15s ease; }
+.yc-side-nav a, .yc-side-nav button { position: relative; text-align: left; padding: 9px 12px; border-radius: 8px; font-size: 14.5px; color: var(--yc-mut); white-space: nowrap; transition: background-color 0.15s ease, color 0.15s ease; }
 .yc-side-nav a:hover, .yc-side-nav button:hover { background: var(--yc-fill); color: var(--yc-ink); }
 .yc-side-more { margin: 18px 14px 6px; font-size: 12px; font-weight: 650; letter-spacing: 0.08em; color: var(--yc-dim); }
 .yc-side-nav .is-minor { padding: 8px 14px; font-size: 14px; }
 .yc-side-nav .yc-side-narrow { display: none; }
 .yc-side-nav a.has-dot::after { content: ''; display: inline-block; width: 8px; height: 8px; margin-left: 8px; border-radius: 50%; background: #ff4d4f; vertical-align: 1px; }
-.yc-side-nav a.is-on { background: var(--yc-lime); color: var(--yc-on-lime); font-weight: 650; box-shadow: 0 8px 20px -10px rgb(140 180 0 / 0.9); }
+.yc-side-nav a.is-on { background: var(--yc-paper); color: var(--yc-ink); font-weight: 600; box-shadow: 0 0 0 1px var(--yc-line), 0 1px 2px rgb(0 0 0 / 0.04); }
 .yc-side-foot { margin-top: auto; display: flex; flex-direction: column; gap: 4px; font-size: 14px; color: var(--yc-mut); }
 .yc-side-foot a { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 12px; }
 .yc-side-foot a:hover, .yc-side-foot a.is-on, .yc-side-tools > button:hover { background: var(--yc-fill); color: var(--yc-ink); }

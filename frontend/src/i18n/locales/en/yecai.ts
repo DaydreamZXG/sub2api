@@ -363,6 +363,7 @@ export default {
     nextKey: 'Create your first key. Your tool uses it to spend your balance.', nextKeyGo: 'Create',
     nextConnect: 'You have a key. Connect it to your tool to start.', nextConnectGo: 'Connect',
     balance: 'Balance', balanceHint: 'Pay for what you use; the rest is refundable', today: 'Spent today', total: 'Spent in total',
+    mates: 'Your AI classmates', matesGo: 'Pick one in the app', mateJuzi: 'Juzi', mateAqing: 'Aqing', mateXiaojing: 'Xiaojing', mateYueyue: 'Yueyue', mateDoubao: 'Doubao',
     requests: '{n} requests', recent: 'Recent usage', allBills: 'All bills',
     empty: 'No usage yet. After you connect a tool and send a request, each one is listed here.',
     expandTip: 'Select a row to see every detail of that request.',

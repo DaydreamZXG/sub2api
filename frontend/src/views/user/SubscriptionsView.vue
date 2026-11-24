@@ -308,12 +308,12 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   padding: 8px 18px;
-  border-radius: 999px;
+  border-radius: 8px;
   font-size: 14px;
   font-weight: 650;
   white-space: nowrap;
 }
-.ysb-btn-lime { background: var(--yc-lime); color: var(--yc-on-lime); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12); }
+.ysb-btn-lime { background: var(--yc-lime); color: var(--yc-on-lime); }
 .ysb-btn-lime:hover { filter: brightness(0.96); }
 
 .ysb-empty {

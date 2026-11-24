@@ -363,6 +363,7 @@ export default {
     nextKey: '创建你的第一把密钥，工具靠它来使用余额。', nextKeyGo: '去创建',
     nextConnect: '密钥有了，把它接到你的工具里就能用。', nextConnectGo: '去接入',
     balance: '余额', balanceHint: '用多少扣多少，没用完可以退', today: '今天花了', total: '累计花了',
+    mates: '你的 AI 同学', matesGo: '去客户端挑一个', mateJuzi: '橘子', mateAqing: '阿青', mateXiaojing: '小鲸', mateYueyue: '月月', mateDoubao: '豆包',
     requests: '{n} 次请求', recent: '最近使用', allBills: '全部账单',
     empty: '还没有使用记录。接入工具并发出第一次请求后，这里会显示每一笔的明细。',
     expandTip: '点任意一行可以展开，看这次请求的全部细节。',

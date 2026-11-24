@@ -182,7 +182,7 @@ onMounted(async () => {
 .yc-tk-head .yc-note { margin-top: 6px; }
 .yc-tk-head .yc-btn { flex: none; }
 .yc-tk-form, .yc-tk-reply { display: grid; gap: 14px; }
-.yc-tk-form { margin: 16px 0 6px; padding: 20px; border-radius: 18px; background: var(--yc-fill); }
+.yc-tk-form { margin: 16px 0 6px; padding: 20px; border-radius: 12px; background: var(--yc-fill); }
 .yc-tk-form label { display: grid; gap: 7px; font-size: 13.5px; font-weight: 600; color: var(--yc-mut); }
 .yc-tk-area { height: auto; padding: 12px 16px; line-height: 1.6; resize: vertical; }
 .yc-tk-cats { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -199,7 +199,7 @@ onMounted(async () => {
 .yc-tk-row i.is-answered { background: var(--yc-lime); color: #ffffff; }
 .yc-tk-row i.is-open { box-shadow: inset 0 0 0 1px var(--yc-ink); color: var(--yc-ink); background: none; }
 .yc-tk-thread { display: grid; gap: 10px; padding: 2px 0 20px; }
-.yc-tk-msg { justify-self: start; max-width: 86%; padding: 12px 16px; border-radius: 16px; background: var(--yc-fill); font-size: 14.5px; line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; }
+.yc-tk-msg { justify-self: start; max-width: 86%; padding: 12px 16px; border-radius: 12px; background: var(--yc-fill); font-size: 14.5px; line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; }
 .yc-tk-msg small { display: block; margin-bottom: 2px; font-size: 12px; color: var(--yc-dim); }
 .yc-tk-msg.from-user { justify-self: end; background: var(--yc-ink); color: var(--yc-paper); }
 .yc-tk-msg.from-user small { color: inherit; opacity: 0.6; }

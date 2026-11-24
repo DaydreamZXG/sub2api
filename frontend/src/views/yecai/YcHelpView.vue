@@ -77,12 +77,12 @@ onMounted(async () => {
 
 <style scoped>
 .yc-help { margin-top: 20px; padding: 26px 30px; }
-.yc-help-guide { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 20px; padding: 22px 30px; border-radius: 24px; background: var(--yc-lime); color: var(--yc-on-lime); text-decoration: none; transition: transform 0.15s, box-shadow 0.15s; }
+.yc-help-guide { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 20px; padding: 22px 30px; border-radius: 12px; background: var(--yc-lime); color: var(--yc-on-lime); text-decoration: none; transition: transform 0.15s, box-shadow 0.15s; }
 .yc-help-guide:hover { transform: translateY(-2px); box-shadow: 0 6px 0 -1px var(--yc-ink); }
-.yc-help-guide b { display: block; font-size: 19px; font-weight: 800; letter-spacing: -0.01em; }
+.yc-help-guide b { display: block; font-size: 19px; font-weight: 650; letter-spacing: -0.01em; }
 .yc-help-guide em { display: block; margin-top: 2px; font-style: normal; font-size: 14.5px; opacity: 0.8; }
 .yc-help-guide i { flex: none; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--yc-on-lime); color: var(--yc-lime); font-style: normal; font-size: 18px; }
-.yc-help-more { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 12px; padding: 16px 30px; border: 1px solid var(--yc-line); border-radius: 18px; color: inherit; text-decoration: none; }
+.yc-help-more { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 12px; padding: 16px 30px; border: 1px solid var(--yc-line); border-radius: 12px; color: inherit; text-decoration: none; }
 .yc-help-more:hover { border-color: var(--yc-ink); }
 .yc-help-more b { display: block; font-size: 16px; font-weight: 700; }
 .yc-help-more em { display: block; margin-top: 2px; font-style: normal; font-size: 14px; color: var(--yc-dim); }

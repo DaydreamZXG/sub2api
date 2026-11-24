@@ -216,9 +216,9 @@ onMounted(() => {
 .yaf-spin { width: 28px; height: 28px; border: 2px solid var(--yc-line); border-top-color: var(--yc-ink); border-radius: 50%; animation: yaf-spin 0.8s linear infinite; }
 @keyframes yaf-spin { to { transform: rotate(360deg); } }
 
-.yaf-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 16px; border-radius: 999px; font-size: 14px; font-weight: 650; white-space: nowrap; }
+.yaf-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 16px; border-radius: 8px; font-size: 14px; font-weight: 600; white-space: nowrap; }
 .yaf-btn:disabled { opacity: 0.45; cursor: not-allowed; }
-.yaf-btn-lime { background: var(--yc-lime); color: var(--yc-on-lime); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12); }
+.yaf-btn-lime { background: var(--yc-lime); color: var(--yc-on-lime); }
 .yaf-btn-lime:not(:disabled):hover { filter: brightness(0.96); }
 .yaf-btn-ghost { border: 1px solid color-mix(in srgb, var(--yc-paper) 32%, transparent); color: var(--yc-paper); }
 .yaf-btn-ghost:hover { background: color-mix(in srgb, var(--yc-paper) 12%, transparent); }
