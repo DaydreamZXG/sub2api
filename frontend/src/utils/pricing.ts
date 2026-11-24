@@ -23,6 +23,12 @@ export function formatScaled(value: number | null, scale: number, minFractionDig
   return `$${s}`
 }
 
+/** An amount in US dollars, rounded like yuanText. */
+export function usdText(amount: number): string {
+  const rounded = amount >= 0.01 ? Number(amount.toFixed(4)) : Number(amount.toPrecision(4))
+  return formatScaled(rounded, 1, 2)
+}
+
 /** An amount in yuan with at least two decimals; conversion noise past four decimals is dropped. */
 export function yuanText(amount: number): string {
   const rounded = amount >= 0.01 ? Number(amount.toFixed(4)) : Number(amount.toPrecision(4))

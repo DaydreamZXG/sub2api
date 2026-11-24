@@ -744,6 +744,7 @@ export default {
       officialPrice: '官方价（仅供对比）',
       rate: '比官方价',
       unitPerMillion: '¥ / 百万 Token',
+      unitPerMillionUsd: '$ / 百万 Token',
       perUnitRequest: '/ 次',
       perUnitImage: '/ 张',
       perRequest: '按次计费',

@@ -10,7 +10,7 @@
           </th>
           <th colspan="3" class="pzt-th-group pzt-ref">
             {{ t('modelPlaza.table.officialPrice') }}
-            <span class="pzt-unit">{{ t('modelPlaza.table.unitPerMillion') }}</span>
+            <span class="pzt-unit">{{ t(inUsd ? 'modelPlaza.table.unitPerMillionUsd' : 'modelPlaza.table.unitPerMillion') }}</span>
           </th>
           <th rowspan="2" class="pzt-th-off">{{ t('modelPlaza.table.rate') }}</th>
         </tr>
@@ -234,10 +234,10 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Icon from '@/components/icons/Icon.vue'
 import { useClipboard } from '@/composables/useClipboard'
-import { resolveIntervalPrices, yuanText } from '@/utils/pricing'
+import { resolveIntervalPrices, usdText, yuanText } from '@/utils/pricing'
 import { platformLabel } from '@/utils/platformColors'
 import { priceChangeLabel } from '@/utils/ycPriceWords'
-import { cnyPerUsd, unitsPerYuan } from '@/composables/ycMoneyState'
+import { cnyPerUsd, officialInUsd, unitsPerYuan } from '@/composables/ycMoneyState'
 import {
   BILLING_MODE_TOKEN,
   BILLING_MODE_IMAGE,
@@ -281,7 +281,8 @@ const props = defineProps<{
   peakRateMultiplier?: number | null
 }>()
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
+const inUsd = computed(() => officialInUsd(locale?.value))
 const { copyToClipboard } = useClipboard()
 
 const PER_MILLION = 1_000_000
@@ -377,7 +378,7 @@ function paidRequestPrice(m: PlazaModel, value: number | null | undefined): stri
 /** 官方参考价不乘倍率。 */
 function official(value: number | null | undefined): string {
   if (value == null) return '-'
-  return yuanText(value * PER_MILLION * cnyPerUsd.value)
+  return inUsd.value ? usdText(value * PER_MILLION) : yuanText(value * PER_MILLION * cnyPerUsd.value)
 }
 
 /** A multiplier in words; the standard price has its own label. */

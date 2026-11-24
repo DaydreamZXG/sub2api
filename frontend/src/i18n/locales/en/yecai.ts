@@ -72,7 +72,7 @@ export default {
     official: 'Official',
     perMillionIn: 'per million input tokens',
     off: '{pct}% below official',
-    note: 'See the full list for other models. Official prices are converted at about ¥{rate} to $1, for comparison only.',
+    note: 'See the full list for other models. Official prices are in USD, for comparison only; discounts use about ¥{rate} to $1.',
     output: 'Output: ¥{price} per million tokens',
     pick: 'Select a model to see its price',
     all: 'All models and prices'

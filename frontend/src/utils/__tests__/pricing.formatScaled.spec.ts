@@ -1,3 +1,5 @@
+import { officialInUsd } from '@/composables/ycMoneyState'
+import { usdText, yuanText } from '@/utils/pricing'
 import { describe, expect, it } from 'vitest'
 import { formatScaled } from '../pricing'
 
@@ -21,5 +23,19 @@ describe('formatScaled', () => {
     [null, 1_000_000, 0, '-'],
   ])('retains ordinary pricing and padding for %s', (value, scale, digits, expected) => {
     expect(formatScaled(value, scale, digits)).toBe(expected)
+  })
+})
+
+describe('official price currency', () => {
+  it('keeps dollars for non-Chinese pages and yuan for Chinese ones', () => {
+    expect(officialInUsd('en')).toBe(true)
+    expect(officialInUsd('zh-CN')).toBe(false)
+    expect(officialInUsd(undefined)).toBe(false)
+  })
+
+  it('formats dollars like yuan', () => {
+    expect(usdText(0.15)).toBe('$0.15')
+    expect(usdText(0.0015)).toBe('$0.0015')
+    expect(yuanText(0.15 * 6.6647)).toBe('¥0.9997')
   })
 })

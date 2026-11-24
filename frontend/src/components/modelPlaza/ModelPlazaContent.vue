@@ -65,11 +65,11 @@
             </span>
             <span class="pz-cell" :data-label="t('modelPlaza.table.input')">
               <b class="yc-num">{{ money(m.input) }}<small v-if="m.varies && m.input != null">{{ t('modelPlaza.list.from') }}</small></b>
-              <s v-if="m.officialInput != null">{{ money(m.officialInput) }}</s>
+              <s v-if="m.officialInput != null">{{ officialMoney(m.officialInput) }}</s>
             </span>
             <span class="pz-cell" :data-label="t('modelPlaza.table.output')">
               <b class="yc-num">{{ money(m.output) }}<small v-if="m.varies && m.output != null">{{ t('modelPlaza.list.from') }}</small></b>
-              <s v-if="m.officialOutput != null">{{ money(m.officialOutput) }}</s>
+              <s v-if="m.officialOutput != null">{{ officialMoney(m.officialOutput) }}</s>
             </span>
             <span class="pz-cell" :data-label="t('modelPlaza.list.cacheRead')">
               <span class="yc-num">{{ money(m.cacheRead) }}</span>
@@ -103,8 +103,8 @@ import ModelIcon from '@/components/common/ModelIcon.vue'
 import PlazaGroupSection from './PlazaGroupSection.vue'
 import type { ModelPlazaGroup, ModelPlazaResponse, PlazaModel } from '@/api/modelPlaza'
 import { useAuthStore } from '@/stores/auth'
-import { cnyPerUsd, unitsPerYuan } from '@/composables/ycMoneyState'
-import { yuanText } from '@/utils/pricing'
+import { cnyPerUsd, officialInUsd, unitsPerYuan } from '@/composables/ycMoneyState'
+import { usdText, yuanText } from '@/utils/pricing'
 import { priceChangeLabel } from '@/utils/ycPriceWords'
 import { familiesOf, modelFamily } from '@/utils/modelFamily'
 import { BILLING_MODE_TOKEN } from '@/utils/billingMode'
@@ -115,7 +115,7 @@ const props = defineProps<{
   error?: boolean
 }>()
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const authStore = useAuthStore()
 const isAuthenticated = computed(() => authStore.isAuthenticated)
 
@@ -247,6 +247,11 @@ const shown = computed(() => {
 
 function money(value: number | null): string {
   return value == null ? '-' : yuanText(value)
+}
+
+/** Official prices are kept in yuan for the discount; non-Chinese pages show them in dollars. */
+function officialMoney(yuanAmount: number): string {
+  return officialInUsd(locale?.value) ? usdText(yuanAmount / cnyPerUsd.value) : yuanText(yuanAmount)
 }
 </script>
 
