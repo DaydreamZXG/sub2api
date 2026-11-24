@@ -256,6 +256,15 @@ func desktopPerMillion(perToken *float64, convert func(float64) float64, rate fl
 	return &v
 }
 
+// desktopOfficial prefers the vendor's own yuan price on yuan sites over converting its USD price.
+func desktopOfficial(usd, cny *float64, money desktopMoney) *float64 {
+	if money.Currency == "CNY" && cny != nil {
+		v := roundMoney(*cny * perMillionTokens)
+		return &v
+	}
+	return desktopPerMillion(usd, money.official, 1)
+}
+
 func toDesktopPlan(g *service.PlazaGroup, rate float64, money desktopMoney) desktopPlan {
 	plan := desktopPlan{
 		ID:           strconv.FormatInt(g.ID, 10),
@@ -311,9 +320,9 @@ func toDesktopPlan(g *service.PlazaGroup, rate float64, money desktopMoney) desk
 		}
 		if o := m.OfficialPricing; o != nil {
 			model.Official = &desktopPrice{
-				Input:      desktopPerMillion(o.InputPrice, money.official, 1),
-				Output:     desktopPerMillion(o.OutputPrice, money.official, 1),
-				CacheRead:  desktopPerMillion(o.CacheReadPrice, money.official, 1),
+				Input:      desktopOfficial(o.InputPrice, o.CNYInputPrice, money),
+				Output:     desktopOfficial(o.OutputPrice, o.CNYOutputPrice, money),
+				CacheRead:  desktopOfficial(o.CacheReadPrice, o.CNYCacheReadPrice, money),
 				CacheWrite: desktopPerMillion(o.CacheWritePrice, money.official, 1),
 			}
 		}
