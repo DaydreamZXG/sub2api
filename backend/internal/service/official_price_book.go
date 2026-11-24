@@ -163,3 +163,15 @@ func withPriceBook(official *PlazaOfficialPricing, e *OfficialPriceEntry) *Plaza
 	}
 	return &out
 }
+
+// OfficialPriceFor returns the book's entry for a model, or nil when the book has none or cannot be read.
+func (s *SettingService) OfficialPriceFor(ctx context.Context, model string) *OfficialPriceEntry {
+	if s == nil {
+		return nil
+	}
+	entries, err := s.GetOfficialPriceBook(ctx)
+	if err != nil {
+		return nil
+	}
+	return officialPriceIndex(entries)[officialModelKey(model)]
+}

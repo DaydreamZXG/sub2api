@@ -67,6 +67,17 @@ describe('PricingEntryCard default price auto-fill', () => {
     })
   })
 
+  it('prefills the yuan prices on a site that holds balances in yuan', async () => {
+    getModelDefaultPricing.mockResolvedValue({
+      found: true, input_price: 0.15e-6, output_price: 0.5e-6,
+      yuan: { input_price: 0.8e-6, output_price: 2.8e-6 },
+    })
+    const wrapper = addModels(createEntry(), ['glm-5.3-flash'])
+    await flushPromises()
+
+    expect(emittedEntries(wrapper).at(-1)).toMatchObject({ input_price: 0.8, output_price: 2.8 })
+  })
+
   it('does not overwrite prices when appending a model to an entry that already has one', async () => {
     const entry = createEntry(['claude-opus-4-7'])
     const wrapper = addModels(entry, ['claude-opus-4-7', 'claude-opus-4-8'])

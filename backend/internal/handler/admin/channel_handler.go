@@ -7,6 +7,7 @@ import (
 
 	"github.com/Wei-Shaw/sub2api/internal/domain"
 	infraerrors "github.com/Wei-Shaw/sub2api/internal/pkg/errors"
+	"github.com/Wei-Shaw/sub2api/internal/pkg/fxrate"
 	"github.com/Wei-Shaw/sub2api/internal/pkg/pagination"
 	"github.com/Wei-Shaw/sub2api/internal/pkg/response"
 	"github.com/Wei-Shaw/sub2api/internal/service"
@@ -19,11 +20,12 @@ type ChannelHandler struct {
 	channelService *service.ChannelService
 	billingService *service.BillingService
 	pricingService *service.PricingService
+	settingService *service.SettingService
 }
 
 // NewChannelHandler creates a new admin channel handler
-func NewChannelHandler(channelService *service.ChannelService, billingService *service.BillingService, pricingService *service.PricingService) *ChannelHandler {
-	return &ChannelHandler{channelService: channelService, billingService: billingService, pricingService: pricingService}
+func NewChannelHandler(channelService *service.ChannelService, billingService *service.BillingService, pricingService *service.PricingService, settingService *service.SettingService) *ChannelHandler {
+	return &ChannelHandler{channelService: channelService, billingService: billingService, pricingService: pricingService, settingService: settingService}
 }
 
 // --- Request / Response types ---
@@ -629,11 +631,36 @@ func (h *ChannelHandler) GetModelDefaultPricing(c *gin.Context) {
 		return
 	}
 
+	book := h.settingService.OfficialPriceFor(c.Request.Context(), model)
+	rate := fxrate.CNYPerUSD()
 	pricing, err := h.billingService.GetModelPricing(model)
 	if err != nil {
-		// 模型不在定价列表中
-		response.Success(c, gin.H{"found": false})
+		// 模型不在定价列表中；官方价目表里有就用它
+		if book == nil || (book.USDInput == nil && book.CNYInput == nil) {
+			response.Success(c, gin.H{"found": false})
+			return
+		}
+		usd := map[string]*float64{
+			"input_price":      perToken(book.USDInput),
+			"output_price":     perToken(book.USDOutput),
+			"cache_read_price": perToken(book.USDCacheRead),
+		}
+		response.Success(c, gin.H{
+			"found":            true,
+			"input_price":      usd["input_price"],
+			"output_price":     usd["output_price"],
+			"cache_read_price": usd["cache_read_price"],
+			"yuan": gin.H{
+				"input_price":      yuanPerToken(usd["input_price"], book.CNYInput, rate),
+				"output_price":     yuanPerToken(usd["output_price"], book.CNYOutput, rate),
+				"cache_read_price": yuanPerToken(usd["cache_read_price"], book.CNYCacheRead, rate),
+			},
+		})
 		return
+	}
+	var bookCNY OfficialCNYTriple
+	if book != nil {
+		bookCNY = OfficialCNYTriple{book.CNYInput, book.CNYOutput, book.CNYCacheRead}
 	}
 	cacheWritePrice := pricing.CacheCreationPricePerToken
 	var cacheWrite1hPrice *float64
@@ -655,7 +682,44 @@ func (h *ChannelHandler) GetModelDefaultPricing(c *gin.Context) {
 		"reasoning_effort_multipliers": pricing.ReasoningEffortMultipliers,
 		"image_input_price":            pricing.ImageInputPricePerToken,
 		"image_output_price":           pricing.ImageOutputPricePerToken,
+		// The site holds balances in yuan: these are what the form should prefill there. Vendor yuan prices
+		// from the official price book win; everything else is the USD price at the daily rate.
+		"yuan": gin.H{
+			"input_price":           yuanPerToken(&pricing.InputPricePerToken, bookCNY.Input, rate),
+			"output_price":          yuanPerToken(&pricing.OutputPricePerToken, bookCNY.Output, rate),
+			"cache_write_price":     yuanPerToken(&cacheWritePrice, nil, rate),
+			"cache_write_1h_price":  yuanPerToken(cacheWrite1hPrice, nil, rate),
+			"cache_write_12h_price": yuanPerToken(pricing.CacheCreation12hPricePerToken, nil, rate),
+			"cache_read_price":      yuanPerToken(&pricing.CacheReadPricePerToken, bookCNY.CacheRead, rate),
+			"image_input_price":     yuanPerToken(&pricing.ImageInputPricePerToken, nil, rate),
+			"image_output_price":    yuanPerToken(&pricing.ImageOutputPricePerToken, nil, rate),
+		},
 	})
+}
+
+// OfficialCNYTriple is a model's official yuan prices per million tokens.
+type OfficialCNYTriple struct {
+	Input, Output, CacheRead *float64
+}
+
+func perToken(perMillion *float64) *float64 {
+	if perMillion == nil {
+		return nil
+	}
+	v := *perMillion / 1e6
+	return &v
+}
+
+// yuanPerToken prefers the vendor's yuan price (per million tokens) over converting the USD one.
+func yuanPerToken(usd *float64, cnyPerMillion *float64, rate float64) *float64 {
+	if cnyPerMillion != nil {
+		return perToken(cnyPerMillion)
+	}
+	if usd == nil {
+		return nil
+	}
+	v := *usd * rate
+	return &v
 }
 
 // platformLiteLLMProvider maps a channel platform name to the corresponding

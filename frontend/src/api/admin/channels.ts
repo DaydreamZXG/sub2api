@@ -189,6 +189,8 @@ export interface ModelDefaultPricing {
   image_input_price?: number
   image_output_price?: number
   reasoning_effort_multipliers?: Record<string, number> | null
+  /** The same prices in yuan (vendor yuan list price, else USD at the daily rate), per token. */
+  yuan?: Partial<Record<'input_price' | 'output_price' | 'cache_write_price' | 'cache_write_1h_price' | 'cache_write_12h_price' | 'cache_read_price' | 'image_input_price' | 'image_output_price', number | null>>
 }
 
 export async function getModelDefaultPricing(model: string): Promise<ModelDefaultPricing> {
