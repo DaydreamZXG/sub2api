@@ -12,10 +12,13 @@ import { getSetupStatus } from '@/api/setup'
 import { updateFavicon } from '@/utils/branding'
 import { FeatureFlags, isFeatureFlagEnabled } from '@/utils/featureFlags'
 import { resolveSiteBillingMode } from '@/utils/siteBillingMode'
+import { useYcMoney } from '@/composables/useYcMoney'
 
 const router = useRouter()
 const route = useRoute()
 const appStore = useAppStore()
+// Every page, admin forms included, labels amounts with the site's billing unit and rates.
+useYcMoney()
 const authStore = useAuthStore()
 const subscriptionStore = useSubscriptionStore()
 const announcementStore = useAnnouncementStore()
