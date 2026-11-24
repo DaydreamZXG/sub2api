@@ -28,6 +28,12 @@ func TestOfficialCNYOnlyEntryFallsBackToCatalog(t *testing.T) {
 	cny := 1e-6
 	entry := &ChannelModelPricing{OfficialCNYInputPrice: &cny}
 	require.True(t, pricingNeedsFallback(entry), "reference prices alone are not billing prices")
+	require.True(t, onlyOfficialReference(entry))
+	mult := 2.0
+	require.False(t, onlyOfficialReference(&ChannelModelPricing{
+		OfficialCNYInputPrice: &cny, Intervals: []PricingInterval{{InputMultiplier: &mult}},
+	}), "multiplier-only tiers are a configured rate")
+	require.False(t, onlyOfficialReference(&ChannelModelPricing{}))
 
 	got := synthesizePricingFromLiteLLM(&LiteLLMModelPricing{InputCostPerToken: 1.5e-7}, entry)
 	require.NotNil(t, got.InputPrice)
