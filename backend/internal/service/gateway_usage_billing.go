@@ -1025,12 +1025,13 @@ func (s *GatewayService) upstreamPriceFactorApplies(ctx context.Context, result 
 	}
 	resolved := s.resolveChannelPricing(ctx, billingModel, apiKey)
 	return resolved == nil ||
-		(resolved.Source == PricingSourceChannel && onlyOfficialReference(resolved.channelPricing))
+		(resolved.Source == PricingSourceChannel && noBillingConfig(resolved.channelPricing))
 }
 
-// onlyOfficialReference reports an entry holding nothing but official reference prices, which bills at the default price.
-func onlyOfficialReference(p *ChannelModelPricing) bool {
-	if p == nil || (p.OfficialCNYInputPrice == nil && p.OfficialCNYOutputPrice == nil && p.OfficialCNYCacheReadPrice == nil) {
+// noBillingConfig reports an entry that sets nothing billing reads, so it bills at the default price.
+// Official reference prices are ignored: adding or removing them never changes a charge.
+func noBillingConfig(p *ChannelModelPricing) bool {
+	if p == nil {
 		return false
 	}
 	return pricingNeedsFallback(p) && len(p.Intervals) == 0 && p.ImageInputPrice == nil &&
