@@ -48,6 +48,23 @@ export default {
 
     // Channel Management
     channels: {
+      officialBook: {
+        button: '官方价目表',
+        title: '官方价目表',
+        hint: '各厂商官网的标价，单位是每百万 Token。所有渠道里的同名模型都用它在价目表上做对比、算折扣；渠道定价里单独填的官方人民币价优先。只用于展示，不影响扣费。',
+        models: '模型名',
+        modelsHint: '多个名字用逗号隔开，不分大小写和标点',
+        cny: '人民币（¥）',
+        usd: '美元（$）',
+        input: '输入',
+        output: '输出',
+        cacheRead: '缓存读取',
+        addRow: '添加模型',
+        removeRow: '删除',
+        empty: '还没有模型',
+        saved: '官方价目表已保存',
+        loadFailed: '读取官方价目表失败',
+      },
       title: '渠道管理',
       description: '管理渠道和自定义模型定价',
       searchChannels: '搜索渠道...',
@@ -140,7 +157,7 @@ export default {
         cacheWrite12hPrice: '缓存写入（12h）',
         cacheReadPrice: '缓存读取',
         officialCnyPrices: '官方人民币价（选填）',
-        officialCnyHint: '厂商官网的人民币标价，只用于价目表对比和算折扣，不影响扣费。留空就用官方美元价按当天汇率换算。',
+        officialCnyHint: '厂商官网的人民币标价，只用于价目表对比和算折扣，不影响扣费。留空就用「官方价目表」里的价格，表里也没有就用官方美元价按当天汇率换算。',
         officialCnyPlaceholder: '留空按汇率换算',
         cacheWritePriceShort: '缓存写',
         cacheWrite5mPriceShort: '缓存写 5m',

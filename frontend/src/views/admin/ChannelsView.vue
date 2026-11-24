@@ -39,6 +39,9 @@
             >
               <Icon name="refresh" size="md" :class="loading ? 'animate-spin' : ''" />
             </button>
+            <button @click="showOfficialBook = true" class="btn btn-secondary">
+              {{ t('admin.channels.officialBook.button') }}
+            </button>
             <button @click="openCreateDialog" class="btn btn-primary">
               <Icon name="plus" size="md" class="mr-2" />
               {{ t('admin.channels.createChannel', 'Create Channel') }}
@@ -137,6 +140,8 @@
         />
       </template>
     </TablePageLayout>
+
+    <OfficialPriceBookDialog :show="showOfficialBook" @close="showOfficialBook = false" />
 
     <!-- Create/Edit Dialog -->
     <BaseDialog
@@ -653,9 +658,11 @@ import Icon from '@/components/icons/Icon.vue'
 import PlatformIcon from '@/components/common/PlatformIcon.vue'
 import Toggle from '@/components/common/Toggle.vue'
 import PricingEntryCard from '@/components/admin/channel/PricingEntryCard.vue'
+import OfficialPriceBookDialog from '@/components/admin/channel/OfficialPriceBookDialog.vue'
 import { getPersistedPageSize } from '@/composables/usePersistedPageSize'
 import { useKeyedDebouncedSearch } from '@/composables/useKeyedDebouncedSearch'
 
+const showOfficialBook = ref(false)
 const { t } = useI18n()
 const appStore = useAppStore()
 

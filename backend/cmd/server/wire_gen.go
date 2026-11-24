@@ -200,7 +200,7 @@ func initializeApplication(buildInfo handler.BuildInfo) (*Application, error) {
 	resellerHandler := handler.NewResellerHandler(resellerService)
 	desktopConnectCodeStore := repository.NewDesktopConnectCodeStore(redisClient)
 	desktopConnectService := service.NewDesktopConnectService(desktopConnectCodeStore, appDeviceTokenRepository, userRepository, authService)
-	modelPlazaService := service.NewModelPlazaService(channelRepository, groupRepository, pricingService, billingService, modelPricingResolver)
+	modelPlazaService := service.NewModelPlazaService(channelRepository, groupRepository, pricingService, billingService, modelPricingResolver, settingService)
 	desktopHandler := handler.NewDesktopHandler(desktopConnectService, authService, userService, apiKeyService, modelPlazaService, usageService, announcementService, settingService)
 	channelMonitorRepository := repository.NewChannelMonitorRepository(client, db)
 	channelMonitorService := service.ProvideChannelMonitorService(channelMonitorRepository, secretEncryptor, settingService)
