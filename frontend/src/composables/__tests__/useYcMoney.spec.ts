@@ -28,12 +28,14 @@ describe('useYcMoney', () => {
     appStore.cachedPublicSettings = {
       payment_enabled: true,
       balance_recharge_multiplier: 7,
-      subscription_usd_to_cny_rate: 7.3
+      subscription_usd_to_cny_rate: 7.3,
+      reference_usd_to_cny_rate: 7.1
     }
     const { state, money, scope } = await setup()
 
     expect(state.unitsPerYuan.value).toBe(7)
-    expect(state.cnyPerUsd.value).toBe(7.3)
+    // Official prices are restated at the market rate, not the checkout rate.
+    expect(state.cnyPerUsd.value).toBe(7.1)
     expect(money.yuan(14)).toBe('¥2.00')
     expect(getCheckoutInfo).not.toHaveBeenCalled()
     scope.stop()
@@ -63,5 +65,13 @@ describe('useYcMoney', () => {
     expect(older.state.unitsPerYuan.value).toBe(1)
     expect(older.state.cnyPerUsd.value).toBe(7.2)
     older.scope.stop()
+  })
+
+  it('uses the market rate even when payments are off', async () => {
+    appStore.cachedPublicSettings = { payment_enabled: false, balance_recharge_multiplier: 7, reference_usd_to_cny_rate: 7.05 }
+    const { state, scope } = await setup()
+    expect(state.unitsPerYuan.value).toBe(1)
+    expect(state.cnyPerUsd.value).toBe(7.05)
+    scope.stop()
   })
 })

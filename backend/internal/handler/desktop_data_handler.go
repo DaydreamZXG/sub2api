@@ -29,7 +29,7 @@ const (
 	desktopMaxPageSize   = 100
 	desktopKeyNameMaxLen = 100
 	perMillionTokens     = 1_000_000
-	// Used to restate official USD prices in yuan when the site has not set its own rate.
+	// Used to restate official USD prices in yuan when neither the site nor the market rate is known.
 	defaultCNYPerUSD = 7.2
 )
 
@@ -45,6 +45,9 @@ func newDesktopMoney(settings *service.PublicSettings) desktopMoney {
 		return desktopMoney{Currency: "USD"}
 	}
 	rate := settings.SubscriptionUSDToCNYRate
+	if rate <= 0 {
+		rate = settings.ReferenceUSDToCNYRate
+	}
 	if rate <= 0 {
 		rate = defaultCNYPerUSD
 	}

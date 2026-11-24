@@ -12,9 +12,9 @@ export function useYcMoney() {
   // The public settings carry both rates, so visitors get the same yuan prices as signed-in users.
   function applyPublicRates() {
     const settings = appStore.cachedPublicSettings
+    if ((settings?.reference_usd_to_cny_rate ?? 0) > 0) cnyPerUsd.value = settings!.reference_usd_to_cny_rate!
     if (!settings?.payment_enabled) return
     if ((settings.balance_recharge_multiplier ?? 0) > 0) unitsPerYuan.value = settings.balance_recharge_multiplier!
-    if ((settings.subscription_usd_to_cny_rate ?? 0) > 0) cnyPerUsd.value = settings.subscription_usd_to_cny_rate!
   }
 
   function loadRate() {
@@ -25,7 +25,6 @@ export function useYcMoney() {
       .getCheckoutInfo()
       .then(({ data }) => {
         if (data.balance_recharge_multiplier > 0) unitsPerYuan.value = data.balance_recharge_multiplier
-        if (data.subscription_usd_to_cny_rate > 0) cnyPerUsd.value = data.subscription_usd_to_cny_rate
       })
       .catch(() => {
         requested = false
@@ -38,7 +37,7 @@ export function useYcMoney() {
       authStore.isAuthenticated,
       appStore.cachedPublicSettings?.payment_enabled,
       appStore.cachedPublicSettings?.balance_recharge_multiplier,
-      appStore.cachedPublicSettings?.subscription_usd_to_cny_rate
+      appStore.cachedPublicSettings?.reference_usd_to_cny_rate
     ],
     loadRate
   )

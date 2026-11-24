@@ -691,7 +691,7 @@ export default {
     loadFailed: 'Failed to load model plaza',
     noSearchResult: 'No matching models',
     anonymousHint: 'Sign in to see your own lines and prices',
-    lead: 'All prices are in yuan, per million tokens. Struck-out prices are the official ones at 1 USD ≈ {rate} CNY, for comparison only. Open a model to see its price on each line, with cache and time-of-day prices.',
+    lead: 'All prices are in yuan, per million tokens. Struck-out prices are the official USD ones at the daily rate of 1 USD ≈ {rate} CNY, for comparison only. Open a model to see its price on each line, with cache and time-of-day prices.',
     list: { lines: '{n} lines', from: '+', other: 'Other', cacheRead: 'Cache read', vsOfficial: 'vs official' },
     filters: {
       platformLabel: 'Platform',

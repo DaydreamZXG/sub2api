@@ -696,7 +696,7 @@ export default {
     loadFailed: '加载模型广场失败',
     noSearchResult: '没有匹配的模型',
     anonymousHint: '登录后能看到你的专属线路和专属价格',
-    lead: '所有价格都是人民币，单位是每百万 Token。划线价是官方价按 1 美元 ≈ {rate} 元折算，只用来对比。点开一个模型，能看到它在每条线路上的价格、缓存价和分时段价格。',
+    lead: '所有价格都是人民币，单位是每百万 Token。划线价是官方美元价按当天汇率 1 美元 ≈ {rate} 元折算，只用来对比。点开一个模型，能看到它在每条线路上的价格、缓存价和分时段价格。',
     list: { lines: '{n} 条线路', from: '起', other: '其他', cacheRead: '缓存读取', vsOfficial: '比官方价' },
     filters: {
       platformLabel: '平台',

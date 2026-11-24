@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/Wei-Shaw/sub2api/internal/pkg/fxrate"
 	"github.com/Wei-Shaw/sub2api/internal/pkg/timezone"
 )
 
@@ -353,6 +354,7 @@ func (s *SettingService) GetPublicSettings(ctx context.Context) (*PublicSettings
 		PaymentBalanceDisabled:              settings[SettingBalancePayDisabled] == "true",
 		BalanceRechargeMultiplier:           normalizeBalanceRechargeMultiplier(pcParseFloat(settings[SettingBalanceRechargeMult], defaultBalanceRechargeMultiplier)),
 		SubscriptionUSDToCNYRate:            normalizeSubscriptionUSDToCNYRate(pcParseFloat(settings[SettingSubscriptionUSDToCNYRate], 0)),
+		ReferenceUSDToCNYRate:               fxrate.CNYPerUSD(),
 		OIDCOAuthEnabled:                    oidcEnabled,
 		OIDCOAuthProviderName:               oidcProviderName,
 		GitHubOAuthEnabled:                  gitHubEnabled,
@@ -619,6 +621,7 @@ type PublicSettingsInjectionPayload struct {
 	PaymentBalanceDisabled              bool                     `json:"payment_balance_disabled"`
 	BalanceRechargeMultiplier           float64                  `json:"balance_recharge_multiplier"`
 	SubscriptionUSDToCNYRate            float64                  `json:"subscription_usd_to_cny_rate"`
+	ReferenceUSDToCNYRate               float64                  `json:"reference_usd_to_cny_rate"`
 	Version                             string                   `json:"version"`
 	// 服务器全局时区（IANA 名称与当前 UTC 偏移），高峰时段等服务端本地时间窗口的展示标注用
 	ServerTimezone              string  `json:"server_timezone"`
@@ -716,6 +719,7 @@ func (s *SettingService) GetPublicSettingsForInjection(ctx context.Context) (any
 		PaymentBalanceDisabled:              settings.PaymentBalanceDisabled,
 		BalanceRechargeMultiplier:           settings.BalanceRechargeMultiplier,
 		SubscriptionUSDToCNYRate:            settings.SubscriptionUSDToCNYRate,
+		ReferenceUSDToCNYRate:               settings.ReferenceUSDToCNYRate,
 		Version:                             s.version,
 		ServerTimezone:                      timezone.Name(),
 		ServerUTCOffset:                     timezone.UTCOffset(),

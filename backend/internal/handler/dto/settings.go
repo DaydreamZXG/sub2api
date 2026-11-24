@@ -425,7 +425,9 @@ type PublicSettings struct {
 	// yuan to visitors who have no checkout info yet.
 	BalanceRechargeMultiplier float64 `json:"balance_recharge_multiplier"`
 	SubscriptionUSDToCNYRate  float64 `json:"subscription_usd_to_cny_rate"`
-	Version                   string  `json:"version"`
+	// Market USD to CNY rate, refreshed daily; only for restating official USD prices.
+	ReferenceUSDToCNYRate float64 `json:"reference_usd_to_cny_rate"`
+	Version               string  `json:"version"`
 	// 服务器全局时区（IANA 名称与当前 UTC 偏移，如 "Asia/Shanghai" / "+08:00"）。
 	// 高峰时段等按服务器本地时间判定的窗口，前端展示时据此标注，避免用户按浏览器本地时间误读。
 	ServerTimezone              string  `json:"server_timezone"`

@@ -381,11 +381,13 @@ type PublicSettings struct {
 	// What ¥1 of top-up buys and the USD to CNY rate, so price pages can show yuan to visitors too.
 	BalanceRechargeMultiplier float64
 	SubscriptionUSDToCNYRate  float64
-	OIDCOAuthEnabled          bool
-	OIDCOAuthProviderName     string
-	GitHubOAuthEnabled        bool
-	GoogleOAuthEnabled        bool
-	Version                   string
+	// Market USD to CNY rate, refreshed daily, for restating official USD prices in yuan.
+	ReferenceUSDToCNYRate float64
+	OIDCOAuthEnabled      bool
+	OIDCOAuthProviderName string
+	GitHubOAuthEnabled    bool
+	GoogleOAuthEnabled    bool
+	Version               string
 
 	BalanceLowNotifyEnabled     bool
 	AccountQuotaNotifyEnabled   bool
