@@ -26,8 +26,17 @@
           data-test="channel-platform"
         >
           <p class="yav-platform-name">
-            <PlatformIcon :platform="section.platform as GroupPlatform" size="sm" />
-            {{ platformLabel(section.platform) }}
+            <template v-if="sectionFamilies(section).length > 0">
+              <span v-for="f in sectionFamilies(section)" :key="f.key" class="yav-family" data-test="channel-family">
+                <ModelIcon :model="f.sample" size="16px" />
+                {{ f.label }}
+              </span>
+              <span class="yav-tag">{{ t('availableChannels.protocol', { platform: platformLabel(section.platform) }) }}</span>
+            </template>
+            <template v-else>
+              <PlatformIcon :platform="section.platform as GroupPlatform" size="sm" />
+              {{ platformLabel(section.platform) }}
+            </template>
           </p>
 
           <div class="yav-cols">
@@ -46,6 +55,7 @@
                   <span v-if="g.subscription_type === 'subscription'" class="yav-tag">
                     {{ t('availableChannels.subscription') }}
                   </span>
+                  <span class="yav-price-k">{{ t('availableChannels.vsChannelPrice') }}</span>
                   <span
                     class="yav-price"
                     :class="{ 'yav-price-good': effectiveRate(g) < 1 }"
@@ -88,6 +98,7 @@
 import { useI18n } from 'vue-i18n'
 import Icon from '@/components/icons/Icon.vue'
 import PlatformIcon from '@/components/common/PlatformIcon.vue'
+import ModelIcon from '@/components/common/ModelIcon.vue'
 import SupportedModelChip from './SupportedModelChip.vue'
 import type { UserAvailableChannel, UserAvailableGroup, UserChannelPlatformSection } from '@/api/channels'
 import type { GroupPlatform } from '@/types'
@@ -95,6 +106,7 @@ import { platformLabel } from '@/utils/platformColors'
 import { useAppStore } from '@/stores/app'
 import { hasPeakRate, serverTimezoneLabel } from '@/utils/peak-rate'
 import { priceChangeLabel } from '@/utils/ycPriceWords'
+import { familiesOf } from '@/utils/modelFamily'
 
 const props = defineProps<{
   rows: UserAvailableChannel[]
@@ -113,6 +125,11 @@ const appStore = useAppStore()
 /** Lines granted to this user come first, then the ones open to everyone. */
 function orderedGroups(section: UserChannelPlatformSection): UserAvailableGroup[] {
   return [...section.groups.filter((g) => g.is_exclusive), ...section.groups.filter((g) => !g.is_exclusive)]
+}
+
+/** The makers of the models on this section, which is what users choose by; the API protocol is a side note. */
+function sectionFamilies(section: UserChannelPlatformSection) {
+  return familiesOf(section.supported_models.map((m) => m.name))
 }
 
 function effectiveRate(group: UserAvailableGroup): number {
@@ -154,7 +171,9 @@ function peakTitle(group: UserAvailableGroup): string {
 .yav-head p { margin-top: 4px; font-size: 13px; line-height: 1.6; color: var(--yc-mut); overflow-wrap: anywhere; }
 
 .yav-platform { padding: 16px 24px 20px; border-top: 1px solid var(--yc-line); }
-.yav-platform-name { display: inline-flex; align-items: center; gap: 7px; font-size: 14px; font-weight: 650; color: var(--yc-ink); }
+.yav-platform-name { display: flex; flex-wrap: wrap; align-items: center; gap: 7px 12px; font-size: 14px; font-weight: 650; color: var(--yc-ink); }
+.yav-family { display: inline-flex; align-items: center; gap: 6px; }
+.yav-price-k { margin-left: auto; font-size: 12px; color: var(--yc-mut); }
 .yav-cols { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 16px 32px; margin-top: 12px; }
 .yav-col { min-width: 0; }
 .yav-label { margin-bottom: 8px; font-size: 12px; color: var(--yc-mut); }

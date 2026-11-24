@@ -39,6 +39,9 @@
             >
               <Icon name="refresh" size="md" :class="loading ? 'animate-spin' : ''" />
             </button>
+            <button @click="showOfficialBook = true" class="btn btn-secondary">
+              {{ t('admin.channels.officialBook.button') }}
+            </button>
             <button @click="openCreateDialog" class="btn btn-primary">
               <Icon name="plus" size="md" class="mr-2" />
               {{ t('admin.channels.createChannel', 'Create Channel') }}
@@ -137,6 +140,8 @@
         />
       </template>
     </TablePageLayout>
+
+    <OfficialPriceBookDialog :show="showOfficialBook" @close="showOfficialBook = false" />
 
     <!-- Create/Edit Dialog -->
     <BaseDialog
@@ -449,6 +454,7 @@
                   :entry="entry"
                   :platform="section.platform"
                   enable-time-pricing
+                  enable-official-cny
                   enable-tier-multipliers
                   @update="updatePricingEntry(sIdx, idx, $event)"
                   @remove="removePricingEntry(sIdx, idx)"
@@ -652,9 +658,11 @@ import Icon from '@/components/icons/Icon.vue'
 import PlatformIcon from '@/components/common/PlatformIcon.vue'
 import Toggle from '@/components/common/Toggle.vue'
 import PricingEntryCard from '@/components/admin/channel/PricingEntryCard.vue'
+import OfficialPriceBookDialog from '@/components/admin/channel/OfficialPriceBookDialog.vue'
 import { getPersistedPageSize } from '@/composables/usePersistedPageSize'
 import { useKeyedDebouncedSearch } from '@/composables/useKeyedDebouncedSearch'
 
+const showOfficialBook = ref(false)
 const { t } = useI18n()
 const appStore = useAppStore()
 
@@ -1158,6 +1166,9 @@ function formToAPI(): { group_ids: number[], model_pricing: ChannelModelPricing[
         cache_write_1h_price: mTokToPerToken(entry.cache_write_1h_price),
         cache_write_12h_price: mTokToPerToken(entry.cache_write_12h_price),
         cache_read_price: mTokToPerToken(entry.cache_read_price),
+        official_cny_input_price: mTokToPerToken(entry.official_cny_input_price),
+        official_cny_output_price: mTokToPerToken(entry.official_cny_output_price),
+        official_cny_cache_read_price: mTokToPerToken(entry.official_cny_cache_read_price),
         fast_multiplier: entry.fast_multiplier != null && entry.fast_multiplier !== '' ? Number(entry.fast_multiplier) : null,
         flex_multiplier: entry.flex_multiplier != null && entry.flex_multiplier !== '' ? Number(entry.flex_multiplier) : null,
         ultrafast_multiplier: entry.ultrafast_multiplier != null && entry.ultrafast_multiplier !== '' ? Number(entry.ultrafast_multiplier) : null,
@@ -1253,6 +1264,9 @@ function apiToForm(channel: Channel): PlatformSection[] {
         cache_write_1h_price: perTokenToMTok(p.cache_write_1h_price),
         cache_write_12h_price: perTokenToMTok(p.cache_write_12h_price),
         cache_read_price: perTokenToMTok(p.cache_read_price),
+        official_cny_input_price: perTokenToMTok(p.official_cny_input_price),
+        official_cny_output_price: perTokenToMTok(p.official_cny_output_price),
+        official_cny_cache_read_price: perTokenToMTok(p.official_cny_cache_read_price),
         fast_multiplier: p.fast_multiplier,
         flex_multiplier: p.flex_multiplier,
         ultrafast_multiplier: p.ultrafast_multiplier,

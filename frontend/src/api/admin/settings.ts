@@ -1370,6 +1370,28 @@ export interface UpdateRegistrationEmailBlacklistResponse extends RegistrationEm
   added: string[];
 }
 
+/** One model's official price per million tokens; null is unknown. Display only, billing ignores it. */
+export interface OfficialPriceEntry {
+  models: string[]
+  cny_input: number | null
+  cny_output: number | null
+  cny_cache_read: number | null
+  usd_input: number | null
+  usd_output: number | null
+  usd_cache_read: number | null
+}
+
+export async function getOfficialPriceBook(): Promise<OfficialPriceEntry[]> {
+  const { data } = await apiClient.get<{ entries: OfficialPriceEntry[] }>('/admin/settings/official-prices')
+  return data.entries ?? []
+}
+
+/** Replace the whole site-wide official price book. */
+export async function updateOfficialPriceBook(entries: OfficialPriceEntry[]): Promise<OfficialPriceEntry[]> {
+  const { data } = await apiClient.put<{ entries: OfficialPriceEntry[] }>('/admin/settings/official-prices', { entries })
+  return data.entries ?? []
+}
+
 export async function getRegistrationEmailBlacklist(): Promise<RegistrationEmailBlacklist> {
   const { data } = await apiClient.get<RegistrationEmailBlacklist>(
     "/admin/settings/registration-email-blacklist",
@@ -1632,6 +1654,8 @@ export const settingsAPI = {
   updateOverloadCooldownSettings,
   getRateLimit429CooldownSettings,
   updateRateLimit429CooldownSettings,
+  getOfficialPriceBook,
+  updateOfficialPriceBook,
   getRegistrationEmailBlacklist,
   updateRegistrationEmailBlacklist,
   getPanelRateLimitSettings,

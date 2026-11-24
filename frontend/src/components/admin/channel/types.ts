@@ -37,6 +37,9 @@ export interface PricingFormEntry {
   image_input_price: number | string | null
   image_output_price: number | string | null
   per_request_price: number | string | null
+  official_cny_input_price?: number | string | null
+  official_cny_output_price?: number | string | null
+  official_cny_cache_read_price?: number | string | null
   intervals: IntervalFormEntry[]
   time_pricing: TimePricingFormEntry
 }

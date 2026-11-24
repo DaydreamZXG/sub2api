@@ -104,7 +104,7 @@
           <!-- Default prices (fallback when no interval matches) -->
           <label class="mt-3 block text-xs font-medium text-gray-500 dark:text-gray-400">
             {{ t('admin.channels.form.defaultPrices') }}
-            <span class="ml-1 font-normal text-gray-400">$/MTok</span>
+            <span class="ml-1 font-normal text-gray-400">{{ ycSign }}/MTok</span>
           </label>
           <div class="pricing-default-grid mt-1 grid gap-2">
             <div>
@@ -148,6 +148,21 @@
                 type="number" step="any" min="0" class="input mt-0.5 text-sm" :placeholder="t('admin.channels.form.pricePlaceholder')" />
             </div>
           </div>
+
+          <template v-if="enableOfficialCny">
+            <label class="mt-3 block text-xs font-medium text-gray-500 dark:text-gray-400">
+              {{ t('admin.channels.form.officialCnyPrices') }}
+              <span class="ml-1 font-normal text-gray-400">¥/MTok</span>
+            </label>
+            <p class="mt-0.5 text-xs text-gray-400">{{ t('admin.channels.form.officialCnyHint') }}</p>
+            <div class="mt-1 grid max-w-3xl grid-cols-1 gap-2 sm:grid-cols-3">
+              <div v-for="field in OFFICIAL_CNY_FIELDS" :key="field.key">
+                <label class="text-xs text-gray-400">{{ t(field.label) }}</label>
+                <input :value="entry[field.key]" @input="emitField(field.key, ($event.target as HTMLInputElement).value)"
+                  type="number" step="any" min="0" class="input mt-0.5 text-sm" :placeholder="t('admin.channels.form.officialCnyPlaceholder')" />
+              </div>
+            </div>
+          </template>
 
           <div v-if="enableTierMultipliers" class="mt-3 grid max-w-3xl grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
             <div>
@@ -318,6 +333,7 @@ import IntervalRow from './IntervalRow.vue'
 import ModelTagInput from './ModelTagInput.vue'
 import TimePricingSection from './TimePricingSection.vue'
 import type { PricingFormEntry, IntervalFormEntry } from './types'
+import { ycSign } from '@/composables/ycMoneyState'
 import { perTokenToMTok, getPlatformTagClass, isValidPositiveMultiplier, validateReasoningEffortMultipliers } from './types'
 import { REASONING_EFFORT_LEVELS, type ReasoningEffortLevel } from '@/constants/channel'
 import type { BillingMode } from '@/api/admin/channels'
@@ -331,11 +347,19 @@ const props = withDefaults(defineProps<{
   hideTokenIntervals?: boolean
   enableTimePricing?: boolean
   enableTierMultipliers?: boolean
+  enableOfficialCny?: boolean
 }>(), {
   hideTokenIntervals: false,
   enableTimePricing: false,
   enableTierMultipliers: false,
+  enableOfficialCny: false,
 })
+
+const OFFICIAL_CNY_FIELDS = [
+  { key: 'official_cny_input_price', label: 'admin.channels.form.inputPrice' },
+  { key: 'official_cny_output_price', label: 'admin.channels.form.outputPrice' },
+  { key: 'official_cny_cache_read_price', label: 'admin.channels.form.cacheReadPrice' },
+] as const
 
 const emit = defineEmits<{
   update: [entry: PricingFormEntry]
@@ -438,7 +462,9 @@ async function onModelsUpdate(newModels: string[]) {
 
   // 查询第一个新增模型的默认价格
   try {
-    const result = await channelsAPI.getModelDefaultPricing(addedModels[0])
+    const found = await channelsAPI.getModelDefaultPricing(addedModels[0])
+    // The catalog is in USD; a site holding balances in yuan must prefill yuan prices.
+    const result = ycSign.value === '¥' && found.yuan ? { ...found, ...found.yuan } : found
     if (result.found) {
       emit('update', {
         ...props.entry,

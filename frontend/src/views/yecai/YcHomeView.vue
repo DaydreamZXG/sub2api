@@ -109,7 +109,7 @@
         <h2 class="yc-h2">{{ t('yc.price.title') }}</h2>
         <div :key="top.name" class="yc-price-top" :class="{ 'is-quick': picked }" aria-live="polite">
           <p class="yc-price-name">{{ top.name }}</p>
-          <p v-if="top.officialInput && top.share" class="yc-price-was"><span>{{ t('yc.price.official') }} ¥{{ price(top.officialInput) }}</span></p>
+          <p v-if="top.officialInput && top.share" class="yc-price-was"><span>{{ t('yc.price.official') }} {{ officialMoney(top) }}</span></p>
           <p class="yc-price-now yc-num"><span class="yc-mark">¥{{ price(top.input) }}</span></p>
           <p class="yc-price-unit">
             {{ t('yc.price.perMillionIn') }}
@@ -130,12 +130,12 @@
             @click="picked = m.name"
           >
             <span class="yc-price-row-name">{{ m.name }}</span>
-            <s v-if="m.officialInput && m.share">¥{{ price(m.officialInput) }}</s><s v-else></s>
+            <s v-if="m.officialInput && m.share">{{ officialMoney(m) }}</s><s v-else></s>
             <b class="yc-num">¥{{ price(m.input) }}</b>
             <span v-if="m.share" class="yc-chip">{{ off(m.share) }}</span><span v-else></span>
           </button>
         </div>
-        <p class="yc-price-note">{{ t('yc.price.note', { rate: cnyPerUsd }) }}</p>
+        <p class="yc-price-note">{{ t('yc.price.note', { rate: cnyPerUsd.toFixed(2) }) }}</p>
         <router-link v-if="showModelPlaza" to="/model-plaza" class="yc-price-all">{{ t('yc.price.all') }} →</router-link>
       </section>
 
@@ -171,6 +171,7 @@
 </template>
 
 <script setup lang="ts">
+import { officialInUsd } from '@/composables/ycMoneyState'
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useIntervalFn, useTransition, useWindowScroll } from '@vueuse/core'
 import { useI18n } from 'vue-i18n'
@@ -192,7 +193,7 @@ import preview from '@/assets/yecai/yeschoy-console-preview.webp'
 import previewDark from '@/assets/yecai/yeschoy-console-preview-dark.webp'
 import '@/styles/yecai.css'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const authStore = useAuthStore()
 const appStore = useAppStore()
 const { prices, load: loadPrices, cnyPerUsd } = useYcPrices()
@@ -293,6 +294,11 @@ const top = computed(() => choices.value.find((m) => m.name === picked.value) ??
 function price(value: number): string {
   if (value >= 100) return value.toFixed(0)
   return value >= 10 ? value.toFixed(1) : value.toFixed(2)
+}
+/** Official prices are kept in yuan for the discount; non-Chinese pages show them in dollars. */
+function officialMoney(p: { officialInput: number | null; officialInputUsd?: number | null }): string {
+  if (officialInUsd(locale?.value)) return `$${price(p.officialInputUsd ?? (p.officialInput ?? 0) / cnyPerUsd.value)}`
+  return `¥${price(p.officialInput ?? 0)}`
 }
 function off(share: number): string {
   return t('yc.price.off', { zhe: (share * 10).toFixed(1), pct: Math.round((1 - share) * 100) })

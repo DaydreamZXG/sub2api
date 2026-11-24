@@ -177,16 +177,16 @@ func synthesizePricingFromLiteLLM(lp *LiteLLMModelPricing, existing *ChannelMode
 	}
 
 	if mode == BillingModeImage || mode == BillingModePerRequest {
-		return &ChannelModelPricing{
+		return withOfficialCNYFrom(&ChannelModelPricing{
 			BillingMode:                mode,
 			PerRequestPrice:            nonZeroPtr(lp.OutputCostPerImage),
 			ImageOutputPrice:           nonZeroPtr(lp.OutputCostPerImageToken),
 			InputPrice:                 nonZeroPtr(lp.InputCostPerToken),
 			OutputPrice:                nonZeroPtr(lp.OutputCostPerToken),
 			ReasoningEffortMultipliers: reasoningEffortMultipliersFromPricing(existing),
-		}
+		}, existing)
 	}
-	return &ChannelModelPricing{
+	return withOfficialCNYFrom(&ChannelModelPricing{
 		BillingMode:                mode,
 		InputPrice:                 nonZeroPtr(lp.InputCostPerToken),
 		OutputPrice:                nonZeroPtr(lp.OutputCostPerToken),
@@ -195,7 +195,17 @@ func synthesizePricingFromLiteLLM(lp *LiteLLMModelPricing, existing *ChannelMode
 		CacheReadPrice:             nonZeroPtr(lp.CacheReadInputTokenCost),
 		ImageOutputPrice:           nonZeroPtr(lp.OutputCostPerImageToken),
 		ReasoningEffortMultipliers: reasoningEffortMultipliersFromPricing(existing),
+	}, existing)
+}
+
+// withOfficialCNYFrom keeps the official yuan prices the admin entered on a line whose billing prices fell back to the catalog.
+func withOfficialCNYFrom(p, existing *ChannelModelPricing) *ChannelModelPricing {
+	if existing != nil {
+		p.OfficialCNYInputPrice = existing.OfficialCNYInputPrice
+		p.OfficialCNYOutputPrice = existing.OfficialCNYOutputPrice
+		p.OfficialCNYCacheReadPrice = existing.OfficialCNYCacheReadPrice
 	}
+	return p
 }
 
 func reasoningEffortMultipliersFromPricing(pricing *ChannelModelPricing) map[string]float64 {

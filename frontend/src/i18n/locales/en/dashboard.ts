@@ -651,6 +651,8 @@ export default {
     subscription: 'Monthly plan',
     exclusiveTooltip: 'A line an admin opened for you',
     publicTooltip: 'A line open to every user',
+    vsChannelPrice: 'vs channel price',
+    protocol: '{platform}-compatible API',
     columns: {
       groups: 'Lines you can use',
       supportedModels: 'Models (tap one for prices)'
@@ -689,6 +691,8 @@ export default {
     loadFailed: 'Failed to load model plaza',
     noSearchResult: 'No matching models',
     anonymousHint: 'Sign in to see your own lines and prices',
+    lead: 'All prices are in yuan, per million tokens. Struck-out prices are the official ones in USD, for comparison only; discounts compare them at the daily rate of 1 USD ≈ {rate} CNY. Open a model to see its price on each line, with cache and time-of-day prices.',
+    list: { lines: '{n} lines', from: '+', other: 'Other', cacheRead: 'Cache read', vsOfficial: 'vs official' },
     filters: {
       platformLabel: 'Platform',
       groupLabel: 'Line',
@@ -734,8 +738,9 @@ export default {
       officialShort: 'Official',
       paidPrice: 'What you pay',
       officialPrice: 'Official price (for comparison)',
-      rate: 'Discount',
+      rate: 'vs official',
       unitPerMillion: '¥ / 1M tokens',
+      unitPerMillionUsd: '$ / 1M tokens',
       perUnitRequest: '/ request',
       perUnitImage: '/ image',
       perRequest: 'Per request',

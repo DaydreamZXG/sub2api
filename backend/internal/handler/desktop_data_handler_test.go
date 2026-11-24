@@ -237,3 +237,17 @@ func TestDesktopRefreshSessionRejectsIncompleteRequests(t *testing.T) {
 		require.JSONEq(t, `{"success":false,"code":"invalid_request"}`, rec.Body.String())
 	}
 }
+
+func TestDesktopPlanOfficialPrefersVendorYuan(t *testing.T) {
+	usd, cny := 0.15e-6, 1e-6
+	group := &service.PlazaGroup{Models: []service.PlazaModel{{Name: "deepseek-flash", OfficialPricing: &service.PlazaOfficialPricing{
+		InputPrice: &usd, CNYInputPrice: &cny, OutputPrice: &usd,
+	}}}}
+
+	yuan := toDesktopPlan(group, 1, desktopMoney{Currency: "CNY", UnitsPerYuan: 1, CNYPerUSD: 7}).Models[0].Official
+	require.Equal(t, 1.0, *yuan.Input, "the vendor's yuan price, not 0.15 × 7")
+	require.InDelta(t, 1.05, *yuan.Output, 1e-9, "no yuan price: convert the USD one")
+
+	dollars := toDesktopPlan(group, 1, desktopMoney{Currency: "USD"}).Models[0].Official
+	require.InDelta(t, 0.15, *dollars.Input, 1e-9)
+}

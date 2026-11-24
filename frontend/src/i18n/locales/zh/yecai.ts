@@ -72,7 +72,7 @@ export default {
     official: '官方价',
     perMillionIn: '每百万 Token 输入',
     off: '约 {zhe} 折',
-    note: '其他模型见完整价目表。官方价按 1 美元 ≈ {rate} 元折算，仅供对比。',
+    note: '其他模型见完整价目表。官方价按当天汇率 1 美元 ≈ {rate} 元折算，仅供对比。',
     output: '输出每百万 Token ¥{price}',
     pick: '点一个模型，看它的价格',
     all: '全部模型和价格'

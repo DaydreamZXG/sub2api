@@ -268,9 +268,7 @@ const routes: RouteRecordRaw[] = [
   },
   {
     path: '/prices',
-    name: 'Prices',
-    component: () => import('@/views/yecai/YcPricesView.vue'),
-    meta: { requiresAuth: true, requiresAdmin: false, title: 'Prices', titleKey: 'yc.prices.title' }
+    redirect: '/model-plaza'
   },
   {
     path: '/keys',

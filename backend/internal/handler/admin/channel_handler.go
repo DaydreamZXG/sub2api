@@ -7,6 +7,7 @@ import (
 
 	"github.com/Wei-Shaw/sub2api/internal/domain"
 	infraerrors "github.com/Wei-Shaw/sub2api/internal/pkg/errors"
+	"github.com/Wei-Shaw/sub2api/internal/pkg/fxrate"
 	"github.com/Wei-Shaw/sub2api/internal/pkg/pagination"
 	"github.com/Wei-Shaw/sub2api/internal/pkg/response"
 	"github.com/Wei-Shaw/sub2api/internal/service"
@@ -19,11 +20,12 @@ type ChannelHandler struct {
 	channelService *service.ChannelService
 	billingService *service.BillingService
 	pricingService *service.PricingService
+	settingService *service.SettingService
 }
 
 // NewChannelHandler creates a new admin channel handler
-func NewChannelHandler(channelService *service.ChannelService, billingService *service.BillingService, pricingService *service.PricingService) *ChannelHandler {
-	return &ChannelHandler{channelService: channelService, billingService: billingService, pricingService: pricingService}
+func NewChannelHandler(channelService *service.ChannelService, billingService *service.BillingService, pricingService *service.PricingService, settingService *service.SettingService) *ChannelHandler {
+	return &ChannelHandler{channelService: channelService, billingService: billingService, pricingService: pricingService, settingService: settingService}
 }
 
 // --- Request / Response types ---
@@ -74,6 +76,9 @@ type channelModelPricingRequest struct {
 	ImageInputPrice            *float64                   `json:"image_input_price" binding:"omitempty,min=0"`
 	ImageOutputPrice           *float64                   `json:"image_output_price" binding:"omitempty,min=0"`
 	PerRequestPrice            *float64                   `json:"per_request_price" binding:"omitempty,min=0"`
+	OfficialCNYInputPrice      *float64                   `json:"official_cny_input_price" binding:"omitempty,min=0"`
+	OfficialCNYOutputPrice     *float64                   `json:"official_cny_output_price" binding:"omitempty,min=0"`
+	OfficialCNYCacheReadPrice  *float64                   `json:"official_cny_cache_read_price" binding:"omitempty,min=0"`
 	Intervals                  []pricingIntervalRequest   `json:"intervals"`
 	TimePricing                *channelTimePricingRequest `json:"time_pricing"`
 }
@@ -151,6 +156,9 @@ type channelModelPricingResponse struct {
 	ImageInputPrice            *float64                    `json:"image_input_price"`
 	ImageOutputPrice           *float64                    `json:"image_output_price"`
 	PerRequestPrice            *float64                    `json:"per_request_price"`
+	OfficialCNYInputPrice      *float64                    `json:"official_cny_input_price"`
+	OfficialCNYOutputPrice     *float64                    `json:"official_cny_output_price"`
+	OfficialCNYCacheReadPrice  *float64                    `json:"official_cny_cache_read_price"`
 	Intervals                  []pricingIntervalResponse   `json:"intervals"`
 	TimePricing                *channelTimePricingResponse `json:"time_pricing"`
 }
@@ -284,6 +292,9 @@ func pricingToResponse(p *service.ChannelModelPricing) channelModelPricingRespon
 		ImageInputPrice:            p.ImageInputPrice,
 		ImageOutputPrice:           p.ImageOutputPrice,
 		PerRequestPrice:            p.PerRequestPrice,
+		OfficialCNYInputPrice:      p.OfficialCNYInputPrice,
+		OfficialCNYOutputPrice:     p.OfficialCNYOutputPrice,
+		OfficialCNYCacheReadPrice:  p.OfficialCNYCacheReadPrice,
 		Intervals:                  intervals,
 		TimePricing:                timePricingToResponse(p.TimePricing),
 	}
@@ -387,6 +398,9 @@ func pricingRequestToService(reqs []channelModelPricingRequest, allowChannelMult
 			ImageInputPrice:            r.ImageInputPrice,
 			ImageOutputPrice:           r.ImageOutputPrice,
 			PerRequestPrice:            r.PerRequestPrice,
+			OfficialCNYInputPrice:      r.OfficialCNYInputPrice,
+			OfficialCNYOutputPrice:     r.OfficialCNYOutputPrice,
+			OfficialCNYCacheReadPrice:  r.OfficialCNYCacheReadPrice,
 			Intervals:                  intervals,
 			TimePricing:                timePricingRequestToService(r.TimePricing),
 		})
@@ -617,11 +631,49 @@ func (h *ChannelHandler) GetModelDefaultPricing(c *gin.Context) {
 		return
 	}
 
+	book := h.settingService.OfficialPriceFor(c.Request.Context(), model)
+	rate := fxrate.CNYPerUSD()
 	pricing, err := h.billingService.GetModelPricing(model)
 	if err != nil {
-		// 模型不在定价列表中
-		response.Success(c, gin.H{"found": false})
+		// 模型不在定价列表中；官方价目表里有就用它
+		if book == nil || (book.USDInput == nil && book.USDOutput == nil && book.USDCacheRead == nil &&
+			book.CNYInput == nil && book.CNYOutput == nil && book.CNYCacheRead == nil) {
+			response.Success(c, gin.H{"found": false})
+			return
+		}
+		usd := map[string]*float64{
+			"input_price":      perToken(book.USDInput),
+			"output_price":     perToken(book.USDOutput),
+			"cache_read_price": perToken(book.USDCacheRead),
+		}
+		response.Success(c, gin.H{
+			"found":            true,
+			"input_price":      usd["input_price"],
+			"output_price":     usd["output_price"],
+			"cache_read_price": usd["cache_read_price"],
+			"yuan": gin.H{
+				"input_price":      yuanPerToken(usd["input_price"], book.CNYInput, rate),
+				"output_price":     yuanPerToken(usd["output_price"], book.CNYOutput, rate),
+				"cache_read_price": yuanPerToken(usd["cache_read_price"], book.CNYCacheRead, rate),
+			},
+		})
 		return
+	}
+	var bookCNY OfficialCNYTriple
+	if book != nil {
+		bookCNY = OfficialCNYTriple{book.CNYInput, book.CNYOutput, book.CNYCacheRead}
+		// The book's USD prices are the official ones the price list compares with; prefill the same.
+		local := *pricing
+		pricing = &local
+		for dst, v := range map[*float64]*float64{
+			&pricing.InputPricePerToken:     book.USDInput,
+			&pricing.OutputPricePerToken:    book.USDOutput,
+			&pricing.CacheReadPricePerToken: book.USDCacheRead,
+		} {
+			if v != nil {
+				*dst = *v / 1e6
+			}
+		}
 	}
 	cacheWritePrice := pricing.CacheCreationPricePerToken
 	var cacheWrite1hPrice *float64
@@ -643,7 +695,44 @@ func (h *ChannelHandler) GetModelDefaultPricing(c *gin.Context) {
 		"reasoning_effort_multipliers": pricing.ReasoningEffortMultipliers,
 		"image_input_price":            pricing.ImageInputPricePerToken,
 		"image_output_price":           pricing.ImageOutputPricePerToken,
+		// The site holds balances in yuan: these are what the form should prefill there. Vendor yuan prices
+		// from the official price book win; everything else is the USD price at the daily rate.
+		"yuan": gin.H{
+			"input_price":           yuanPerToken(&pricing.InputPricePerToken, bookCNY.Input, rate),
+			"output_price":          yuanPerToken(&pricing.OutputPricePerToken, bookCNY.Output, rate),
+			"cache_write_price":     yuanPerToken(&cacheWritePrice, nil, rate),
+			"cache_write_1h_price":  yuanPerToken(cacheWrite1hPrice, nil, rate),
+			"cache_write_12h_price": yuanPerToken(pricing.CacheCreation12hPricePerToken, nil, rate),
+			"cache_read_price":      yuanPerToken(&pricing.CacheReadPricePerToken, bookCNY.CacheRead, rate),
+			"image_input_price":     yuanPerToken(&pricing.ImageInputPricePerToken, nil, rate),
+			"image_output_price":    yuanPerToken(&pricing.ImageOutputPricePerToken, nil, rate),
+		},
 	})
+}
+
+// OfficialCNYTriple is a model's official yuan prices per million tokens.
+type OfficialCNYTriple struct {
+	Input, Output, CacheRead *float64
+}
+
+func perToken(perMillion *float64) *float64 {
+	if perMillion == nil {
+		return nil
+	}
+	v := *perMillion / 1e6
+	return &v
+}
+
+// yuanPerToken prefers the vendor's yuan price (per million tokens) over converting the USD one.
+func yuanPerToken(usd *float64, cnyPerMillion *float64, rate float64) *float64 {
+	if cnyPerMillion != nil {
+		return perToken(cnyPerMillion)
+	}
+	if usd == nil {
+		return nil
+	}
+	v := *usd * rate
+	return &v
 }
 
 // platformLiteLLMProvider maps a channel platform name to the corresponding

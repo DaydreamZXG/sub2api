@@ -17,6 +17,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Wei-Shaw/sub2api/internal/pkg/fxrate"
 	"github.com/Wei-Shaw/sub2api/internal/server/middleware"
 	"github.com/gin-gonic/gin"
 )
@@ -72,6 +73,8 @@ func NewFrontendServer(settingsProvider PublicSettingsProvider) (*FrontendServer
 
 	cache := NewHTMLCache()
 	cache.SetBaseHTML(baseHTML)
+	// The page embeds the market rate, so a new rate must not wait for a settings change.
+	fxrate.OnChange(cache.Invalidate)
 
 	return &FrontendServer{
 		distFS:      distFS,

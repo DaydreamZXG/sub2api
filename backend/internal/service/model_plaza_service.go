@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+
+	"github.com/Wei-Shaw/sub2api/internal/pkg/logger"
 )
 
 // PlazaOfficialPricing 模型广场展示用的官方参考价（USD per token），与计费同源：
@@ -16,6 +18,10 @@ type PlazaOfficialPricing struct {
 	CacheWrite1hPrice  *float64 // 1h 缓存写入，仅计费会区分 5m/1h 时给出
 	CacheWrite12hPrice *float64 // OpenAI 12h cache-write price
 	CacheReadPrice     *float64
+	// Official yuan prices per token the admin entered on the line; nil restates the USD price at the daily rate.
+	CNYInputPrice     *float64
+	CNYOutputPrice    *float64
+	CNYCacheReadPrice *float64
 	// Intervals 官方长上下文阶梯（多档时给出），不受分组开关影响。
 	Intervals []PricingInterval
 }
@@ -76,6 +82,7 @@ type ModelPlazaService struct {
 	pricingService *PricingService
 	billingService *BillingService
 	resolver       *ModelPricingResolver
+	settingService *SettingService
 }
 
 // NewModelPlazaService 创建模型广场服务。
@@ -85,6 +92,7 @@ func NewModelPlazaService(
 	pricingService *PricingService,
 	billingService *BillingService,
 	resolver *ModelPricingResolver,
+	settingService *SettingService,
 ) *ModelPlazaService {
 	return &ModelPlazaService{
 		channelRepo:    channelRepo,
@@ -92,6 +100,7 @@ func NewModelPlazaService(
 		pricingService: pricingService,
 		billingService: billingService,
 		resolver:       resolver,
+		settingService: settingService,
 	}
 }
 
@@ -205,6 +214,7 @@ func (s *ModelPlazaService) ListGroups(ctx context.Context) ([]PlazaGroup, error
 	}
 
 	officialMemo := make(map[string]*PlazaOfficialPricing)
+	priceBook := s.officialPriceBook(ctx)
 	out := make([]PlazaGroup, 0, len(order))
 	for _, gid := range order {
 		pg := byGroup[gid]
@@ -219,8 +229,10 @@ func (s *ModelPlazaService) ListGroups(ctx context.Context) ([]PlazaGroup, error
 		})
 		g := groupEnt[gid]
 		for j := range pg.Models {
+			configured := pg.Models[j].Pricing
 			s.fillDisplayPricing(ctx, &pg.Models[j], g)
-			pg.Models[j].OfficialPricing = s.lookupOfficialPricing(ctx, pg.Models[j].Name, officialMemo)
+			official := withPriceBook(s.lookupOfficialPricing(ctx, pg.Models[j].Name, officialMemo), priceBook[officialModelKey(pg.Models[j].Name)])
+			pg.Models[j].OfficialPricing = withOfficialCNY(official, configured)
 		}
 		out = append(out, *pg)
 	}
@@ -389,4 +401,38 @@ func (s *ModelPlazaService) lookupOfficialPricing(ctx context.Context, modelName
 	}
 	memo[modelName] = result
 	return result
+}
+
+// officialPriceBook indexes the site-wide official prices; an unreadable book only costs the comparison.
+func (s *ModelPlazaService) officialPriceBook(ctx context.Context) map[string]*OfficialPriceEntry {
+	if s.settingService == nil {
+		return nil
+	}
+	entries, err := s.settingService.GetOfficialPriceBook(ctx)
+	if err != nil {
+		logger.LegacyPrintf("service.model_plaza", "official price book unavailable: %v", err)
+		return nil
+	}
+	return officialPriceIndex(entries)
+}
+
+// withOfficialCNY lays the official yuan prices entered on the line over the others, without touching the shared catalog entry.
+func withOfficialCNY(official *PlazaOfficialPricing, p *ChannelModelPricing) *PlazaOfficialPricing {
+	if p == nil || (p.OfficialCNYInputPrice == nil && p.OfficialCNYOutputPrice == nil && p.OfficialCNYCacheReadPrice == nil) {
+		return official
+	}
+	var out PlazaOfficialPricing
+	if official != nil {
+		out = *official
+	}
+	for dst, v := range map[**float64]*float64{
+		&out.CNYInputPrice:     p.OfficialCNYInputPrice,
+		&out.CNYOutputPrice:    p.OfficialCNYOutputPrice,
+		&out.CNYCacheReadPrice: p.OfficialCNYCacheReadPrice,
+	} {
+		if v != nil {
+			*dst = v
+		}
+	}
+	return &out
 }

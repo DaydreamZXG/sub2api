@@ -48,6 +48,23 @@ export default {
 
     // Channel Management
     channels: {
+      officialBook: {
+        button: 'Official prices',
+        title: 'Official prices',
+        hint: "Each vendor's list price per million tokens. The price list compares every line serving a model against it and works out the discount; an official yuan price entered on a line wins. Display only, billing ignores it.",
+        models: 'Model names',
+        modelsHint: 'Separate names with commas; case and punctuation are ignored',
+        cny: 'Yuan (¥)',
+        usd: 'USD ($)',
+        input: 'Input',
+        output: 'Output',
+        cacheRead: 'Cache read',
+        addRow: 'Add model',
+        removeRow: 'Remove',
+        empty: 'No models yet',
+        saved: 'Official prices saved',
+        loadFailed: 'Could not load the official prices',
+      },
       title: 'Channel Management',
       description: 'Manage channels and custom model pricing',
       searchChannels: 'Search channels...',
@@ -139,6 +156,9 @@ export default {
         cacheWrite1hPrice: 'Cache Write (1h)',
         cacheWrite12hPrice: 'Cache Write (12h)',
         cacheReadPrice: 'Cache Read',
+        officialCnyPrices: 'Official CNY price (optional)',
+        officialCnyHint: "The vendor's own yuan price, used only to compare and work out discounts on the price list; billing ignores it. Leave empty to use the official price list, or failing that the official USD price at the daily rate.",
+        officialCnyPlaceholder: 'Empty: convert USD',
         cacheWritePriceShort: 'Cache W',
         cacheWrite5mPriceShort: 'Cache W 5m',
         cacheWrite1hPriceShort: 'Cache W 1h',
