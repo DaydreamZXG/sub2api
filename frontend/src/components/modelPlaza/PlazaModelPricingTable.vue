@@ -162,8 +162,8 @@
             <template v-else>{{ officialOf(m, 'output_price') }}</template>
           </td>
           <td class="pzt-ref pzt-cache" :data-label="t('modelPlaza.table.cache')">
-            <template v-if="hasTierCachePricing(officialIntervals(m))">
-              <div v-for="(iv, idx) in officialIntervals(m)" :key="idx" class="pzt-tier" :title="t('modelPlaza.table.tierHint')">
+            <template v-if="hasTierCachePricing(officialCacheTiers(m))">
+              <div v-for="(iv, idx) in officialCacheTiers(m)" :key="idx" class="pzt-tier" :title="t('modelPlaza.table.tierHint')">
                 <template v-if="iv.cache_write_price != null || iv.cache_write_1h_price != null || iv.cache_write_12h_price != null || iv.cache_read_price != null">
                   <span class="pzt-dim">{{ t('modelPlaza.table.cacheWriteShort') }}</span>
                   {{ official(iv.cache_write_price) }}
@@ -477,6 +477,11 @@ function officialIntervals(m: PlazaModel): UserPricingInterval[] {
   const o = m.official_pricing
   if (!inUsd.value && (o?.cny_input_price != null || o?.cny_output_price != null)) return []
   return sortByContext(o?.intervals ?? [])
+}
+
+/** Tiers for the cache column; on yuan pages an entered official cache-read price shows flat instead. */
+function officialCacheTiers(m: PlazaModel): UserPricingInterval[] {
+  return !inUsd.value && m.official_pricing?.cny_cache_read_price != null ? [] : officialIntervals(m)
 }
 
 /** 任一档带缓存价才按档渲染缓存列;否则沿用平价的写入/读取两行。 */
