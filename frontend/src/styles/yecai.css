@@ -38,6 +38,8 @@
 .yc-wrap { width: 100%; max-width: 1120px; margin: 0 auto; padding: 0 24px; }
 /* Classmate-colour gradient for hero marks. */
 .yc-mark { background: linear-gradient(92deg, #e07f2e 0%, #1fa463 28%, #2b8fd4 55%, #7e52e0 82%, #e06a9e 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+/* Forced-colors strips backgrounds; keep marked text readable. */
+@media (forced-colors: active) { .yc-mark { -webkit-background-clip: border-box; background-clip: border-box; background: none; color: var(--yc-ink); } }
 .yc-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 44px; padding: 0 22px; border-radius: 999px; font-weight: 600; font-size: 15px; white-space: nowrap; transition: transform 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease; }
 .yc-btn:active { transform: scale(0.97); }
 .yc-btn-lime { background-image: var(--yc-cta-grad); color: var(--yc-on-lime); box-shadow: 0 4px 14px -4px rgb(99 91 255 / 0.5); }
