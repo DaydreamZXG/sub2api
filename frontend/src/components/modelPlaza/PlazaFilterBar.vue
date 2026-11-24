@@ -106,7 +106,7 @@ function groupEnabled(g: { platform: string }): boolean {
   transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 .pzf-chip:hover:not(:disabled):not(.is-on) { border-color: var(--yc-ink); }
-.pzf-chip.is-on { border-color: var(--yc-ink); background: var(--yc-ink); color: var(--yc-paper); }
+.pzf-chip.is-on { border-color: transparent; background: var(--yc-on); color: #fff; }
 .pzf-chip:disabled { opacity: 0.4; cursor: not-allowed; }
 .pzf-chip:focus-visible { outline: 2px solid var(--yc-lime); outline-offset: 2px; }
 .pzf-search { position: relative; max-width: 360px; }

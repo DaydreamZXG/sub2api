@@ -446,7 +446,7 @@ onMounted(async () => {
 .yc-price-was { margin-top: 18px; font-size: clamp(20px, 2.6vw, 30px); color: var(--yc-dim); text-decoration: line-through; }
 .yc-price-now { margin-top: 4px; font-size: clamp(88px, 19vw, 240px); line-height: 1; }
 .yc-price-unit { margin-top: 20px; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 12px; font-size: 16px; color: var(--yc-mut); }
-.yc-chip { display: inline-block; padding: 4px 12px; border-radius: 999px; background: var(--yc-ink); color: var(--yc-bg); font-size: 13px; font-weight: 700; white-space: nowrap; }
+.yc-chip { display: inline-block; padding: 4px 12px; border-radius: 999px; background: var(--yc-on); color: #fff; font-size: 13px; font-weight: 700; white-space: nowrap; }
 .yc-price-list { margin: clamp(40px, 6vw, 72px) auto 0; max-width: 820px; padding: 6px 14px 14px; text-align: left; }
 .yc-price-out { margin-top: 10px; font-size: 14px; color: var(--yc-dim); }
 .yc-price-pick { padding: 14px 14px 8px; font-size: 13px; color: var(--yc-mut); }

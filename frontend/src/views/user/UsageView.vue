@@ -1034,7 +1034,7 @@ watch(endpointDistributionSource, () => {
 .yus-tabs { display: inline-flex; max-width: 100%; padding: 3px; border-radius: 9px; background: var(--yc-fill); }
 .yus-tab { padding: 7px 16px; border-radius: 7px; font-size: 14px; color: var(--yc-mut); white-space: nowrap; }
 .yus-tab:hover { color: var(--yc-ink); }
-.yus-tab-on, .yus-tab-on:hover { background: var(--yc-ink); color: var(--yc-paper); font-weight: 650; }
+.yus-tab-on, .yus-tab-on:hover { background: var(--yc-on); color: #fff; font-weight: 650; }
 .yus-range, .yus-grain { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font-size: 13px; color: var(--yc-mut); }
 
 .yus-filters { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px; }
@@ -1046,7 +1046,7 @@ watch(endpointDistributionSource, () => {
 .yus-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .yus-btn-lime { border-color: transparent; background: var(--yc-lime); color: var(--yc-on-lime); }
 .yus-btn-lime:not(:disabled):hover { background: var(--yc-lime); filter: brightness(0.96); }
-.yus-count { display: grid; place-items: center; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; background: var(--yc-ink); color: var(--yc-paper); font-size: 11px; }
+.yus-count { display: grid; place-items: center; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; background: var(--yc-on); color: #fff; font-size: 11px; }
 .yus-menu { position: absolute; right: 0; top: 100%; z-index: 50; width: 192px; max-height: 320px; margin-top: 6px; padding: 6px; overflow-y: auto; border: 1px solid var(--yc-line); border-radius: 14px; background: var(--yc-paper); box-shadow: 0 12px 32px rgba(0, 0, 0, 0.14); }
 .yus-menu button { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 8px 10px; border-radius: 8px; font-size: 13px; color: var(--yc-ink); text-align: left; }
 .yus-menu button:hover { background: var(--yc-fill); }
@@ -1074,7 +1074,7 @@ watch(endpointDistributionSource, () => {
 .yus-records :deep(.space-y-3 > .rounded-lg) { margin-top: 0 !important; border: 0 !important; border-top: 1px solid var(--yc-line) !important; border-radius: 0 !important; background: transparent !important; }
 .yus-records :deep(.space-y-3 .uppercase) { color: var(--yc-mut) !important; letter-spacing: 0; text-transform: none; }
 .yus-records :deep(.flex.items-center.justify-between.border-t) { background: transparent !important; }
-.yus-records :deep([aria-current='page']) { border-color: var(--yc-ink) !important; background: var(--yc-ink) !important; color: var(--yc-paper) !important; }
+.yus-records :deep([aria-current='page']) { border-color: transparent !important; background: var(--yc-on) !important; color: #fff !important; }
 
 .yus-charts { display: grid; gap: 16px; }
 .yus-charts :deep(.card) { border: 1px solid var(--yc-line) !important; border-radius: 22px !important; background: var(--yc-paper) !important; box-shadow: none !important; }
@@ -1082,7 +1082,7 @@ watch(endpointDistributionSource, () => {
 .yus-charts :deep(.card .inline-flex.rounded-lg.border) { padding: 3px; border: 0 !important; border-radius: 9px !important; background: var(--yc-fill) !important; }
 .yus-charts :deep(.card .inline-flex.rounded-lg.border > button) { border-radius: 7px !important; box-shadow: none !important; color: var(--yc-mut) !important; }
 .yus-charts :deep(.card .inline-flex.rounded-lg.border > button.bg-white),
-.yus-charts :deep(.card .inline-flex.rounded-lg.border > button.shadow-sm) { background: var(--yc-ink) !important; color: var(--yc-paper) !important; }
+.yus-charts :deep(.card .inline-flex.rounded-lg.border > button.shadow-sm) { background: var(--yc-on) !important; color: #fff !important; }
 .yus-charts :deep(.card table th) { color: var(--yc-mut) !important; font-weight: 600; }
 .yus-charts :deep(.card table td.text-green-600),
 .yus-charts :deep(.card table .text-green-600) { color: var(--yc-ink) !important; font-weight: 650; }

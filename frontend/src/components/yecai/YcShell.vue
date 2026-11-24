@@ -170,7 +170,7 @@ onMounted(() => {
 .yc-side-theme { align-self: flex-start; margin: 2px 0 2px 6px; }
 .yc-side-tools { display: flex; align-items: center; gap: 2px; }
 .yc-side-tools > button { padding: 7px 10px; border-radius: 10px; font-size: 13.5px; white-space: nowrap; }
-.yc-side-me i { flex: none; width: 30px; height: 30px; display: grid; place-items: center; border-radius: 50%; background: var(--yc-ink); color: var(--yc-bg); font-style: normal; font-weight: 700; font-size: 13px; }
+.yc-side-me i { flex: none; width: 30px; height: 30px; display: grid; place-items: center; border-radius: 50%; background: var(--yc-on); color: #fff; font-style: normal; font-weight: 700; font-size: 13px; }
 .yc-shell-main { width: 100%; max-width: 1080px; margin: 0 auto; padding: 44px 36px 80px; }
 .yc-shell-main.yc-legacy { max-width: 1280px; padding: 26px 32px 40px; }
 @media (max-width: 860px) {

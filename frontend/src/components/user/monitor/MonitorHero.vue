@@ -98,7 +98,7 @@ const windowOptions = computed<{ value: MonitorWindow; label: string }[]>(() => 
 .ych-tabs { display: inline-flex; padding: 3px; border-radius: 999px; background: var(--yc-fill); }
 .ych-tab { padding: 5px 14px; border-radius: 999px; font-size: 13px; color: var(--yc-mut); }
 .ych-tab:hover { color: var(--yc-ink); }
-.ych-tab-on { background: var(--yc-ink); color: var(--yc-paper); font-weight: 650; }
+.ych-tab-on { background: var(--yc-on); color: #fff; font-weight: 650; }
 .ych-tab-on:hover { color: var(--yc-paper); }
 .ych-refresh { display: grid; place-items: center; width: 34px; height: 34px; border: 1px solid var(--yc-line); border-radius: 50%; color: var(--yc-ink); }
 .ych-refresh:not(:disabled):hover { background: var(--yc-fill); }

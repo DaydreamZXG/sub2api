@@ -223,7 +223,7 @@ onMounted(() => {
 .yaf-btn-ghost { border: 1px solid color-mix(in srgb, var(--yc-paper) 32%, transparent); color: var(--yc-paper); }
 .yaf-btn-ghost:hover { background: color-mix(in srgb, var(--yc-paper) 12%, transparent); }
 
-.yaf-hero { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 28px; align-items: center; padding: 28px; border-radius: 22px; background: var(--yc-ink); color: var(--yc-paper); }
+.yaf-hero { --yc-paper: #fff; display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 28px; align-items: center; padding: 28px; border-radius: 22px; background: var(--yc-on); color: #fff; }
 .yaf-hero-text h2 { font-size: 28px; font-weight: 780; line-height: 1.2; letter-spacing: -0.02em; text-wrap: balance; }
 .yaf-share { display: grid; gap: 12px; min-width: 0; }
 .yaf-copy { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 4px 12px; padding: 12px 14px; border-radius: 16px; background: color-mix(in srgb, var(--yc-paper) 10%, transparent); }
@@ -243,7 +243,7 @@ onMounted(() => {
 .yaf-panel h3 { font-size: 18px; font-weight: 720; color: var(--yc-ink); }
 .yaf-steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 16px 0 0; padding: 0; list-style: none; }
 .yaf-steps li { display: grid; gap: 10px; padding: 16px; border-radius: 16px; background: var(--yc-fill); color: var(--yc-ink); font-size: 14px; }
-.yaf-steps li span { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--yc-ink); color: var(--yc-paper); font-size: 13px; font-weight: 700; }
+.yaf-steps li span { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--yc-on); color: #fff; font-size: 13px; font-weight: 700; }
 .yaf-agent-link { display: inline-block; margin-top: 14px; font-size: 14px; color: var(--yc-dim); text-decoration: underline; text-underline-offset: 3px; }
 .yaf-agent-link:hover { color: var(--yc-ink); }
 .yaf-steps-note { margin-top: 12px; font-size: 13px; color: #d97706; }

@@ -12,6 +12,7 @@
   --yc-lime: #635bff;
   --yc-on-lime: #ffffff;
   --yc-accent: #635bff;
+  --yc-on: linear-gradient(90deg, #635bff, #7a73ff);
   --yc-accent-soft: rgb(99 91 255 / 0.1);
   --yc-ok: #16a34a;
   --yc-cta-grad: linear-gradient(90deg, #635bff, #7a73ff);
@@ -31,6 +32,7 @@
   --yc-lime: #8f88ff;
   --yc-on-lime: #0a1224;
   --yc-accent: #8f88ff;
+  --yc-on: linear-gradient(90deg, #6d66f5, #8a84ff);
   --yc-accent-soft: rgb(143 136 255 / 0.16);
   --yc-ok: #4ade80;
   --yc-cta-grad: linear-gradient(90deg, #7a73ff, #9c96ff);

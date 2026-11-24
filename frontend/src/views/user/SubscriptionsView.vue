@@ -374,7 +374,7 @@ onMounted(() => {
 .ysb-meter-name { font-weight: 650; color: var(--yc-ink); }
 .ysb-meter-nums { color: var(--yc-mut); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .ysb-bar { height: 8px; margin-top: 8px; overflow: hidden; border-radius: 999px; background: var(--yc-fill); }
-.ysb-bar span { display: block; height: 100%; border-radius: inherit; background: var(--yc-ink); transition: width 0.3s; }
+.ysb-bar span { display: block; height: 100%; border-radius: inherit; background: var(--yc-on); transition: width 0.3s; }
 .ysb-bar .ysb-bar-warn { background: #f59e0b; }
 .ysb-bar .ysb-bar-bad { background: #ef4444; }
 .ysb-meter-note { margin-top: 6px; font-size: 12px; color: var(--yc-mut); }

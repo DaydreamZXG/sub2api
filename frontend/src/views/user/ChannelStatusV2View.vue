@@ -978,7 +978,7 @@ details > summary::-webkit-details-marker {
 .ycv :deep(.tab) { border-radius: 999px !important; background: transparent; box-shadow: none !important; color: var(--yc-mut) !important; }
 .ycv :deep(.tab:hover) { color: var(--yc-ink) !important; }
 .ycv :deep(.tab-active),
-.ycv :deep(.tab-active:hover) { background: var(--yc-ink) !important; color: var(--yc-paper) !important; font-weight: 650; }
+.ycv :deep(.tab-active:hover) { background: var(--yc-on) !important; color: #fff !important; font-weight: 650; }
 .ycv :deep(.btn-secondary),
 .ycv :deep(.btn-ghost) { border: 1px solid var(--yc-line) !important; border-radius: 999px !important; background: transparent !important; box-shadow: none !important; color: var(--yc-ink) !important; }
 .ycv :deep(.btn-secondary:not(:disabled):hover),

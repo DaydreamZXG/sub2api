@@ -2071,7 +2071,7 @@ onUnmounted(() => {
 .yk-btn:not(:disabled):active { transform: scale(0.97); }
 .yk-btn-lime { background: var(--yc-lime); color: var(--yc-on-lime); }
 .yk-btn-lime:not(:disabled):hover { opacity: 0.86; }
-.yk-btn-ink { background: var(--yc-ink); color: var(--yc-paper); }
+.yk-btn-ink { background: var(--yc-on); color: #fff; }
 .yk-btn-ghost { color: var(--yc-ink); box-shadow: inset 0 0 0 1px var(--yc-line); background: var(--yc-paper); }
 .yk-btn-ghost:not(:disabled):hover, .yk-btn-on { background: var(--yc-fill); }
 .yk-btn-icon { width: 36px; padding: 0; }
