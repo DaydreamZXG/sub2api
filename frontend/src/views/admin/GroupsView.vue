@@ -1454,7 +1454,7 @@
           </div>
         </div>
 
-        <!-- 种菜线路：仅限野菜 app（订阅分组不适用） -->
+        <!-- 种菜线路：仅限 YesChoy 客户端（订阅分组不适用） -->
         <div v-if="createForm.subscription_type !== 'subscription'" class="border-t pt-4">
           <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
             {{ t("admin.groups.appLine.title") }}
@@ -3152,7 +3152,7 @@
           </div>
         </div>
 
-        <!-- 种菜线路：仅限野菜 app（订阅分组不适用） -->
+        <!-- 种菜线路：仅限 YesChoy 客户端（订阅分组不适用） -->
         <div v-if="editForm.subscription_type !== 'subscription'" class="border-t pt-4">
           <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
             {{ t("admin.groups.appLine.title") }}

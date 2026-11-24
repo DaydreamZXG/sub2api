@@ -182,12 +182,12 @@ onMounted(async () => {
 .yc-tk-head .yc-note { margin-top: 6px; }
 .yc-tk-head .yc-btn { flex: none; }
 .yc-tk-form, .yc-tk-reply { display: grid; gap: 14px; }
-.yc-tk-form { margin: 16px 0 6px; padding: 20px; border-radius: 18px; background: var(--yc-fill); }
+.yc-tk-form { margin: 16px 0 6px; padding: 20px; border-radius: 12px; background: var(--yc-fill); }
 .yc-tk-form label { display: grid; gap: 7px; font-size: 13.5px; font-weight: 600; color: var(--yc-mut); }
 .yc-tk-area { height: auto; padding: 12px 16px; line-height: 1.6; resize: vertical; }
 .yc-tk-cats { display: flex; flex-wrap: wrap; gap: 8px; }
 .yc-tk-cats button { padding: 7px 14px; border-radius: 999px; background: var(--yc-paper); box-shadow: inset 0 0 0 1px var(--yc-line); font-size: 13.5px; color: var(--yc-mut); }
-.yc-tk-cats button.is-on { background: var(--yc-ink); color: var(--yc-paper); box-shadow: none; }
+.yc-tk-cats button.is-on { background: var(--yc-on); color: #fff; box-shadow: none; }
 .yc-tk-actions { display: flex; flex-wrap: wrap; gap: 10px; }
 .yc-tk-empty { margin-top: 14px; }
 .yc-tk-item { border-top: 1px solid var(--yc-line); }
@@ -196,12 +196,12 @@ onMounted(async () => {
 .yc-tk-row b { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 15.5px; font-weight: 600; }
 .yc-tk-row time { flex: none; font-size: 12.5px; color: var(--yc-dim); }
 .yc-tk-row i { flex: none; padding: 3px 10px; border-radius: 999px; font-style: normal; font-size: 12px; font-weight: 600; background: var(--yc-fill); color: var(--yc-mut); }
-.yc-tk-row i.is-answered { background: var(--yc-lime); color: #0b0f0c; }
+.yc-tk-row i.is-answered { background: var(--yc-lime); color: #ffffff; }
 .yc-tk-row i.is-open { box-shadow: inset 0 0 0 1px var(--yc-ink); color: var(--yc-ink); background: none; }
 .yc-tk-thread { display: grid; gap: 10px; padding: 2px 0 20px; }
-.yc-tk-msg { justify-self: start; max-width: 86%; padding: 12px 16px; border-radius: 16px; background: var(--yc-fill); font-size: 14.5px; line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; }
+.yc-tk-msg { justify-self: start; max-width: 86%; padding: 12px 16px; border-radius: 12px; background: var(--yc-fill); font-size: 14.5px; line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; }
 .yc-tk-msg small { display: block; margin-bottom: 2px; font-size: 12px; color: var(--yc-dim); }
-.yc-tk-msg.from-user { justify-self: end; background: var(--yc-ink); color: var(--yc-paper); }
+.yc-tk-msg.from-user { justify-self: end; background: var(--yc-on); color: #fff; }
 .yc-tk-msg.from-user small { color: inherit; opacity: 0.6; }
 .yc-tk-reply { margin-top: 6px; }
 .yc-tk-more { margin-top: 14px; }

@@ -136,10 +136,10 @@ onBeforeUnmount(() => clearInterval(ticker))
 
 <style scoped>
 .yc-garden-empty { margin-top: 28px; color: var(--yc-mut); }
-.yc-garden-none-h { font-size: 20px; font-weight: 800; letter-spacing: -0.01em; }
+.yc-garden-none-h { font-size: 20px; font-weight: 650; letter-spacing: -0.01em; }
 .yc-garden-none-p { max-width: 460px; margin: 4px 0 10px; font-size: 14px; line-height: 1.5; }
 .yc-garden-log { margin-top: 16px; padding: 22px 26px; }
-.yc-garden-log h2 { font-size: 17px; font-weight: 800; }
+.yc-garden-log h2 { font-size: 17px; font-weight: 650; }
 .yc-garden-log ul { margin-top: 10px; }
 .yc-garden-log li { display: flex; justify-content: space-between; padding: 10px 0; border-top: 1px solid var(--yc-line); font-size: 14.5px; }
 .yc-garden-log li span:first-child { color: var(--yc-mut); }

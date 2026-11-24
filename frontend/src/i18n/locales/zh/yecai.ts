@@ -1,12 +1,12 @@
 export default {
-  nav: { aria: '页面导航', pains: '解决什么', prices: '价格', faq: '常见问题', docs: '文档' },
+  nav: { aria: '页面导航', pains: '解决什么', prices: '价格', faq: '常见问题', docs: '文档', client: '客户端' },
   cta: { start: '开始使用', login: '登录', console: '进入控制台' },
   flow: { aria: '你的工具通过一把密钥连到各家模型', key: '你的密钥' },
   hero: {
     eyebrow: 'AI 模型接入服务',
     titleA: '接入 AI',
     titleB: '不用再折腾配置',
-    lead: '装个客户端，点一下就把 Claude、Codex 接上。价格直接写人民币，每一笔都查得到，没用完的可以退。'
+    lead: '给 Claude Code、Codex 接好 AI 模型。装个 YesChoy 客户端挑个同学点一下就行，也可以手动填接口地址。价格直接写人民币，每一笔都查得到，没用完的可以退。'
   },
   pain: {
     before: '以前',
@@ -14,13 +14,13 @@ export default {
     setup: {
       tag: '接入',
       titleA: '以前，要自己改配置文件。',
-      titleB: '现在，装个客户端点一下。',
+      titleB: '现在，挑个 AI 同学点一下。',
       b1: '翻文档找接口地址',
       b2: '打开配置文件，一项一项填',
       b3: '换一个工具，再来一遍',
-      a1: '下载客户端，登录账号',
-      a2: '它自动找到你电脑上的 Claude、Codex',
-      a3: '点“一键接入”，完成'
+      a1: '下载 YesChoy，登录账号',
+      a2: '挑一个 AI 同学：橘子、阿青、小鲸……',
+      a3: '她自动接到 Claude Code、Codex，完成'
     },
     price: {
       tag: '价格',
@@ -59,12 +59,12 @@ export default {
   },
   live: { label: '全站已处理 Token，实时更新', today: '今天 {tokens} · 累计 {requests} 次请求' },
   client: {
-    download: '下载客户端',
+    download: '下载 YesChoy',
     windows: '下载 Windows 版',
     macos: '下载 macOS 版',
     manual: '支持 Windows 和 macOS。不想装客户端？登录后也可以在网页上复制配置。',
-    window: '客户端 · 我的应用',
-    shotAlt: '客户端里的“我的应用”：自动发现电脑上的 Claude 和 Codex，可以一键接入'
+    window: 'YesChoy · 九个 AI 同学',
+    shotAlt: 'YesChoy 里的 AI 同学：橘子、阿青、小鲸、月月、豆包'
   },
   price: {
     eyebrow: '价格',
@@ -99,15 +99,15 @@ export default {
     title: '接入工具',
     lead: '两种办法，选一种就行。',
     best: '最省事',
-    clientTitle: '装个客户端，点一下',
-    clientText: '下载客户端并登录，它会自动找到电脑上的 Claude 和 Codex，点“一键接入”就完成，不用碰配置文件。',
+    clientTitle: '装个 YesChoy，挑个同学',
+    clientText: 'YesChoy 里有九个 AI 同学。下载登录后挑一个，她会自动接到电脑上的 Claude Code、Codex，不用碰配置文件。',
     appConnect: '连接到 app',
-    appConnectHint: '正在打开野菜桌面助手。没有反应的话，请先下载安装。',
+    appConnectHint: '正在打开 YesChoy。没有反应的话，请先下载安装。',
     appConnectNeedsHttps: '这个功能需要网站使用 https 访问。',
     appCheaper: '用 app 接入，部分模型价格更低。',
     appCheaperLink: '看价目表',
-    appLinesOnly: '你账号里的线路只能通过 app 使用，请用上面的桌面助手接入。',
-    appKeyNote: '这把密钥在“仅 app”的线路上：通过桌面助手使用才是 app 价，复制到别的工具里会按普通价扣费，或者不能用。',
+    appLinesOnly: '你账号里的线路只能通过 app 使用，请用上面的 YesChoy 接入。',
+    appKeyNote: '这把密钥在“仅 app”的线路上：通过 YesChoy 使用才是 app 价，复制到别的工具里会按普通价扣费，或者不能用。',
     appConnectFailed: '连接失败，请稍后再试。',
     fillTitle: '或者，自己填进软件里',
     fillLead: '大多数聊天软件和编程插件的设置里都有“接口地址”和“密钥”两个空，把下面的复制进去就行，不用打开终端。',
@@ -354,7 +354,7 @@ export default {
     appPrice: '用 app ¥{price}',
     appHeadline: 'app 价',
     appOnly: '仅 app',
-    appNote: '“用 app”的价格：通过野菜桌面助手接入时按这个价扣费；把密钥复制到别的工具里用，按普通价。',
+    appNote: '“用 app”的价格：通过 YesChoy 接入时按这个价扣费；把密钥复制到别的工具里用，按普通价。',
     foot: '点任意一行可以展开，看每条线路的价格、缓存价和折扣。'
   },
   dash: {
@@ -363,6 +363,7 @@ export default {
     nextKey: '创建你的第一把密钥，工具靠它来使用余额。', nextKeyGo: '去创建',
     nextConnect: '密钥有了，把它接到你的工具里就能用。', nextConnectGo: '去接入',
     balance: '余额', balanceHint: '用多少扣多少，没用完可以退', today: '今天花了', total: '累计花了',
+    mates: '你的 AI 同学', matesGo: '去客户端挑一个', mateJuzi: '橘子', mateAqing: '阿青', mateXiaojing: '小鲸', mateYueyue: '月月', mateDoubao: '豆包',
     requests: '{n} 次请求', recent: '最近使用', allBills: '全部账单',
     empty: '还没有使用记录。接入工具并发出第一次请求后，这里会显示每一笔的明细。',
     expandTip: '点任意一行可以展开，看这次请求的全部细节。',

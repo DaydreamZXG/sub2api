@@ -13,8 +13,9 @@
           <a href="#faq">{{ t('yc.nav.faq') }}</a>
         </nav>
         <div class="yc-top-actions">
-          <YcThemeSwitch />
+          <YcThemeSwitch class="yc-hide-sm" />
           <LocaleSwitcher />
+          <a :href="YC_CLIENT_PAGE" class="yc-btn yc-btn-ghost yc-btn-sm">{{ t('yc.nav.client') }}</a>
           <router-link v-if="isAuthenticated" :to="consolePath" class="yc-btn yc-btn-lime yc-btn-sm">{{ t('yc.cta.console') }}</router-link>
           <template v-else>
             <router-link to="/login" class="yc-btn yc-btn-ghost yc-btn-sm yc-hide-sm">{{ t('yc.cta.login') }}</router-link>
@@ -25,8 +26,8 @@
     </header>
 
     <main>
-      <section class="yc-hero yc-wrap" @pointermove="lightDots" @pointerleave="dotsLive = false">
-        <div ref="dotsEl" class="yc-hero-dots" :class="{ 'is-live': dotsLive }" aria-hidden="true"><i></i><i></i></div>
+      <section class="yc-hero yc-wrap">
+        <div class="yc-hero-band" aria-hidden="true"></div>
         <p class="yc-eyebrow">{{ t('yc.hero.eyebrow') }}</p>
         <h1 v-reveal class="yc-h1">
           <span class="yc-h1-line"><span>{{ t('yc.hero.titleA') }}</span></span>
@@ -40,6 +41,11 @@
           </router-link>
           <a :href="clientUrl || '#pains'" class="yc-btn yc-btn-ghost">{{ t(clientLabel) }}</a>
         </div>
+        <figure class="yc-hero-shot">
+          <figcaption aria-hidden="true"><i></i><i></i><i></i><span>{{ siteName }}</span></figcaption>
+          <img :src="preview" :alt="t('yc.client.shotAlt')" width="1440" height="860" />
+          <img :src="previewDark" :alt="t('yc.client.shotAlt')" width="1440" height="860" class="yc-hero-shot-dark" />
+        </figure>
         <div v-if="site" class="yc-live" aria-live="off">
           <p class="yc-live-lab"><i aria-hidden="true"></i>{{ t('yc.live.label') }}</p>
           <p class="yc-live-num yc-num"><YcOdometer :value="site.total_tokens" /></p>
@@ -88,8 +94,7 @@
                 <p class="yc-client-note">{{ t('yc.client.manual') }}</p>
                 <figure class="yc-shot">
                   <figcaption aria-hidden="true"><i></i><i></i><i></i><span>{{ t('yc.client.window') }}</span></figcaption>
-                  <img class="yc-shot-light" :src="shotLight" :alt="t('yc.client.shotAlt')" width="1820" height="880" loading="lazy" />
-                  <img class="yc-shot-dark" :src="shotDark" :alt="t('yc.client.shotAlt')" width="1826" height="873" loading="lazy" />
+                  <img :src="shot" :alt="t('yc.client.shotAlt')" width="1820" height="880" loading="lazy" />
                 </figure>
               </template>
               <p v-if="p.id === 'help' && contactInfo" class="yc-vs-contact">{{ contactInfo }}</p>
@@ -180,10 +185,11 @@ import { useYcPrices } from '@/composables/useYcPrices'
 import { getSiteStats, type SiteStats } from '@/api/siteStats'
 import { sanitizeUrl } from '@/utils/url'
 import { ycSiteName } from '@/utils/ycBrand'
-import { YC_CLIENT_DOWNLOADS, detectYcClientPlatform } from '@/utils/ycClient'
+import { YC_CLIENT_DOWNLOADS, YC_CLIENT_PAGE, detectYcClientPlatform } from '@/utils/ycClient'
 import { FeatureFlags, isFeatureFlagEnabled } from '@/utils/featureFlags'
-import shotLight from '@/assets/yecai/yecai-client-apps-light-showcase.webp'
-import shotDark from '@/assets/yecai/yecai-client-apps-dark-showcase.webp'
+import shot from '@/assets/yecai/yeschoy-roster-showcase.webp'
+import preview from '@/assets/yecai/yeschoy-console-preview.webp'
+import previewDark from '@/assets/yecai/yeschoy-console-preview-dark.webp'
 import '@/styles/yecai.css'
 
 const { t } = useI18n()
@@ -246,18 +252,6 @@ const progress = computed(() => {
   const range = document.documentElement.scrollHeight - window.innerHeight
   return range > 0 ? Math.min(1, scrollY.value / range) : 0
 })
-
-// The hero dot grid lights up around the mouse.
-const dotsEl = ref<HTMLElement | null>(null)
-const dotsLive = ref(false)
-function lightDots(event: PointerEvent) {
-  const el = dotsEl.value
-  if (!el || event.pointerType !== 'mouse') return
-  const box = el.getBoundingClientRect()
-  el.style.setProperty('--mx', `${event.clientX - box.left}px`)
-  el.style.setProperty('--my', `${event.clientY - box.top}px`)
-  dotsLive.value = true
-}
 
 // Wide screens pin each pain screen and turn the page with the scroll: --p is the progress through
 // the screen, --a the eased turn from the old card to the new one.
@@ -362,25 +356,24 @@ onMounted(async () => {
 <style scoped>
 .yc-home { min-height: 100vh; overflow-x: clip; }
 .yc-top { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--yc-bg) 78%, transparent); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); border-bottom: 1px solid var(--yc-line); }
-.yc-progress { position: absolute; left: 0; right: 0; bottom: -2px; height: 2px; background: var(--yc-lime); transform-origin: left; }
+.yc-progress { position: absolute; left: 0; right: 0; bottom: -2px; height: 2px; background: linear-gradient(90deg, #ff9a4d, #36d68a, #4fb8ff, #b58cff, #ff9ec4); transform-origin: left; }
 .yc-top-in { height: 64px; display: flex; align-items: center; gap: 28px; }
-.yc-brand { display: flex; align-items: center; gap: 10px; font-weight: 750; font-size: 17px; letter-spacing: -0.01em; white-space: nowrap; }
+.yc-brand { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 17px; letter-spacing: -0.01em; white-space: nowrap; }
 .yc-top-nav { display: flex; gap: 26px; margin-right: auto; font-size: 14.5px; color: var(--yc-mut); }
 .yc-top-nav a:hover { color: var(--yc-ink); }
 .yc-top-actions { display: flex; align-items: center; gap: 10px; margin-left: auto; }
 
-.yc-hero { position: relative; padding-top: clamp(64px, 10vw, 128px); text-align: center; }
-.yc-hero::before { content: ''; position: absolute; z-index: 0; left: 50%; top: 4%; width: min(900px, 110%); aspect-ratio: 2 / 1; transform: translateX(-50%); background: radial-gradient(closest-side, rgb(200 255 0 / 0.42), transparent 72%); filter: blur(48px); pointer-events: none; }
-:global(.dark .yc .yc-hero::before) { background: radial-gradient(closest-side, rgb(200 255 0 / 0.16), transparent 72%); }
-.yc-hero > * { position: relative; z-index: 1; }
-.yc-hero > .yc-hero-dots { position: absolute; z-index: 0; top: 0; left: 50%; width: 100vw; height: min(100%, 880px); transform: translateX(-50%); pointer-events: none; }
-.yc-hero-dots i { position: absolute; inset: 0; background-size: 26px 26px; background-position: center top; }
-.yc-hero-dots i:first-child { background-image: radial-gradient(circle, rgb(11 15 12 / 0.17) 1.1px, transparent 1.6px); -webkit-mask-image: radial-gradient(ellipse 62% 72% at 50% 36%, #000 18%, transparent 78%); mask-image: radial-gradient(ellipse 62% 72% at 50% 36%, #000 18%, transparent 78%); }
-.yc-hero-dots i:last-child { background-image: radial-gradient(circle, var(--yc-ink) 1.7px, transparent 2.2px); -webkit-mask-image: radial-gradient(210px circle at var(--mx, 50%) var(--my, 30%), #000, transparent); mask-image: radial-gradient(210px circle at var(--mx, 50%) var(--my, 30%), #000, transparent); opacity: 0; transition: opacity 0.45s ease; }
-.yc-hero-dots.is-live i:last-child { opacity: 1; }
-:global(.dark .yc .yc-hero-dots i:first-child) { background-image: radial-gradient(circle, rgb(244 246 241 / 0.14) 1.1px, transparent 1.6px); }
-:global(.dark .yc .yc-hero-dots i:last-child) { background-image: radial-gradient(circle, #c8ff00 1.7px, transparent 2.2px); }
-.yc-h1 { margin-top: 22px; font-size: clamp(40px, 8.4vw, 104px); line-height: 1.03; letter-spacing: -0.05em; font-weight: 800; }
+.yc-hero { position: relative; padding-top: clamp(64px, 9vw, 110px); text-align: center; }
+/* Classmate-colour band sweeping the hero, Stripe-style, fading into the page. */
+.yc-hero-band { position: absolute; z-index: 0; top: 0; left: 50%; width: 100vw; height: 900px; transform: translateX(-50%); pointer-events: none;
+  background: linear-gradient(115deg,
+    rgb(255 216 72 / 0.72) 0%, rgb(255 154 77 / 0.7) 15%, rgb(255 158 196 / 0.7) 35%,
+    rgb(181 140 255 / 0.7) 55%, rgb(79 184 255 / 0.72) 78%, rgb(54 214 138 / 0.62) 100%);
+  -webkit-mask-image: linear-gradient(180deg, #000 55%, transparent 96%);
+  mask-image: linear-gradient(180deg, #000 55%, transparent 96%); }
+:global(.dark .yc .yc-hero-band) { opacity: 0.55; }
+.yc-hero > :not(.yc-hero-band) { position: relative; z-index: 1; }
+.yc-h1 { margin-top: 22px; font-size: clamp(40px, 8.4vw, 104px); line-height: 1.03; letter-spacing: -0.05em; font-weight: 650; }
 .yc-h1-line { display: block; }
 .yc-lead { max-width: 640px; margin: 30px auto 0; font-size: clamp(16px, 1.7vw, 20px); line-height: 1.7; color: var(--yc-mut); text-wrap: pretty; }
 .yc-hero-cta { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 38px; }
@@ -390,6 +383,19 @@ onMounted(async () => {
 .yc-live-num { margin-top: 8px; font-size: clamp(34px, 7.2vw, 88px); line-height: 1.05; overflow-wrap: anywhere; }
 .yc-live-sub { margin-top: 10px; font-size: 14px; color: var(--yc-mut); }
 @keyframes yc-blink { 50% { opacity: 0.35; } }
+/* The console preview floats on the colour band like a product screenshot. */
+.yc-hero-shot { margin: clamp(44px, 6vw, 68px) auto 0; max-width: 980px; border-radius: 20px; overflow: hidden; background: color-mix(in srgb, var(--yc-paper) 60%, transparent); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border: 1px solid rgb(255 255 255 / 0.8); box-shadow: 0 22px 60px -22px rgb(10 37 64 / 0.32); }
+:global(.dark .yc .yc-hero-shot) { border-color: var(--yc-line); box-shadow: 0 22px 60px -22px rgb(0 0 0 / 0.7); }
+.yc-hero-shot figcaption { display: flex; align-items: center; gap: 6px; height: 34px; padding: 0 16px; border-bottom: 1px solid var(--yc-line); font-size: 12px; color: var(--yc-mut); text-align: left; }
+.yc-hero-shot figcaption i { width: 9px; height: 9px; border-radius: 50%; }
+.yc-hero-shot figcaption i:nth-child(1) { background: #ff5f57; }
+.yc-hero-shot figcaption i:nth-child(2) { background: #febc2e; }
+.yc-hero-shot figcaption i:nth-child(3) { background: #28c840; }
+.yc-hero-shot figcaption span { margin-left: 8px; }
+.yc-hero-shot img { display: block; width: 100%; height: auto; }
+.yc-hero-shot img.yc-hero-shot-dark { display: none; }
+:global(.dark .yc .yc-hero-shot img.yc-hero-shot-dark) { display: block; }
+:global(.dark .yc .yc-hero-shot img:not(.yc-hero-shot-dark)) { display: none; }
 .yc-hero-flow { margin-top: clamp(48px, 7vw, 88px); }
 
 .yc-pain { padding-top: clamp(96px, 14vw, 184px); }
@@ -398,7 +404,7 @@ onMounted(async () => {
 .yc-pain .yc-h2 { position: relative; margin-top: 16px; font-size: clamp(30px, 5.4vw, 64px); line-height: 1.14; letter-spacing: -0.04em; }
 .yc-pain-old { color: var(--yc-dim); }
 .yc-vs { display: grid; grid-template-columns: 1fr 1.15fr; gap: 20px; margin-top: clamp(36px, 5vw, 60px); align-items: stretch; }
-.yc-vs-col { padding: 28px 30px 30px; border-radius: 24px; }
+.yc-vs-col { padding: 28px 30px 30px; border-radius: 12px; }
 .yc-vs-before { border: 1px dashed var(--yc-line); color: var(--yc-mut); }
 .yc-vs-lab { display: inline-block; padding: 4px 12px; border-radius: 999px; font-size: 12.5px; font-weight: 700; letter-spacing: 0.06em; }
 .yc-vs-before .yc-vs-lab { background: var(--yc-fill); color: var(--yc-mut); }
@@ -425,11 +431,8 @@ onMounted(async () => {
 .yc-shot figcaption i { width: 9px; height: 9px; border-radius: 50%; background: var(--yc-line); }
 .yc-shot figcaption span { margin-left: 8px; }
 .yc-shot img { display: block; width: 100%; height: auto; }
-.yc-shot-dark { display: none !important; }
-:global(.dark .yc .yc-shot-light) { display: none; }
-:global(.dark .yc .yc-shot-dark) { display: block !important; }
 .yc-vs-after { transform: perspective(1100px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transition: transform 0.25s ease-out; }
-.yc-vs-after::after { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; background: radial-gradient(380px circle at var(--sx, 50%) var(--sy, 50%), rgb(200 255 0 / 0.22), transparent 65%); opacity: 0; transition: opacity 0.3s ease; }
+.yc-vs-after::after { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; background: radial-gradient(380px circle at var(--sx, 50%) var(--sy, 50%), rgb(99 91 255 / 0.2), transparent 65%); opacity: 0; transition: opacity 0.3s ease; }
 .yc-vs-after:hover::after { opacity: 1; }
 .yc-vs-contact { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--yc-line); font-size: 15px; color: var(--yc-mut); white-space: pre-line; }
 
@@ -443,14 +446,14 @@ onMounted(async () => {
 .yc-price-was { margin-top: 18px; font-size: clamp(20px, 2.6vw, 30px); color: var(--yc-dim); text-decoration: line-through; }
 .yc-price-now { margin-top: 4px; font-size: clamp(88px, 19vw, 240px); line-height: 1; }
 .yc-price-unit { margin-top: 20px; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 12px; font-size: 16px; color: var(--yc-mut); }
-.yc-chip { display: inline-block; padding: 4px 12px; border-radius: 999px; background: var(--yc-ink); color: var(--yc-bg); font-size: 13px; font-weight: 700; white-space: nowrap; }
+.yc-chip { display: inline-block; padding: 4px 12px; border-radius: 999px; background: var(--yc-on); color: #fff; font-size: 13px; font-weight: 700; white-space: nowrap; }
 .yc-price-list { margin: clamp(40px, 6vw, 72px) auto 0; max-width: 820px; padding: 6px 14px 14px; text-align: left; }
 .yc-price-out { margin-top: 10px; font-size: 14px; color: var(--yc-dim); }
 .yc-price-pick { padding: 14px 14px 8px; font-size: 13px; color: var(--yc-mut); }
 .yc-price-row { width: 100%; display: grid; grid-template-columns: minmax(0, 1fr) auto auto 96px; gap: 18px; align-items: center; padding: 16px 14px; border-radius: 14px; text-align: left; transition: background-color 0.15s ease; }
 .yc-price-row:hover { background: var(--yc-fill); }
-.yc-price-row.is-on { background: var(--yc-lime); color: var(--yc-on-lime); }
-.yc-price-row.is-on s { color: rgb(11 15 12 / 0.55); }
+.yc-price-row.is-on { background-image: var(--yc-cta-grad); color: #fff; }
+.yc-price-row.is-on s { color: rgb(255 255 255 / 0.62); }
 .yc-price-row.is-on .yc-chip { background: var(--yc-on-lime); color: var(--yc-lime); }
 .yc-price-row-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 14.5px; }
 .yc-price-row s { color: var(--yc-dim); font-size: 15px; }
@@ -467,12 +470,12 @@ onMounted(async () => {
 .yc-faq-list summary span { color: var(--yc-dim); font-weight: 400; transition: transform 0.2s ease; }
 .yc-faq-list details[open] summary span { transform: rotate(45deg); }
 .yc-faq-list details p { padding: 0 40px 24px 0; color: var(--yc-mut); line-height: 1.75; }
-.yc-final { position: relative; overflow: hidden; margin-top: clamp(96px, 14vw, 184px); padding: clamp(48px, 8vw, 96px) 24px; border-radius: 32px; background: var(--yc-lime); color: var(--yc-on-lime); text-align: center; }
-.yc-final::before { content: ''; position: absolute; inset: 0; background: linear-gradient(115deg, rgb(255 255 255 / 0.55), transparent 38%); pointer-events: none; }
+.yc-final { position: relative; overflow: hidden; margin-top: clamp(96px, 14vw, 184px); padding: clamp(48px, 8vw, 96px) 24px; border-radius: 24px; background-image: var(--yc-cta-grad); color: #fff; text-align: center; }
+.yc-final::before { content: ''; position: absolute; inset: 0; background: linear-gradient(115deg, rgb(255 255 255 / 0.35), transparent 45%); pointer-events: none; }
 .yc-final > * { position: relative; }
 .yc-final .yc-h2 { margin: 0 auto 32px; max-width: 640px; }
-.yc-final .yc-btn-lime { background: var(--yc-on-lime); color: var(--yc-lime); box-shadow: none; }
-.yc-final .yc-btn-lime:hover { box-shadow: 0 10px 24px -8px rgb(11 15 12 / 0.6); }
+.yc-final .yc-btn-lime { background: #fff; color: #635bff; box-shadow: none; }
+.yc-final .yc-btn-lime:hover { box-shadow: 0 10px 24px -8px rgb(10 37 64 / 0.5); }
 .yc-foot { display: flex; justify-content: space-between; gap: 16px; padding-top: 48px; padding-bottom: 48px; font-size: 13.5px; color: var(--yc-dim); }
 @media (max-width: 860px) {
   .yc-top-nav { display: none; }
@@ -484,12 +487,16 @@ onMounted(async () => {
   .yc-price-row s, .yc-price-row > span:last-child { display: none; }
   .yc-price-list { padding: 4px 8px 8px; }
 }
-@media (max-width: 480px) {
+@media (max-width: 680px) {
   .yc-hide-sm { display: none; }
   .yc-top-in { gap: 12px; }
+  .yc-brand :deep(.yc-lockup-text) {
+    position: absolute; width: 1px; height: 1px; overflow: hidden;
+    clip: rect(0 0 0 0); white-space: nowrap;
+  }
 }
 @media (prefers-reduced-motion: no-preference) {
-  .yc-lead, .yc-hero-cta, .yc-hero-flow { animation: yc-rise 1s cubic-bezier(0.16, 1, 0.3, 1) 0.35s both; }
+  .yc-lead, .yc-hero-cta, .yc-hero-shot, .yc-hero-flow { animation: yc-rise 1s cubic-bezier(0.16, 1, 0.3, 1) 0.35s both; }
 
   /* Opening: both headline lines surge up from below, then the highlighter sweeps. */
   .yc-h1-line { overflow: hidden; padding: 0.3em 0.3em 0.1em; margin: -0.3em -0.3em -0.1em; }
@@ -538,13 +545,14 @@ onMounted(async () => {
   .yc-price.is-in .yc-price-unit, .yc-price.is-in .yc-price-out { animation: yc-rise 0.6s ease calc(var(--d) + 1.55s) both; }
   .yc-lead { animation-delay: 0.45s; }
   .yc-hero-cta { animation-delay: 0.55s; }
+  .yc-hero-shot { animation-delay: 0.65s; }
   .yc-hero-flow { animation-delay: 0.75s; }
   .yc-live { animation: yc-rise 1s 0.65s cubic-bezier(0.16, 1, 0.3, 1) both; }
 
   /* The highlighter is drawn across each headline as it comes into view. */
   .yc-home .yc-mark { background-repeat: no-repeat; background-size: 0% 100%; }
   .yc-home .is-in .yc-mark { animation: yc-draw 0.9s cubic-bezier(0.3, 0.7, 0.2, 1) 0.3s both; }
-  :global(.dark .yc.yc-home .yc-mark) { background: linear-gradient(90deg, #c8ff00 50%, var(--yc-ink) 50%) 100% 0 / 200% 100% no-repeat; -webkit-background-clip: text; background-clip: text; color: transparent; }
+  :global(.dark .yc.yc-home .yc-mark) { background: linear-gradient(90deg, #8f88ff 50%, var(--yc-ink) 50%) 100% 0 / 200% 100% no-repeat; -webkit-background-clip: text; background-clip: text; color: transparent; }
   :global(.dark .yc.yc-home .is-in .yc-mark) { animation: yc-draw-dark 0.9s cubic-bezier(0.3, 0.7, 0.2, 1) 0.3s both; }
 
   /* Before: struck out one by one. Now: ticked one by one. */

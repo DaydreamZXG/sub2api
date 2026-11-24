@@ -1,12 +1,12 @@
 export default {
-  nav: { aria: 'Page navigation', pains: 'What we fix', prices: 'Prices', faq: 'FAQ', docs: 'Docs' },
+  nav: { aria: 'Page navigation', pains: 'What we fix', prices: 'Prices', faq: 'FAQ', docs: 'Docs', client: 'Client' },
   cta: { start: 'Get started', login: 'Sign in', console: 'Open console' },
   flow: { aria: 'Your tools reach every model through one key', key: 'Your key' },
   hero: {
     eyebrow: 'AI model access',
     titleA: 'Connect to AI',
     titleB: 'without the setup',
-    lead: 'Install the desktop app and connect Claude or Codex in one click. Prices are in yuan, every request is on record, and unused balance is refundable.'
+    lead: 'Wire AI models into Claude Code or Codex. Install the YesChoy client and pick a classmate for one click, or paste in the endpoint yourself. Prices are in yuan, every request is on record, and unused balance is refundable.'
   },
   pain: {
     before: 'Before',
@@ -14,13 +14,13 @@ export default {
     setup: {
       tag: 'Setup',
       titleA: 'Before, you edited config files.',
-      titleB: 'Now, one click in the app.',
+      titleB: 'Now, pick an AI classmate.',
       b1: 'Search the docs for the endpoint',
       b2: 'Open a config file and fill it in line by line',
       b3: 'Repeat for every tool',
-      a1: 'Download the app and sign in',
-      a2: 'It finds Claude and Codex on your computer',
-      a3: 'Select Connect, and you are done'
+      a1: 'Download YesChoy and sign in',
+      a2: 'Pick an AI classmate: Juzi, Aqing, Xiaojing…',
+      a3: 'She connects Claude Code and Codex for you'
     },
     price: {
       tag: 'Prices',
@@ -59,12 +59,12 @@ export default {
   },
   live: { label: 'Tokens processed across the site, live', today: '{tokens} today · {requests} requests in total' },
   client: {
-    download: 'Download the app',
+    download: 'Download YesChoy',
     windows: 'Download for Windows',
     macos: 'Download for macOS',
     manual: 'For Windows and macOS. Prefer not to install it? Sign in and copy the settings from the web page.',
-    window: 'Desktop app · My apps',
-    shotAlt: 'My apps in the desktop app: Claude and Codex found on this computer, ready to connect in one click'
+    window: 'YesChoy · nine AI classmates',
+    shotAlt: 'AI classmates in YesChoy: Juzi, Aqing, Xiaojing, Yueyue and Doubao'
   },
   price: {
     eyebrow: 'Prices',
@@ -99,15 +99,15 @@ export default {
     title: 'Connect a tool',
     lead: 'Two ways to do it. Pick either one.',
     best: 'Easiest',
-    clientTitle: 'Install the client and click once',
-    clientText: 'Download the client and sign in. It finds Claude and Codex on your computer; click "Connect" and you are done, no config files.',
+    clientTitle: 'Install YesChoy, pick a classmate',
+    clientText: 'YesChoy has nine AI classmates. Sign in, pick one, and she connects Claude Code and Codex on your computer, no config files.',
     appConnect: 'Connect to the app',
-    appConnectHint: 'Opening the desktop assistant. If nothing happens, install it first.',
+    appConnectHint: 'Opening YesChoy. If nothing happens, install it first.',
     appConnectNeedsHttps: 'This needs the site to be opened over https.',
     appCheaper: 'Some models cost less when you connect with the app.',
     appCheaperLink: 'See prices',
-    appLinesOnly: 'Your lines only work through the app. Connect with the desktop assistant above.',
-    appKeyNote: 'This key is on an app-only line: it gets the app price through the desktop assistant. Pasted into another tool it pays the normal price, or does not work.',
+    appLinesOnly: 'Your lines only work through the app. Connect with YesChoy above.',
+    appKeyNote: 'This key is on an app-only line: it gets the app price through YesChoy. Pasted into another tool it pays the normal price, or does not work.',
     appConnectFailed: 'Could not connect. Please try again later.',
     fillTitle: 'Or fill it into your tool yourself',
     fillLead: 'Most chat apps and coding plugins have an “API address” and a “key” field in their settings. Copy the values below into them; no terminal needed.',
@@ -354,7 +354,7 @@ export default {
     appPrice: '¥{price} with the app',
     appHeadline: 'App price',
     appOnly: 'App only',
-    appNote: 'The "with the app" price applies when you connect through the YESCHOY desktop assistant. A key pasted into another tool pays the normal price.',
+    appNote: 'The "with the app" price applies when you connect through YesChoy. A key pasted into another tool pays the normal price.',
     foot: 'Click any row to see each line\'s price, cache price and discount.'
   },
   dash: {
@@ -363,6 +363,7 @@ export default {
     nextKey: 'Create your first key. Your tool uses it to spend your balance.', nextKeyGo: 'Create',
     nextConnect: 'You have a key. Connect it to your tool to start.', nextConnectGo: 'Connect',
     balance: 'Balance', balanceHint: 'Pay for what you use; the rest is refundable', today: 'Spent today', total: 'Spent in total',
+    mates: 'Your AI classmates', matesGo: 'Pick one in the app', mateJuzi: 'Juzi', mateAqing: 'Aqing', mateXiaojing: 'Xiaojing', mateYueyue: 'Yueyue', mateDoubao: 'Doubao',
     requests: '{n} requests', recent: 'Recent usage', allBills: 'All bills',
     empty: 'No usage yet. After you connect a tool and send a request, each one is listed here.',
     expandTip: 'Select a row to see every detail of that request.',

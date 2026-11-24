@@ -21,7 +21,7 @@
     </button>
 
     <Transition name="date-picker-dropdown">
-      <div v-if="isOpen" class="date-picker-dropdown">
+      <div v-if="isOpen" :class="['date-picker-dropdown', alignEnd && 'date-picker-dropdown-end']">
         <!-- Quick presets -->
         <div class="date-picker-presets">
           <button
@@ -256,7 +256,13 @@ const onDateChange = () => {
   }
 }
 
+// Near the right edge the panel opens leftwards so it stays on screen.
+const alignEnd = ref(false)
+const PANEL_MIN_WIDTH = 320
+
 const toggle = () => {
+  const rect = containerRef.value?.getBoundingClientRect()
+  alignEnd.value = !!rect && rect.left + PANEL_MIN_WIDTH > window.innerWidth
   isOpen.value = !isOpen.value
 }
 
@@ -358,6 +364,10 @@ onUnmounted(() => {
   @apply shadow-lg shadow-black/10 dark:shadow-black/30;
   @apply overflow-hidden;
   @apply min-w-[320px];
+}
+
+.date-picker-dropdown-end {
+  @apply left-auto right-0;
 }
 
 .date-picker-presets {

@@ -71,7 +71,7 @@ onMounted(async () => {
 .yc-growth-plant { flex: none; width: 96px; height: 96px; }
 .yc-growth-main { flex: 1; min-width: 0; }
 .yc-growth-lab { font-size: 13px; font-weight: 650; color: var(--yc-mut); }
-.yc-growth-name { display: flex; align-items: center; gap: 10px; margin-top: 4px; font-size: 26px; line-height: 1.2; letter-spacing: -0.02em; font-weight: 800; }
+.yc-growth-name { display: flex; align-items: center; gap: 10px; margin-top: 4px; font-size: 26px; line-height: 1.2; letter-spacing: -0.02em; font-weight: 650; }
 .yc-growth-bar { height: 8px; margin-top: 14px; overflow: hidden; border-radius: 999px; background: var(--yc-fill); }
 .yc-growth-bar i { display: block; height: 100%; border-radius: inherit; background: var(--yc-lime); box-shadow: 0 0 0 1px var(--yc-ink) inset; transition: width 0.6s cubic-bezier(0.2, 0.7, 0.2, 1); }
 .yc-growth-next { margin-top: 10px; font-size: 14.5px; font-weight: 600; }

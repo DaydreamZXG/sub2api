@@ -251,7 +251,7 @@ onMounted(async () => {
 .yrs-link { flex: none; white-space: nowrap; font-size: 13px; color: var(--yc-ink); text-decoration: underline; text-underline-offset: 3px; }
 .yrs-link.is-danger { color: #dc2626; }
 
-.yrs-hero { display: flex; align-items: center; justify-content: space-between; gap: 28px; padding: 28px; border-radius: 22px; background: var(--yc-ink); color: var(--yc-paper); }
+.yrs-hero { --yc-paper: #fff; display: flex; align-items: center; justify-content: space-between; gap: 28px; padding: 28px; border-radius: 22px; background: var(--yc-on); color: #fff; }
 .yrs-hero h2 { font-size: 28px; font-weight: 780; line-height: 1.2; letter-spacing: -0.02em; text-wrap: balance; }
 .yrs-hero p { margin-top: 8px; font-size: 14.5px; opacity: 0.75; }
 .yrs-hero-side { flex: none; display: grid; justify-items: end; gap: 4px; }
@@ -290,7 +290,7 @@ onMounted(async () => {
 .yrs-key-code { display: flex; align-items: center; gap: 12px; min-width: 0; }
 .yrs-key-code code { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; color: var(--yc-mut); }
 .yrs-bar { height: 6px; border-radius: 999px; background: var(--yc-fill); overflow: hidden; }
-.yrs-bar i { display: block; height: 100%; border-radius: 999px; background: var(--yc-ink); }
+.yrs-bar i { display: block; height: 100%; border-radius: 999px; background: var(--yc-on); }
 .yrs-key-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 18px; font-size: 13px; color: var(--yc-mut); font-variant-numeric: tabular-nums; }
 .yrs-key-actions { display: flex; gap: 14px; margin-left: auto; }
 

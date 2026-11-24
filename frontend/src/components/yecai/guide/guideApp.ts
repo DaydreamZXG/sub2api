@@ -26,9 +26,9 @@ const CAT_ICON = [
   svg('<path d="M4 8h13l-3-3M20 16H7l3 3"/>'),
   svg('<circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="12" r="2.5"/><circle cx="6" cy="18" r="2.5"/><path d="M8.5 6.8l7 4M8.5 17.2l7-4"/>')
 ]
-const HERO_ART = `<svg class="hero-art" viewBox="0 0 240 240" aria-hidden="true"><rect x="20" y="20" width="200" height="200" rx="48" fill="#0b0f0c"/><circle cx="120" cy="120" r="74" fill="#c8ff00" opacity=".14"/>
-  <path d="M120 186V104" stroke="#c8ff00" stroke-width="9" stroke-linecap="round"/><path d="M120 128c-34 2-52-18-54-46 30-2 52 14 54 46z" fill="#c8ff00"/><path d="M120 110c2-32 22-50 52-50 0 30-18 50-52 50z" fill="#c8ff00"/>
-  <path d="M84 190h72" stroke="#f4f6ef" stroke-width="9" stroke-linecap="round" opacity=".9"/><circle cx="182" cy="170" r="5" fill="#c8ff00"/><circle cx="58" cy="150" r="4" fill="#f4f6ef" opacity=".6"/></svg>`
+const HERO_ART = `<svg class="hero-art" viewBox="0 0 240 240" aria-hidden="true"><rect x="20" y="20" width="200" height="200" rx="48" fill="#171717"/><circle cx="120" cy="120" r="74" fill="#5b5bd6" opacity=".14"/>
+  <path d="M120 186V104" stroke="#5b5bd6" stroke-width="9" stroke-linecap="round"/><path d="M120 128c-34 2-52-18-54-46 30-2 52 14 54 46z" fill="#5b5bd6"/><path d="M120 110c2-32 22-50 52-50 0 30-18 50-52 50z" fill="#5b5bd6"/>
+  <path d="M84 190h72" stroke="#f4f6ef" stroke-width="9" stroke-linecap="round" opacity=".9"/><circle cx="182" cy="170" r="5" fill="#5b5bd6"/><circle cx="58" cy="150" r="4" fill="#f4f6ef" opacity=".6"/></svg>`
 
 // Codex spells its placeholder out: 请替换为支持Responses的模型ID.
 const MODEL_PLACEHOLDER = /请替换为(?:支持Responses的)?模型ID/g
@@ -63,10 +63,11 @@ export function mountGuide(root: HTMLElement, D: GuideData): () => void {
     if (!words.length) return { tools: [] as GuideTool[], errors }
     const hit = (text: string) => words.every((w) => text.includes(w))
     const tools = D.tools.filter((t) => hit(`${t.name} ${t.note} ${t.lead} ${catTitle[t.cat] ?? ''}`.toLowerCase()))
-    for (const e of D.general.errors) if (hit(e.t)) errors.push([e, null])
+    for (const e of D.general.errors) if (hit(e.t.toLowerCase())) errors.push([e, null])
     for (const t of D.tools) {
       for (const e of t.errors) {
-        if (hit(e.t) || (hit(`${t.name.toLowerCase()} ${e.t}`) && (onlyErrors || words.some((w) => e.t.includes(w))))) errors.push([e, t])
+        const text = e.t.toLowerCase()
+        if (hit(text) || (hit(`${t.name.toLowerCase()} ${text}`) && (onlyErrors || words.some((w) => text.includes(w))))) errors.push([e, t])
       }
     }
     return { tools, errors }
@@ -87,7 +88,7 @@ export function mountGuide(root: HTMLElement, D: GuideData): () => void {
       }).join('')
       const fold = (title: string, html: string) => `<details class="fold"><summary>${esc(title)}</summary><div class="prose">${html}</div></details>`
       const addr = [['OpenAI 格式（大多数软件）', 'https://yeschoy.com/v1'], ['Anthropic / Gemini 原生格式', 'https://yeschoy.com'], ['软件要“完整接口地址”时', 'https://yeschoy.com/v1/chat/completions']]
-      const steps = [['拿密钥', '在野菜 AI 后台创建一枚 API 密钥'], ['填地址', '把下面的地址填进你的工具'], ['选模型', '从模型定价页复制完整模型 ID']]
+      const steps = [['拿密钥', '在YesChoy 后台创建一枚 API 密钥'], ['填地址', '把下面的地址填进你的工具'], ['选模型', '从模型定价页复制完整模型 ID']]
       return `<section class="hero"><div class="hero-text"><span class="hero-tag">${D.tools.length} 个工具 · ${errorTotal} 条报错解法</span>
         <h1>${esc(D.title)}</h1><div class="lead"><p>选你的工具，只看它的配置和报错。</p></div>
         ${searchBox('搜工具名或报错，比如 Cursor、401、模型列表为空')}</div>${HERO_ART}</section>
@@ -95,7 +96,7 @@ export function mountGuide(root: HTMLElement, D: GuideData): () => void {
         <div data-g="out"><section class="quick" data-sub>
           <header><b>地址速查</b>${lineSwitch()}</header>
           ${addr.map(([label, url]) => `<div class="quick-row"><span>${label}</span><code>${url}</code></div>`).join('')}
-          <p>点地址就能复制。密钥在野菜 AI 后台创建，模型 ID 从“模型定价”页完整复制。</p></section>
+          <p>点地址就能复制。密钥在YesChoy 后台创建，模型 ID 从“模型定价”页完整复制。</p></section>
         <h2 class="sec">按类别找工具</h2><div class="cats">${cats}</div>
         <h2 class="sec">新手先看</h2>${D.start.map((s) => fold(s.title, s.html)).join('')}
         ${fold('关于这份指南', `${D.intro}<ul>${D.meta.map((m) => `<li>${esc(m)}</li>`).join('')}</ul>`)}</div>`

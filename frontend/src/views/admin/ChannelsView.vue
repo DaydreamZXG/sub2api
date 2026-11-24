@@ -235,7 +235,7 @@
                 <label
                   v-for="p in platformOrder"
                   :key="p"
-                  class="inline-flex cursor-pointer items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm transition-colors"
+                  class="inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition-colors"
                   :class="activePlatforms.includes(p)
                     ? 'bg-primary-50 border-primary-300 dark:bg-primary-900/20 dark:border-primary-700'
                     : 'border-gray-200 hover:bg-gray-50 dark:border-dark-600 dark:hover:bg-dark-700'"
@@ -297,7 +297,7 @@
                   <label
                     v-for="group in getGroupsForPlatform(section.platform)"
                     :key="group.id"
-                    class="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-gray-200 px-2 py-1 text-xs transition-colors hover:bg-gray-50 dark:border-dark-600 dark:hover:bg-dark-700"
+                    class="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-gray-200 px-2 py-1 text-xs transition-colors hover:bg-gray-50 dark:border-dark-600 dark:hover:bg-dark-700"
                     :class="[
                       section.group_ids.includes(group.id) ? 'bg-primary-50 border-primary-300 dark:bg-primary-900/20 dark:border-primary-700' : '',
                       isGroupInOtherChannel(group.id, section.platform) ? 'opacity-40' : ''
@@ -1727,14 +1727,14 @@ onUnmounted(() => {
 }
 
 .channel-tab {
-  @apply flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap;
+  @apply my-2 flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors whitespace-nowrap;
 }
 
 .channel-tab-active {
-  @apply border-primary-600 text-primary-600 dark:border-primary-400 dark:text-primary-400;
+  @apply bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300;
 }
 
 .channel-tab-inactive {
-  @apply border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300;
+  @apply text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-dark-700 dark:hover:text-gray-300;
 }
 </style>

@@ -289,8 +289,9 @@ const sourceHints = computed(() => {
   gap: 20px 24px;
   padding: 24px 28px;
   border-radius: 22px;
-  background: var(--yc-ink);
-  color: var(--yc-paper);
+  background: var(--yc-on);
+  color: #fff;
+  --yc-paper: #fff;
 }
 .ypf-avatar {
   display: grid;

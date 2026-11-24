@@ -98,7 +98,7 @@ onMounted(async () => {
 .yc-top-cta { display: flex; flex-wrap: wrap; gap: 10px; }
 .yc-top-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-top: 16px; }
 .yc-top-fact { padding: 22px 24px; }
-.yc-top-fact h2 { font-size: 17px; font-weight: 750; letter-spacing: -0.01em; }
+.yc-top-fact h2 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
 .yc-top-fact .yc-note { margin-top: 6px; }
 .yc-top-foot { margin-top: 16px; }
 @media (max-width: 760px) {

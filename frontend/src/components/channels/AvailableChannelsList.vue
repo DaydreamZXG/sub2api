@@ -164,7 +164,7 @@ function peakTitle(group: UserAvailableGroup): string {
 .yav-lines li { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; min-width: 0; padding: 10px 12px; border-radius: 14px; background: var(--yc-fill); }
 .yav-line-name { font-size: 14px; font-weight: 600; color: var(--yc-ink); overflow-wrap: anywhere; }
 .yav-tag { padding: 1px 8px; border: 1px solid var(--yc-line); border-radius: 999px; font-size: 11px; color: var(--yc-mut); white-space: nowrap; }
-.yav-tag-own { border-color: transparent; background: var(--yc-ink); color: var(--yc-paper); }
+.yav-tag-own { border-color: transparent; background: var(--yc-on); color: #fff; }
 .yav-price { margin-left: auto; padding: 1px 9px; border: 1px solid var(--yc-line); border-radius: 999px; background: var(--yc-paper); color: var(--yc-ink); font-size: 12px; font-weight: 650; white-space: nowrap; cursor: help; }
 /* Only a price below the standard one gets the lime. */
 .yav-price-good { border-color: transparent; background: var(--yc-lime); color: var(--yc-on-lime); }
