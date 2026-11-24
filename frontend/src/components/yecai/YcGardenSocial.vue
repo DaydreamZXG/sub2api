@@ -290,16 +290,16 @@ onMounted(async () => {
 
 <style scoped>
 /* The yard under the field: the kennel and the dog, on the same dark ground in both themes. */
-.yc-dog { display: flex; align-items: center; gap: 18px; padding: 16px 26px 20px; border-top: 1px dashed rgb(244 246 241 / 0.16); border-radius: 0 0 28px 28px; background: #0b0f0c; color: #f4f6f1; }
+.yc-dog { display: flex; align-items: center; gap: 18px; padding: 16px 26px 20px; border-top: 1px dashed rgb(244 246 241 / 0.16); border-radius: 0 0 28px 28px; background: #1d1d1f; color: #f4f6f1; }
 .dark .yc .yc-dog { box-shadow: 0 0 0 1px var(--yc-line); }
 .yc-dog-yard { flex: none; width: 124px; height: 80px; }
 .yc-dog-yard .roof { fill: var(--yc-lime); }
 .yc-dog-yard .wall { fill: #f4f6f1; }
-.yc-dog-yard .door { fill: #0b0f0c; }
+.yc-dog-yard .door { fill: #1d1d1f; }
 .yc-dog-yard .head { fill: var(--yc-lime); }
 .yc-dog-yard .ear { fill: #f4f6f1; }
-.yc-dog-yard .eye { fill: #0b0f0c; }
-.yc-dog-yard .line { fill: none; stroke: #0b0f0c; stroke-width: 2.4; stroke-linecap: round; }
+.yc-dog-yard .eye { fill: #1d1d1f; }
+.yc-dog-yard .line { fill: none; stroke: #1d1d1f; stroke-width: 2.4; stroke-linecap: round; }
 .yc-dog.hungry .yc-dog-yard .head { fill: #5d665f; }
 .yc-dog.hungry .yc-dog-yard .ear { fill: #3a423c; }
 .yc-dog:not(.hungry) .yc-dog-yard g { animation: yc-dog-bob 2.8s ease-in-out infinite; }

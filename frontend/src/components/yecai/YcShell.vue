@@ -6,7 +6,6 @@
       </router-link>
       <nav ref="nav" class="yc-side-nav" :aria-label="t('yc.nav.aria')">
         <router-link v-for="l in links" :key="l.to" :to="l.to" :class="{ 'is-on': isOn(l), 'has-dot': l.dot }">{{ l.text }}</router-link>
-        <a :href="YC_CLIENT_PAGE">{{ t('yc.nav.client') }}</a>
         <p class="yc-side-more">{{ t('yc.shell.more') }}</p>
         <router-link v-for="l in more" :key="l.to" :to="l.to" class="is-minor" :class="{ 'is-on': isOn(l) }">{{ l.text }}</router-link>
         <YcThemeSwitch class="yc-side-narrow" />
@@ -35,7 +34,6 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAdminSettingsStore, useAuthStore, useAppStore } from '@/stores'
 import YcBrand from '@/components/yecai/YcBrand.vue'
-import { YC_CLIENT_PAGE } from '@/utils/ycClient'
 import YcThemeSwitch from '@/components/yecai/YcThemeSwitch.vue'
 import { FeatureFlags, isFeatureFlagEnabled } from '@/utils/featureFlags'
 import { availableLocales, setLocale } from '@/i18n'
@@ -174,7 +172,7 @@ onMounted(() => {
 .yc-side-tools > button { padding: 7px 10px; border-radius: 10px; font-size: 13.5px; white-space: nowrap; }
 .yc-side-me i { flex: none; width: 30px; height: 30px; display: grid; place-items: center; border-radius: 50%; background: var(--yc-ink); color: var(--yc-bg); font-style: normal; font-weight: 700; font-size: 13px; }
 .yc-shell-main { width: 100%; max-width: 1080px; margin: 0 auto; padding: 44px 36px 80px; }
-.yc-shell-main.yc-legacy { max-width: none; padding: 26px 32px 40px; }
+.yc-shell-main.yc-legacy { max-width: 1280px; padding: 26px 32px 40px; }
 @media (max-width: 860px) {
   .yc-shell { grid-template-columns: minmax(0, 1fr); }
   .yc-side { position: sticky; z-index: 20; height: auto; flex-direction: row; align-items: center; gap: 8px; padding: 10px 14px; border-right: 0; border-bottom: 1px solid var(--yc-line); background: color-mix(in srgb, var(--yc-bg) 86%, transparent); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }

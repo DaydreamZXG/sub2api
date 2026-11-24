@@ -110,9 +110,9 @@ const links = computed(() => {
 .yc-flow-hub { fill: var(--yc-lime); stroke: var(--yc-on-lime); stroke-width: 1.5; }
 .yc-flow-hub-title { fill: var(--yc-on-lime); font-size: 16px; font-weight: 750; }
 .yc-flow-hub-key { fill: var(--yc-on-lime); font-size: 13px; opacity: 0.72; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
-:global(.dark .yc .yc-flow-dot) { stroke: none; filter: drop-shadow(0 0 6px rgb(200 255 0 / 0.9)); }
+:global(.dark .yc .yc-flow-dot) { stroke: none; filter: drop-shadow(0 0 6px rgb(0 113 227 / 0.9)); }
 :global(.dark .yc .yc-flow-halo) { opacity: 0.22; }
-:global(.dark .yc .yc-flow-hub) { stroke: none; filter: drop-shadow(0 0 28px rgb(200 255 0 / 0.35)); }
+:global(.dark .yc .yc-flow-hub) { stroke: none; filter: drop-shadow(0 0 28px rgb(0 113 227 / 0.35)); }
 @media (prefers-reduced-motion: reduce) {
   .yc-flow-dots { display: none; }
   .yc-flow-halo { animation: none; }

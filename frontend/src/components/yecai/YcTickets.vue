@@ -196,7 +196,7 @@ onMounted(async () => {
 .yc-tk-row b { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 15.5px; font-weight: 600; }
 .yc-tk-row time { flex: none; font-size: 12.5px; color: var(--yc-dim); }
 .yc-tk-row i { flex: none; padding: 3px 10px; border-radius: 999px; font-style: normal; font-size: 12px; font-weight: 600; background: var(--yc-fill); color: var(--yc-mut); }
-.yc-tk-row i.is-answered { background: var(--yc-lime); color: #0b0f0c; }
+.yc-tk-row i.is-answered { background: var(--yc-lime); color: #ffffff; }
 .yc-tk-row i.is-open { box-shadow: inset 0 0 0 1px var(--yc-ink); color: var(--yc-ink); background: none; }
 .yc-tk-thread { display: grid; gap: 10px; padding: 2px 0 20px; }
 .yc-tk-msg { justify-self: start; max-width: 86%; padding: 12px 16px; border-radius: 16px; background: var(--yc-fill); font-size: 14.5px; line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; }

@@ -151,7 +151,7 @@ onMounted(async () => {
 .yc-tile-lab { font-size: 13px; font-weight: 650; color: var(--yc-mut); }
 .yc-tile-num { margin-top: 8px; font-size: clamp(36px, 4.2vw, 52px); line-height: 1.1; }
 .yc-tile-sub { margin-top: 10px; font-size: 13.5px; color: var(--yc-mut); }
-.yc-wallet { position: relative; overflow: hidden; border-radius: 24px; background: var(--yc-lime); color: var(--yc-on-lime); box-shadow: 0 1px 0 rgb(255 255 255 / 0.7) inset, 0 24px 48px -24px rgb(120 160 0 / 0.75); }
+.yc-wallet { position: relative; overflow: hidden; border-radius: 24px; background: var(--yc-lime); color: var(--yc-on-lime); box-shadow: 0 1px 0 rgb(255 255 255 / 0.7) inset, 0 24px 48px -24px rgb(0 113 227 / 0.75); }
 .yc-wallet::before { content: ''; position: absolute; inset: 0; background: linear-gradient(120deg, rgb(255 255 255 / 0.6), transparent 42%), radial-gradient(circle at 100% 100%, rgb(11 15 12 / 0.1), transparent 55%); pointer-events: none; }
 .yc-wallet > * { position: relative; }
 .yc-wallet .yc-tile-lab, .yc-wallet .yc-tile-sub { color: rgb(11 15 12 / 0.7); }

@@ -369,8 +369,8 @@ onMounted(async () => {
 .yc-top-actions { display: flex; align-items: center; gap: 10px; margin-left: auto; }
 
 .yc-hero { position: relative; padding-top: clamp(64px, 10vw, 128px); text-align: center; }
-.yc-hero::before { content: ''; position: absolute; z-index: 0; left: 50%; top: 4%; width: min(900px, 110%); aspect-ratio: 2 / 1; transform: translateX(-50%); background: radial-gradient(closest-side, rgb(200 255 0 / 0.42), transparent 72%); filter: blur(48px); pointer-events: none; }
-:global(.dark .yc .yc-hero::before) { background: radial-gradient(closest-side, rgb(200 255 0 / 0.16), transparent 72%); }
+.yc-hero::before { content: ''; position: absolute; z-index: 0; left: 50%; top: 4%; width: min(900px, 110%); aspect-ratio: 2 / 1; transform: translateX(-50%); background: radial-gradient(closest-side, rgb(0 113 227 / 0.42), transparent 72%); filter: blur(48px); pointer-events: none; }
+:global(.dark .yc .yc-hero::before) { background: radial-gradient(closest-side, rgb(0 113 227 / 0.16), transparent 72%); }
 .yc-hero > * { position: relative; z-index: 1; }
 .yc-hero > .yc-hero-dots { position: absolute; z-index: 0; top: 0; left: 50%; width: 100vw; height: min(100%, 880px); transform: translateX(-50%); pointer-events: none; }
 .yc-hero-dots i { position: absolute; inset: 0; background-size: 26px 26px; background-position: center top; }
@@ -378,7 +378,7 @@ onMounted(async () => {
 .yc-hero-dots i:last-child { background-image: radial-gradient(circle, var(--yc-ink) 1.7px, transparent 2.2px); -webkit-mask-image: radial-gradient(210px circle at var(--mx, 50%) var(--my, 30%), #000, transparent); mask-image: radial-gradient(210px circle at var(--mx, 50%) var(--my, 30%), #000, transparent); opacity: 0; transition: opacity 0.45s ease; }
 .yc-hero-dots.is-live i:last-child { opacity: 1; }
 :global(.dark .yc .yc-hero-dots i:first-child) { background-image: radial-gradient(circle, rgb(244 246 241 / 0.14) 1.1px, transparent 1.6px); }
-:global(.dark .yc .yc-hero-dots i:last-child) { background-image: radial-gradient(circle, #c8ff00 1.7px, transparent 2.2px); }
+:global(.dark .yc .yc-hero-dots i:last-child) { background-image: radial-gradient(circle, #0a84ff 1.7px, transparent 2.2px); }
 .yc-h1 { margin-top: 22px; font-size: clamp(40px, 8.4vw, 104px); line-height: 1.03; letter-spacing: -0.05em; font-weight: 800; }
 .yc-h1-line { display: block; }
 .yc-lead { max-width: 640px; margin: 30px auto 0; font-size: clamp(16px, 1.7vw, 20px); line-height: 1.7; color: var(--yc-mut); text-wrap: pretty; }
@@ -425,7 +425,7 @@ onMounted(async () => {
 .yc-shot figcaption span { margin-left: 8px; }
 .yc-shot img { display: block; width: 100%; height: auto; }
 .yc-vs-after { transform: perspective(1100px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transition: transform 0.25s ease-out; }
-.yc-vs-after::after { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; background: radial-gradient(380px circle at var(--sx, 50%) var(--sy, 50%), rgb(200 255 0 / 0.22), transparent 65%); opacity: 0; transition: opacity 0.3s ease; }
+.yc-vs-after::after { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; background: radial-gradient(380px circle at var(--sx, 50%) var(--sy, 50%), rgb(0 113 227 / 0.22), transparent 65%); opacity: 0; transition: opacity 0.3s ease; }
 .yc-vs-after:hover::after { opacity: 1; }
 .yc-vs-contact { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--yc-line); font-size: 15px; color: var(--yc-mut); white-space: pre-line; }
 
@@ -544,7 +544,7 @@ onMounted(async () => {
   /* The highlighter is drawn across each headline as it comes into view. */
   .yc-home .yc-mark { background-repeat: no-repeat; background-size: 0% 100%; }
   .yc-home .is-in .yc-mark { animation: yc-draw 0.9s cubic-bezier(0.3, 0.7, 0.2, 1) 0.3s both; }
-  :global(.dark .yc.yc-home .yc-mark) { background: linear-gradient(90deg, #c8ff00 50%, var(--yc-ink) 50%) 100% 0 / 200% 100% no-repeat; -webkit-background-clip: text; background-clip: text; color: transparent; }
+  :global(.dark .yc.yc-home .yc-mark) { background: linear-gradient(90deg, #0a84ff 50%, var(--yc-ink) 50%) 100% 0 / 200% 100% no-repeat; -webkit-background-clip: text; background-clip: text; color: transparent; }
   :global(.dark .yc.yc-home .is-in .yc-mark) { animation: yc-draw-dark 0.9s cubic-bezier(0.3, 0.7, 0.2, 1) 0.3s both; }
 
   /* Before: struck out one by one. Now: ticked one by one. */
