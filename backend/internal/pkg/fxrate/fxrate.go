@@ -45,6 +45,7 @@ type Rates struct {
 	fetchedAt time.Time
 	triedAt   time.Time
 	fetching  bool
+	listeners []func()
 
 	client  *http.Client
 	sources []Source
@@ -63,6 +64,16 @@ var std = New(nil, DefaultSources)
 
 // CNYPerUSD returns the process-wide rate.
 func CNYPerUSD() float64 { return std.CNYPerUSD() }
+
+// OnChange registers f to run after the process-wide rate changes, e.g. to drop pages that embed it.
+func OnChange(f func()) { std.OnChange(f) }
+
+// OnChange registers f to run, outside the lock, after a refresh changes the rate.
+func (r *Rates) OnChange(f func()) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.listeners = append(r.listeners, f)
+}
 
 // CNYPerUSD returns the last good rate, or DefaultCNYPerUSD before one arrives, and starts a
 // background refresh when the rate is stale. It never blocks on the network.
@@ -87,14 +98,23 @@ func (r *Rates) refresh() {
 	defer cancel()
 	rate, err := r.Fetch(ctx)
 	r.mu.Lock()
-	defer r.mu.Unlock()
 	r.fetching = false
 	if err != nil {
-		log.Printf("[fxrate] refresh failed, keeping %.4f: %v", r.rateOrDefault(), err)
+		kept := r.rateOrDefault()
+		r.mu.Unlock()
+		log.Printf("[fxrate] refresh failed, keeping %.4f: %v", kept, err)
 		return
 	}
+	changed := rate != r.rateOrDefault()
 	r.rate = rate
 	r.fetchedAt = r.now()
+	listeners := append([]func(){}, r.listeners...)
+	r.mu.Unlock()
+	if changed {
+		for _, f := range listeners {
+			f()
+		}
+	}
 }
 
 func (r *Rates) rateOrDefault() float64 {

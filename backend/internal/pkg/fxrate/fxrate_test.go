@@ -59,3 +59,14 @@ func TestCNYPerUSDKeepsLastRateWhenRefreshFails(t *testing.T) {
 	}, 5*time.Second, 10*time.Millisecond)
 	require.Equal(t, 7.01, r.CNYPerUSD())
 }
+
+func TestRefreshNotifiesOnlyWhenTheRateChanges(t *testing.T) {
+	r := New(nil, []Source{{URL: serve(t, http.StatusOK, `{"rates":{"CNY":6.66}}`), Parse: parseRatesCNY}})
+	calls := make(chan struct{}, 4)
+	r.OnChange(func() { calls <- struct{}{} })
+
+	r.refresh()
+	require.Len(t, calls, 1)
+	r.refresh()
+	require.Len(t, calls, 1)
+}
