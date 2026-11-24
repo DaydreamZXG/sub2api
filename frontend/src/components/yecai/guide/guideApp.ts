@@ -63,10 +63,11 @@ export function mountGuide(root: HTMLElement, D: GuideData): () => void {
     if (!words.length) return { tools: [] as GuideTool[], errors }
     const hit = (text: string) => words.every((w) => text.includes(w))
     const tools = D.tools.filter((t) => hit(`${t.name} ${t.note} ${t.lead} ${catTitle[t.cat] ?? ''}`.toLowerCase()))
-    for (const e of D.general.errors) if (hit(e.t)) errors.push([e, null])
+    for (const e of D.general.errors) if (hit(e.t.toLowerCase())) errors.push([e, null])
     for (const t of D.tools) {
       for (const e of t.errors) {
-        if (hit(e.t) || (hit(`${t.name.toLowerCase()} ${e.t}`) && (onlyErrors || words.some((w) => e.t.includes(w))))) errors.push([e, t])
+        const text = e.t.toLowerCase()
+        if (hit(text) || (hit(`${t.name.toLowerCase()} ${text}`) && (onlyErrors || words.some((w) => text.includes(w))))) errors.push([e, t])
       }
     }
     return { tools, errors }
