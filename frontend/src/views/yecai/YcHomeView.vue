@@ -44,7 +44,7 @@
         <figure class="yc-hero-shot">
           <figcaption aria-hidden="true"><i></i><i></i><i></i><span>{{ siteName }}</span></figcaption>
           <img :src="preview" :alt="t('yc.client.shotAlt')" width="1440" height="860" />
-          <img :src="previewDark" alt="" aria-hidden="true" width="1440" height="860" class="yc-hero-shot-dark" />
+          <img :src="previewDark" :alt="t('yc.client.shotAlt')" width="1440" height="860" class="yc-hero-shot-dark" />
         </figure>
         <div v-if="site" class="yc-live" aria-live="off">
           <p class="yc-live-lab"><i aria-hidden="true"></i>{{ t('yc.live.label') }}</p>
