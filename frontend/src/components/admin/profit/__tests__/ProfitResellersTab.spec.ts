@@ -17,7 +17,7 @@ const { list, add, remove, getPortal, setPortal, lookupUsers, showError, showSuc
 vi.mock('@/api/admin/resellers', () => ({ list, add, remove, getPortal, setPortal }))
 vi.mock('@/api/admin/affiliates', () => ({ lookupUsers }))
 vi.mock('@/stores/app', () => ({ useAppStore: () => ({ showError, showSuccess }) }))
-vi.mock('@/composables/useYcMoney', () => ({ useYcMoney: () => ({ yuan: (units: number) => `¥${(units / 2).toFixed(2)}` }) }))
+vi.mock('@/composables/useYcMoney', () => ({ useYcMoney: () => ({ dollars: (units: number) => `$${(units / 2).toFixed(2)}` }) }))
 vi.mock('vue-i18n', async (importOriginal) => ({
   ...(await importOriginal<typeof import('vue-i18n')>()),
   useI18n: () => ({ t: (key: string, params?: Record<string, unknown>) => (params ? `${key}:${JSON.stringify(params)}` : key) })
@@ -47,9 +47,9 @@ describe('ProfitResellersTab', () => {
     const wrapper = await mountTab()
     const row = wrapper.get('[data-test="resellers-row"]').text()
     expect(row).toContain('shop@example.com')
-    expect(row).toContain('¥100.00')
-    expect(row).toContain('¥15.00')
-    expect(row).toContain('¥10.00')
+    expect(row).toContain('$100.00')
+    expect(row).toContain('$15.00')
+    expect(row).toContain('$10.00')
   })
 
   it('adds a searched user', async () => {

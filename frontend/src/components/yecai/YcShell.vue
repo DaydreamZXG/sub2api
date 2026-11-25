@@ -13,7 +13,7 @@
         <button type="button" class="is-minor yc-side-narrow" @click="logout">{{ t('nav.logout') }}</button>
       </nav>
       <div class="yc-side-foot">
-        <router-link to="/topup" class="yc-side-bal"><span>{{ t('yc.dash.balance') }}</span><b>{{ yuan(authStore.user?.balance) }}</b></router-link>
+        <router-link to="/topup" class="yc-side-bal"><span>{{ t('yc.dash.balance') }}</span><b>{{ dollars(authStore.user?.balance) }}</b></router-link>
         <YcThemeSwitch class="yc-side-wide yc-side-theme" />
         <div class="yc-side-tools">
           <AnnouncementBell />
@@ -62,7 +62,7 @@ const router = useRouter()
 const authStore = useAuthStore()
 const appStore = useAppStore()
 const adminSettingsStore = useAdminSettingsStore()
-const { yuan } = useYcMoney()
+const { dollars } = useYcMoney()
 const { isReseller, loadResellerFlag } = useResellerFlag()
 const { canUseBatchImage, refreshBatchImageAccess } = useBatchImageAccess()
 

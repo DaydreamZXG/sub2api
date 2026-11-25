@@ -90,7 +90,7 @@
           </template>
           <template #cell-pay_amount="{ row }">
             <span v-if="row.pay_amount == null" class="text-sm text-gray-400 dark:text-dark-500">-</span>
-            <span v-else class="text-sm text-gray-900 dark:text-white">¥{{ formatAmount(row.pay_amount) }}</span>
+            <span v-else class="text-sm text-gray-900 dark:text-white">${{ formatAmount(row.pay_amount) }}</span>
           </template>
           <template #cell-rebate_amount="{ row }">
             <AmountText :value="row.rebate_amount" strong />

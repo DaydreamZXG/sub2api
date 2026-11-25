@@ -21,7 +21,7 @@ vi.mock('@/api/garden', () => api)
 vi.mock('@/stores', () => ({ useAppStore: () => ({ ...toast, cachedPublicSettings: site }) }))
 vi.mock('@/api/user', () => ({ default: { getAffiliateDetail } }))
 vi.mock('@/composables/useClipboard', () => ({ useClipboard: () => ({ copyToClipboard }) }))
-vi.mock('@/composables/useYcMoney', () => ({ useYcMoney: () => ({ yuan: (units: number) => `¥${units}` }) }))
+vi.mock('@/composables/useYcMoney', () => ({ useYcMoney: () => ({ dollars: (units: number) => `$${units}` }) }))
 vi.mock('vue-i18n', async (importOriginal) => ({
   ...(await importOriginal<typeof import('vue-i18n')>()),
   useI18n: () => ({
@@ -103,7 +103,7 @@ describe('YcGardenSocial', () => {
     const wrapper = await mountWith()
     const rows = wrapper.findAll('.yc-ranks li')
     expect(rows).toHaveLength(2)
-    expect(rows[0].text()).toContain('¥7')
+    expect(rows[0].text()).toContain('$7')
     expect(rows[1].classes()).toContain('me')
     expect(wrapper.find('.yc-ranks').text()).toContain('yc.garden.ranks.none')
   })
@@ -148,7 +148,7 @@ describe('YcGardenSocial', () => {
     await flushPromises()
 
     expect(api.stealCrop).toHaveBeenCalledWith(2)
-    expect(toast.showSuccess).toHaveBeenCalledWith('yc.garden.stealDone {"amount":"¥6"}')
+    expect(toast.showSuccess).toHaveBeenCalledWith('yc.garden.stealDone {"amount":"$6"}')
     expect(wrapper.emitted('changed')).toHaveLength(1)
   })
 

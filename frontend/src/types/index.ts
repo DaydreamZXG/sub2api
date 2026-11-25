@@ -281,10 +281,10 @@ export interface PublicSettings {
   subscription_enabled: boolean
   /** Mirrors payment config BALANCE_PAYMENT_DISABLED; true = balance top-up closed (subscription-only site). */
   payment_balance_disabled: boolean
-  /** What ¥1 of top-up buys, and the USD to CNY rate (0 = not set); public so visitors see yuan prices too. */
+  /** Balance units credited per $1 of top-up, and the plan USD to CNY rate for CNY payment channels (0 = not set). */
   balance_recharge_multiplier?: number
   subscription_usd_to_cny_rate?: number
-  /** Market USD to CNY rate, refreshed daily on the server; only for restating official USD prices. */
+  /** Market USD to CNY rate, refreshed daily on the server. */
   reference_usd_to_cny_rate?: number
   model_plaza_enabled: boolean
   model_plaza_require_auth: boolean

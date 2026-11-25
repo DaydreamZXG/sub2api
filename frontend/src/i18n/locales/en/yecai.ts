@@ -6,7 +6,7 @@ export default {
     eyebrow: 'AI model access',
     titleA: 'Connect to AI',
     titleB: 'without the setup',
-    lead: 'Wire AI models into Claude Code or Codex. Install the YesChoy client and pick a classmate for one click, or paste in the endpoint yourself. Prices are in yuan, every request is on record, and unused balance is refundable.'
+    lead: 'Wire AI models into Claude Code or Codex. Install the YesChoy client and pick a classmate for one click, or paste in the endpoint yourself. Prices are in US dollars, every request is on record, and unused balance is refundable.'
   },
   pain: {
     before: 'Before',
@@ -25,13 +25,13 @@ export default {
     price: {
       tag: 'Prices',
       titleA: 'Before, you worked out multipliers.',
-      titleB: 'Now, prices are in yuan.',
+      titleB: 'Now, one price per model.',
       formula: 'Top-up rate × group multiplier × model multiplier × official price = ?',
       b1: 'The same multiplier can mean very different prices',
       b2: 'Pick a group first to learn the price',
       b3: 'Charges are in credits, not money',
-      a1: 'One yuan price per model',
-      a2: 'What you pay is what you get: ¥1 is ¥1',
+      a1: 'One dollar price per model',
+      a2: 'What you pay is what you get: $1 is $1',
       a3: 'Multipliers and raw prices are one click away'
     },
     bill: {
@@ -72,8 +72,8 @@ export default {
     official: 'Official',
     perMillionIn: 'per million input tokens',
     off: '{pct}% below official',
-    note: 'See the full list for other models. Official prices are in USD, for comparison only; discounts use about ¥{rate} to $1.',
-    output: 'Output: ¥{price} per million tokens',
+    note: 'See the full list for other models. Struck-out prices are the official ones, for comparison only.',
+    output: 'Output: ${price} per million tokens',
     pick: 'Select a model to see its price',
     all: 'All models and prices'
   },
@@ -152,7 +152,7 @@ export default {
   },
   topUp: {
     title: 'Top up',
-    lead: 'You get exactly what you pay: ¥1 is ¥1. You are charged only for what you use.',
+    lead: 'You get exactly what you pay: $1 is $1. You are charged only for what you use.',
     pay: 'Top up now', buyPlan: 'See monthly plans', redeem: 'I have a code', orders: 'See top-up history',
     minTitle: 'Start small', minAny: 'You choose the amount. Start small and see if it suits you.',
     bonusTitle: '{pct}% extra on larger top-ups', bonusText: 'Top up {min} or more in one payment and get {pct}% extra.',
@@ -182,7 +182,7 @@ export default {
       start: { name: 'From when', text: 'What a customer spends after they are under you. Nothing is added for earlier spending.' },
       duration: { name: 'For how long', text: 'For as long as the customer keeps using the service and you are an agent.' }
     },
-    example: 'For example: at a share of 5%, a customer you brought in spends ¥10,000 of their own top-ups this month, and you earn ¥500. If they spend ¥10,000 again next month, you earn another ¥500. If "8% from ¥5,000 in the month" was agreed, the first ¥5,000 earns 5% and the next ¥5,000 earns 8%: ¥650 in all.',
+    example: 'For example: at a share of 5%, a customer you brought in spends $1,000 of their own top-ups this month, and you earn $50. If they spend $1,000 again next month, you earn another $50. If "8% from $500 in the month" was agreed, the first $500 earns 5% and the next $500 earns 8%: $65 in all.',
     join: {
       title: 'How a customer comes under you',
       i1: 'Send the customer your invite link. If they sign up through it, they are under you from the start.',
@@ -342,7 +342,7 @@ export default {
   },
   prices: {
     title: 'Prices',
-    lead: 'One price per model, in yuan. Prices are per million tokens; you pay for what you use.',
+    lead: 'One price per model, in US dollars. Prices are per million tokens; you pay for what you use.',
     search: 'Search models, e.g. claude',
     model: 'Model', input: 'Input', output: 'Output',
     loading: 'Loading prices…',
@@ -350,8 +350,8 @@ export default {
     noMatch: 'No model matches. Try another keyword.',
     from: '+', varies: 'This is the standard price. Requests with very long context, at certain hours or with higher reasoning effort are charged at a higher tier; your bill shows each one.',
     line: 'Line', cacheRead: 'Cache read', multiplier: 'Discount',
-    official: 'Official price: ${input} input, ${output} output (per million tokens). Struck-out yuan prices use 1 USD ≈ {rate} CNY, for comparison only.',
-    appPrice: '¥{price} with the app',
+    official: 'Official price: ${input} input, ${output} output (per million tokens), for comparison only.',
+    appPrice: '${price} with the app',
     appHeadline: 'App price',
     appOnly: 'App only',
     appNote: 'The "with the app" price applies when you connect through YesChoy. A key pasted into another tool pays the normal price.',

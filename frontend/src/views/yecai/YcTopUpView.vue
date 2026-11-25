@@ -6,7 +6,7 @@
     <section class="yc-surface yc-top">
       <div>
         <p class="yc-top-lab">{{ t('yc.dash.balance') }}</p>
-        <p class="yc-top-num yc-num"><span class="yc-mark">{{ yuan(authStore.user?.balance) }}</span></p>
+        <p class="yc-top-num yc-num"><span class="yc-mark">{{ dollars(authStore.user?.balance) }}</span></p>
       </div>
       <div class="yc-top-cta">
         <router-link v-if="canPay" to="/purchase" class="yc-btn yc-btn-lime">{{ t('yc.topUp.pay') }} →</router-link>
@@ -42,7 +42,7 @@ import { currencySymbol, normalizePaymentCurrency } from '@/components/payment/c
 const { t } = useI18n()
 const appStore = useAppStore()
 const authStore = useAuthStore()
-const { yuan } = useYcMoney()
+const { dollars } = useYcMoney()
 
 const checkout = ref<CheckoutInfoResponse | null>(null)
 const payEnabled = computed(() => appStore.cachedPublicSettings?.payment_enabled === true)

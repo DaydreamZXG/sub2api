@@ -463,8 +463,7 @@ async function onModelsUpdate(newModels: string[]) {
   // 查询第一个新增模型的默认价格
   try {
     const found = await channelsAPI.getModelDefaultPricing(addedModels[0])
-    // The catalog is in USD; a site holding balances in yuan must prefill yuan prices.
-    const result = ycSign.value === '¥' && found.yuan ? { ...found, ...found.yuan } : found
+    const result = found
     if (result.found) {
       emit('update', {
         ...props.entry,

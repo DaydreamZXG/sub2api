@@ -6,7 +6,7 @@ export default {
     eyebrow: 'AI 模型接入服务',
     titleA: '接入 AI',
     titleB: '不用再折腾配置',
-    lead: '给 Claude Code、Codex 接好 AI 模型。装个 YesChoy 客户端挑个同学点一下就行，也可以手动填接口地址。价格直接写人民币，每一笔都查得到，没用完的可以退。'
+    lead: '给 Claude Code、Codex 接好 AI 模型。装个 YesChoy 客户端挑个同学点一下就行，也可以手动填接口地址。价格直接写美元，每一笔都查得到，没用完的可以退。'
   },
   pain: {
     before: '以前',
@@ -25,13 +25,13 @@ export default {
     price: {
       tag: '价格',
       titleA: '以前，要自己算倍率。',
-      titleB: '现在，直接写人民币。',
-      formula: '充值汇率 × 分组倍率 × 模型倍率 × 官方价 = ？',
+      titleB: '现在，一个模型一个价。',
+      formula: '分组倍率 × 模型倍率 × 官方价 = ？',
       b1: '同样的倍率，实际价格差好几倍',
       b2: '先选分组，才知道多少钱',
       b3: '扣的是额度，不是钱',
-      a1: '每个模型一个人民币价格',
-      a2: '充多少就是多少，¥1 就是 ¥1',
+      a1: '每个模型一个美元价格',
+      a2: '充多少就是多少，$1 就是 $1',
       a3: '想看倍率和原始价，点开就有'
     },
     bill: {
@@ -72,8 +72,8 @@ export default {
     official: '官方价',
     perMillionIn: '每百万 Token 输入',
     off: '约 {zhe} 折',
-    note: '其他模型见完整价目表。官方价按当天汇率 1 美元 ≈ {rate} 元折算，仅供对比。',
-    output: '输出每百万 Token ¥{price}',
+    note: '其他模型见完整价目表。划掉的是官方美元价，仅供对比。',
+    output: '输出每百万 Token ${price}',
     pick: '点一个模型，看它的价格',
     all: '全部模型和价格'
   },
@@ -152,7 +152,7 @@ export default {
   },
   topUp: {
     title: '充值',
-    lead: '充多少就是多少，¥1 就是 ¥1。用多少扣多少。',
+    lead: '充多少就是多少，$1 就是 $1。用多少扣多少。',
     pay: '去充值', buyPlan: '查看包月套餐', redeem: '我有兑换码', orders: '查看充值记录',
     minTitle: '可以先少充一点', minAny: '金额自己定，先少充一点试试合不合用。',
     bonusTitle: '多充送 {pct}%', bonusText: '单笔充值满 {min}，额外赠送 {pct}%。',
@@ -182,7 +182,7 @@ export default {
       start: { name: '从什么时候', text: '客户归到你名下之后的消费。之前的不补。' },
       duration: { name: '持续多久', text: '只要客户还在用、你还是代理，就一直有。' }
     },
-    example: '举个例子：比例 5%，你介绍的客户这个月花了 ¥10,000 自己充值的钱，你这个月拿 ¥500。下个月他再花 ¥10,000，你再拿 ¥500。如果约定了“当月满 ¥5,000 之后按 8%”，那就是前 ¥5,000 按 5%，后 ¥5,000 按 8%，一共 ¥650。',
+    example: '举个例子：比例 5%，你介绍的客户这个月花了 $1,000 自己充值的钱，你这个月拿 $50。下个月他再花 $1,000，你再拿 $50。如果约定了“当月满 $500 之后按 8%”，那就是前 $500 按 5%，后 $500 按 8%，一共 $65。',
     join: {
       title: '客户怎么算到你名下',
       i1: '把你的邀请链接发给客户，他用这个链接注册，就自动在你名下。',
@@ -342,7 +342,7 @@ export default {
   },
   prices: {
     title: '价目表',
-    lead: '每个模型一个价，直接写人民币。单位是每百万 Token，用多少扣多少。',
+    lead: '每个模型一个价，直接写美元。单位是每百万 Token，用多少扣多少。',
     search: '搜索模型，例如 claude',
     model: '模型', input: '输入', output: '输出',
     loading: '正在读取价格…',
@@ -350,8 +350,8 @@ export default {
     noMatch: '没有找到这个模型，换个关键词试试。',
     from: ' 起', varies: '这是标准价。超长上下文、特定时段或更高推理强度的请求会按更高的档位计费，每一笔以账单为准。',
     line: '线路', cacheRead: '缓存读取', multiplier: '折扣',
-    official: '官方价：输入 ${input}、输出 ${output}（每百万 Token）。划掉的人民币价按 1 美元 ≈ {rate} 元折算，仅供对比。',
-    appPrice: '用 app ¥{price}',
+    official: '官方价：输入 ${input}、输出 ${output}（每百万 Token），仅供对比。',
+    appPrice: '用 app ${price}',
     appHeadline: 'app 价',
     appOnly: '仅 app',
     appNote: '“用 app”的价格：通过 YesChoy 接入时按这个价扣费；把密钥复制到别的工具里用，按普通价。',

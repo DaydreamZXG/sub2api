@@ -181,8 +181,8 @@
 import { computed, nextTick, onBeforeUnmount, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import PricingRow from './PricingRow.vue'
-import { resolveIntervalPrices, yuanText } from '@/utils/pricing'
-import { unitsPerYuan } from '@/composables/ycMoneyState'
+import { resolveIntervalPrices, usdText } from '@/utils/pricing'
+import { unitsPerDollar } from '@/composables/ycMoneyState'
 import {
   BILLING_MODE_TOKEN,
   BILLING_MODE_PER_REQUEST,
@@ -264,20 +264,20 @@ function formatRange(min: number, max: number | null): string {
 
 function formatInterval(iv: UserPricingInterval, pricing: UserSupportedModelPricing): string {
   if (pricing.billing_mode === BILLING_MODE_VIDEO) {
-    return `${yuan(iv.per_request_price, 1)} ${t(prefixKey('unitPerSecond'))}`
+    return `${dollars(iv.per_request_price, 1)} ${t(prefixKey('unitPerSecond'))}`
   }
   if (pricing.billing_mode === BILLING_MODE_PER_REQUEST || pricing.billing_mode === BILLING_MODE_IMAGE) {
-    return yuan(iv.per_request_price, 1)
+    return dollars(iv.per_request_price, 1)
   }
   const resolved = resolveIntervalPrices(iv, pricing)
-  const input = yuan(resolved.input_price, perMillionScale)
-  const output = yuan(resolved.output_price, perMillionScale)
+  const input = dollars(resolved.input_price, perMillionScale)
+  const output = dollars(resolved.output_price, perMillionScale)
   return `${input} / ${output}`
 }
 
 /** A price in balance units, restated in yuan. */
-function yuan(value: number | null, scale: number): string {
-  return value == null ? '-' : yuanText((value * scale) / unitsPerYuan.value)
+function dollars(value: number | null, scale: number): string {
+  return value == null ? '-' : usdText((value * scale) / unitsPerDollar.value)
 }
 
 // ── Popover positioning ─────────────────────────────────────────────

@@ -29,45 +29,33 @@ const (
 	desktopMaxPageSize   = 100
 	desktopKeyNameMaxLen = 100
 	perMillionTokens     = 1_000_000
-	// Used to restate official USD prices in yuan when neither the site nor the market rate is known.
-	defaultCNYPerUSD = 7.2
 )
 
-// desktopMoney converts stored amounts into what the user sees.
+// desktopMoney converts stored amounts into what the user sees. The site bills in US dollars.
 type desktopMoney struct {
-	Currency     string
-	UnitsPerYuan float64
-	CNYPerUSD    float64
+	Currency       string
+	UnitsPerDollar float64
 }
 
 func newDesktopMoney(settings *service.PublicSettings) desktopMoney {
-	if settings == nil || !settings.PaymentEnabled || settings.BalanceRechargeMultiplier <= 0 {
-		return desktopMoney{Currency: "USD"}
+	m := desktopMoney{Currency: "USD", UnitsPerDollar: 1}
+	if settings != nil && settings.PaymentEnabled && settings.BalanceRechargeMultiplier > 0 {
+		m.UnitsPerDollar = settings.BalanceRechargeMultiplier
 	}
-	rate := settings.SubscriptionUSDToCNYRate
-	if rate <= 0 {
-		rate = settings.ReferenceUSDToCNYRate
-	}
-	if rate <= 0 {
-		rate = defaultCNYPerUSD
-	}
-	return desktopMoney{Currency: "CNY", UnitsPerYuan: settings.BalanceRechargeMultiplier, CNYPerUSD: rate}
+	return m
 }
 
 // charged converts an amount held in balance units.
 func (m desktopMoney) charged(units float64) float64 {
-	if m.Currency != "CNY" {
+	if m.UnitsPerDollar <= 0 {
 		return roundMoney(units)
 	}
-	return roundMoney(units / m.UnitsPerYuan)
+	return roundMoney(units / m.UnitsPerDollar)
 }
 
-// official converts an upstream list price in USD.
+// official passes an upstream list price in USD through.
 func (m desktopMoney) official(usd float64) float64 {
-	if m.Currency != "CNY" {
-		return roundMoney(usd)
-	}
-	return roundMoney(usd * m.CNYPerUSD)
+	return roundMoney(usd)
 }
 
 func roundMoney(v float64) float64 {
@@ -256,12 +244,7 @@ func desktopPerMillion(perToken *float64, convert func(float64) float64, rate fl
 	return &v
 }
 
-// desktopOfficial prefers the vendor's own yuan price on yuan sites over converting its USD price.
-func desktopOfficial(usd, cny *float64, money desktopMoney) *float64 {
-	if money.Currency == "CNY" && cny != nil {
-		v := roundMoney(*cny * perMillionTokens)
-		return &v
-	}
+func desktopOfficial(usd *float64, money desktopMoney) *float64 {
 	return desktopPerMillion(usd, money.official, 1)
 }
 
@@ -320,9 +303,9 @@ func toDesktopPlan(g *service.PlazaGroup, rate float64, money desktopMoney) desk
 		}
 		if o := m.OfficialPricing; o != nil {
 			model.Official = &desktopPrice{
-				Input:      desktopOfficial(o.InputPrice, o.CNYInputPrice, money),
-				Output:     desktopOfficial(o.OutputPrice, o.CNYOutputPrice, money),
-				CacheRead:  desktopOfficial(o.CacheReadPrice, o.CNYCacheReadPrice, money),
+				Input:      desktopOfficial(o.InputPrice, money),
+				Output:     desktopOfficial(o.OutputPrice, money),
+				CacheRead:  desktopOfficial(o.CacheReadPrice, money),
 				CacheWrite: desktopPerMillion(o.CacheWritePrice, money.official, 1),
 			}
 		}

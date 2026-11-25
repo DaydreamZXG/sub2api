@@ -78,7 +78,7 @@
               <p class="yc-vs-lab">{{ t('yc.pain.after') }}</p>
               <p v-if="p.id === 'price' && top" class="yc-vs-price">
                 <span>{{ top.name }}</span>
-                <b class="yc-num">¥{{ price(top.input) }}</b>
+                <b class="yc-num">${{ price(top.input) }}</b>
                 <small>{{ t('yc.price.perMillionIn') }}</small>
               </p>
               <ul>
@@ -110,7 +110,7 @@
         <div :key="top.name" class="yc-price-top" :class="{ 'is-quick': picked }" aria-live="polite">
           <p class="yc-price-name">{{ top.name }}</p>
           <p v-if="top.officialInput && top.share" class="yc-price-was"><span>{{ t('yc.price.official') }} {{ officialMoney(top) }}</span></p>
-          <p class="yc-price-now yc-num"><span class="yc-mark">¥{{ price(top.input) }}</span></p>
+          <p class="yc-price-now yc-num"><span class="yc-mark">${{ price(top.input) }}</span></p>
           <p class="yc-price-unit">
             {{ t('yc.price.perMillionIn') }}
             <span v-if="top.share" class="yc-chip">{{ off(top.share) }}</span>
@@ -131,11 +131,11 @@
           >
             <span class="yc-price-row-name">{{ m.name }}</span>
             <s v-if="m.officialInput && m.share">{{ officialMoney(m) }}</s><s v-else></s>
-            <b class="yc-num">¥{{ price(m.input) }}</b>
+            <b class="yc-num">${{ price(m.input) }}</b>
             <span v-if="m.share" class="yc-chip">{{ off(m.share) }}</span><span v-else></span>
           </button>
         </div>
-        <p class="yc-price-note">{{ t('yc.price.note', { rate: cnyPerUsd.toFixed(2) }) }}</p>
+        <p class="yc-price-note">{{ t('yc.price.note') }}</p>
         <router-link v-if="showModelPlaza" to="/model-plaza" class="yc-price-all">{{ t('yc.price.all') }} →</router-link>
       </section>
 
@@ -171,7 +171,6 @@
 </template>
 
 <script setup lang="ts">
-import { officialInUsd } from '@/composables/ycMoneyState'
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useIntervalFn, useTransition, useWindowScroll } from '@vueuse/core'
 import { useI18n } from 'vue-i18n'
@@ -193,10 +192,10 @@ import preview from '@/assets/yecai/yeschoy-console-preview.webp'
 import previewDark from '@/assets/yecai/yeschoy-console-preview-dark.webp'
 import '@/styles/yecai.css'
 
-const { t, locale } = useI18n()
+const { t } = useI18n()
 const authStore = useAuthStore()
 const appStore = useAppStore()
-const { prices, load: loadPrices, cnyPerUsd } = useYcPrices()
+const { prices, load: loadPrices } = useYcPrices()
 
 const settings = computed(() => appStore.cachedPublicSettings)
 // Operators who set custom home content or the compact home keep the upstream page.
@@ -295,10 +294,8 @@ function price(value: number): string {
   if (value >= 100) return value.toFixed(0)
   return value >= 10 ? value.toFixed(1) : value.toFixed(2)
 }
-/** Official prices are kept in yuan for the discount; non-Chinese pages show them in dollars. */
-function officialMoney(p: { officialInput: number | null; officialInputUsd?: number | null }): string {
-  if (officialInUsd(locale?.value)) return `$${price(p.officialInputUsd ?? (p.officialInput ?? 0) / cnyPerUsd.value)}`
-  return `¥${price(p.officialInput ?? 0)}`
+function officialMoney(p: { officialInput: number | null }): string {
+  return `$${price(p.officialInput ?? 0)}`
 }
 function off(share: number): string {
   return t('yc.price.off', { zhe: (share * 10).toFixed(1), pct: Math.round((1 - share) * 100) })

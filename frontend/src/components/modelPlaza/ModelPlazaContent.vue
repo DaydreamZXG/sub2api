@@ -2,7 +2,7 @@
   <div class="pz">
     <header>
       <h1 class="yc-page-h1">{{ t('yc.prices.title') }}</h1>
-      <p class="yc-page-lead">{{ t('modelPlaza.lead', { rate: cnyPerUsd.toFixed(2) }) }}</p>
+      <p class="yc-page-lead">{{ t('modelPlaza.lead') }}</p>
     </header>
 
     <!-- Price notes written by the admin (Markdown). -->
@@ -103,8 +103,8 @@ import ModelIcon from '@/components/common/ModelIcon.vue'
 import PlazaGroupSection from './PlazaGroupSection.vue'
 import type { ModelPlazaGroup, ModelPlazaResponse, PlazaModel, PlazaOfficialPricing } from '@/api/modelPlaza'
 import { useAuthStore } from '@/stores/auth'
-import { cnyPerUsd, officialInUsd, unitsPerYuan } from '@/composables/ycMoneyState'
-import { officialUsdPerToken, officialYuanPerToken, usdText, yuanText, type OfficialField } from '@/utils/pricing'
+import { unitsPerDollar } from '@/composables/ycMoneyState'
+import { officialUsdPerToken, usdText, type OfficialField } from '@/utils/pricing'
 import { priceChangeLabel } from '@/utils/ycPriceWords'
 import { familiesOf, modelFamily } from '@/utils/modelFamily'
 import { BILLING_MODE_TOKEN } from '@/utils/billingMode'
@@ -115,7 +115,7 @@ const props = defineProps<{
   error?: boolean
 }>()
 
-const { t, locale } = useI18n()
+const { t } = useI18n()
 const authStore = useAuthStore()
 const isAuthenticated = computed(() => authStore.isAuthenticated)
 
@@ -135,7 +135,7 @@ const descriptionHtml = computed(() => {
 interface PlazaEntry {
   group: ModelPlazaGroup
   model: PlazaModel
-  /** ¥ per million input tokens on this line, null when it is not billed per token. */
+  /** $ per million input tokens on this line, null when it is not billed per token. */
   input: number | null
 }
 
@@ -150,7 +150,7 @@ interface PlazaModelRow {
   output: number | null
   cacheRead: number | null
   official: PlazaOfficialPricing | null
-  /** Official prices in yuan per million tokens, the basis of the discount. */
+  /** Official prices in $ per million tokens, the basis of the discount. */
   officialInput: number | null
   officialOutput: number | null
   /** Headline input price as a share of the official one, null without an official price. */
@@ -164,11 +164,11 @@ function rateOf(g: ModelPlazaGroup): number {
 }
 
 function paid(value: number | null | undefined, g: ModelPlazaGroup): number | null {
-  return value == null ? null : (value * rateOf(g) * PER_MILLION) / unitsPerYuan.value
+  return value == null ? null : (value * rateOf(g) * PER_MILLION) / unitsPerDollar.value
 }
 
 function listed(o: PlazaOfficialPricing | null, field: OfficialField): number | null {
-  const v = officialYuanPerToken(o, field, cnyPerUsd.value)
+  const v = officialUsdPerToken(o, field)
   return v == null ? null : v * PER_MILLION
 }
 
@@ -250,14 +250,12 @@ const shown = computed(() => {
 })
 
 function money(value: number | null): string {
-  return value == null ? '-' : yuanText(value)
+  return value == null ? '-' : usdText(value)
 }
 
-/** Chinese pages show official prices in yuan, other languages in dollars. */
 function officialText(o: PlazaOfficialPricing | null, field: OfficialField): string {
-  const v = officialInUsd(locale?.value) ? officialUsdPerToken(o, field, cnyPerUsd.value) : officialYuanPerToken(o, field, cnyPerUsd.value)
-  if (v == null) return '-'
-  return officialInUsd(locale?.value) ? usdText(v * PER_MILLION) : yuanText(v * PER_MILLION)
+  const v = officialUsdPerToken(o, field)
+  return v == null ? '-' : usdText(v * PER_MILLION)
 }
 </script>
 

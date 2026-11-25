@@ -437,15 +437,15 @@ function presetRange(name: Preset): { from: string; to: string } {
   return { from: day(new Date(now.getFullYear(), now.getMonth(), now.getDate() - days)), to: day(now) }
 }
 
-/** Yuan with two decimals; the minus sign goes before the currency sign. */
+/** Dollars with two decimals; the minus sign goes before the currency sign. */
 function money(amount: number): string {
   const abs = Math.abs(amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-  return `${amount < -0.005 ? '-' : ''}¥${abs}`
+  return `${amount < -0.005 ? '-' : ''}$${abs}`
 }
 
-// Money that came in keeps the currency it was paid in; only yuan gets the page's own sign.
+// Money that came in keeps the currency it was paid in; only dollars get the page's own sign.
 function cashMoney(amount: number, currency: string): string {
-  if (currency === 'CNY') return money(amount)
+  if (currency === 'USD') return money(amount)
   try {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency, currencyDisplay: 'code' })
       .format(amount)

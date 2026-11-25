@@ -91,7 +91,7 @@
             <b>{{ i + 1 }}</b>
             <span class="yc-nb-name">{{ row.name }}</span>
             <span v-if="row.me" class="yc-badge yc-badge-lime">{{ t('yc.garden.ranks.me') }}</span>
-            <em class="yc-num">{{ board.key === 'thieves' ? yuan(row.amount) : t('yc.garden.ranks.caught', { count: row.count }) }}</em>
+            <em class="yc-num">{{ board.key === 'thieves' ? dollars(row.amount) : t('yc.garden.ranks.caught', { count: row.count }) }}</em>
           </li>
         </ol>
       </div>
@@ -101,7 +101,7 @@
   <section v-if="inviteLink" class="yc-surface yc-invite">
     <div>
       <h2>{{ t('yc.garden.invite.title') }}</h2>
-      <p>{{ t('yc.garden.invite.lead', { amount: yuan(garden.invite_crop_amount) }) }}</p>
+      <p>{{ t('yc.garden.invite.lead', { amount: dollars(garden.invite_crop_amount) }) }}</p>
       <code>{{ inviteLink }}</code>
     </div>
     <button type="button" class="yc-btn yc-btn-lime yc-btn-sm" @click="copyToClipboard(inviteLink, t('yc.garden.invite.copied'))">
@@ -130,7 +130,7 @@ const props = defineProps<{ garden: MyGarden; now: number }>()
 const emit = defineEmits<{ changed: [] }>()
 
 const { t, te, locale } = useI18n()
-const { yuan } = useYcMoney()
+const { dollars } = useYcMoney()
 const appStore = useAppStore()
 
 const neighbours = ref<GardenNeighbour[] | null>(null)
@@ -193,7 +193,7 @@ function stateOf(crop: GardenNeighbourCrop): string {
 
 function feedText(item: GardenFeedItem): string {
   const side = item.mine ? 'mine' : 'theirs'
-  return t(`yc.garden.feed.${side}.${item.kind}`, { name: item.name, amount: yuan(item.amount) })
+  return t(`yc.garden.feed.${side}.${item.kind}`, { name: item.name, amount: dollars(item.amount) })
 }
 
 function when(value: string): string {
@@ -272,7 +272,7 @@ const steal = (crop: GardenNeighbourCrop) => act(crop.id, async () => {
   const result = await stealCrop(crop.id)
   play(crop.id, result.caught ? 'caught' : 'steal')
   if (result.caught) appStore.showError(t('yc.garden.stealCaught'))
-  else appStore.showSuccess(t('yc.garden.stealDone', { amount: yuan(result.amount) }))
+  else appStore.showSuccess(t('yc.garden.stealDone', { amount: dollars(result.amount) }))
 })
 
 onMounted(async () => {

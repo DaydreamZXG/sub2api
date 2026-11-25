@@ -7,8 +7,8 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { unitsPerYuan } from '@/composables/ycMoneyState'
-import { yuanText } from '@/utils/pricing'
+import { unitsPerDollar } from '@/composables/ycMoneyState'
+import { usdText } from '@/utils/pricing'
 
 const props = withDefaults(
   defineProps<{
@@ -23,6 +23,6 @@ const props = withDefaults(
 const display = computed(() =>
   props.value == null
     ? '-'
-    : `${yuanText((props.value * props.scale) / unitsPerYuan.value)} ${props.unit}`
+    : `${usdText((props.value * props.scale) / unitsPerDollar.value)} ${props.unit}`
 )
 </script>

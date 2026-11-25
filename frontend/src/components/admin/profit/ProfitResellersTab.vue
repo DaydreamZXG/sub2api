@@ -89,10 +89,10 @@
                 <p class="font-medium text-gray-900 dark:text-white">{{ reseller.email || `#${reseller.user_id}` }}</p>
                 <p class="text-xs text-gray-400 dark:text-dark-500">{{ t('admin.profit.resellers.since', { date: formatDateOnly(reseller.since) }) }}</p>
               </td>
-              <td class="py-2.5 text-right tabular-nums text-gray-900 dark:text-white">{{ yuan(reseller.balance) }}</td>
+              <td class="py-2.5 text-right tabular-nums text-gray-900 dark:text-white">{{ dollars(reseller.balance) }}</td>
               <td class="py-2.5 text-right tabular-nums text-gray-600 dark:text-dark-300">{{ reseller.keys }}</td>
-              <td class="py-2.5 text-right tabular-nums text-gray-600 dark:text-dark-300">{{ yuan(reseller.client_used) }}</td>
-              <td class="py-2.5 text-right tabular-nums text-gray-900 dark:text-white">{{ yuan(reseller.cost) }}</td>
+              <td class="py-2.5 text-right tabular-nums text-gray-600 dark:text-dark-300">{{ dollars(reseller.client_used) }}</td>
+              <td class="py-2.5 text-right tabular-nums text-gray-900 dark:text-white">{{ dollars(reseller.cost) }}</td>
               <td class="py-2.5 text-right">
                 <button type="button" class="text-xs text-red-600 dark:text-red-400" data-test="resellers-remove" @click="remove(reseller)">
                   {{ t('admin.profit.resellers.remove') }}
@@ -121,7 +121,7 @@ import { formatDateOnly } from '@/utils/format'
 
 const { t } = useI18n()
 const appStore = useAppStore()
-const { yuan } = useYcMoney()
+const { dollars } = useYcMoney()
 
 const loading = ref(false)
 const saving = ref(false)

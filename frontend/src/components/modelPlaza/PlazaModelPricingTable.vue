@@ -10,7 +10,7 @@
           </th>
           <th colspan="3" class="pzt-th-group pzt-ref">
             {{ t('modelPlaza.table.officialPrice') }}
-            <span class="pzt-unit">{{ t(inUsd ? 'modelPlaza.table.unitPerMillionUsd' : 'modelPlaza.table.unitPerMillion') }}</span>
+            <span class="pzt-unit">{{ t('modelPlaza.table.unitPerMillion') }}</span>
           </th>
           <th rowspan="2" class="pzt-th-off">{{ t('modelPlaza.table.rate') }}</th>
         </tr>
@@ -234,10 +234,10 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Icon from '@/components/icons/Icon.vue'
 import { useClipboard } from '@/composables/useClipboard'
-import { resolveIntervalPrices, officialUsdPerToken, officialYuanPerToken, usdText, yuanText, type OfficialField } from '@/utils/pricing'
+import { resolveIntervalPrices, officialUsdPerToken, usdText, type OfficialField } from '@/utils/pricing'
 import { platformLabel } from '@/utils/platformColors'
 import { priceChangeLabel } from '@/utils/ycPriceWords'
-import { cnyPerUsd, officialInUsd, unitsPerYuan } from '@/composables/ycMoneyState'
+import { unitsPerDollar } from '@/composables/ycMoneyState'
 import {
   BILLING_MODE_TOKEN,
   BILLING_MODE_IMAGE,
@@ -281,8 +281,7 @@ const props = defineProps<{
   peakRateMultiplier?: number | null
 }>()
 
-const { t, locale } = useI18n()
-const inUsd = computed(() => officialInUsd(locale?.value))
+const { t } = useI18n()
 const { copyToClipboard } = useClipboard()
 
 const PER_MILLION = 1_000_000
@@ -350,7 +349,7 @@ function periodRate(period: PlazaTimePricingPeriod): number {
 function paidPerMillion(value: number | null | undefined, period: PlazaTimePricingPeriod | null = null): string {
   if (value == null) return '-'
   const rate = period ? periodRate(period) : effectiveRate.value
-  return yuanText((value * rate * PER_MILLION) / unitsPerYuan.value)
+  return usdText((value * rate * PER_MILLION) / unitsPerDollar.value)
 }
 
 /** 图片和视频分别使用对应的独立倍率开关。 */
@@ -372,21 +371,19 @@ function requestRate(m: PlazaModel): number {
 /** 非 token 单价乘该行生效倍率，不换算为每百万 token。 */
 function paidRequestPrice(m: PlazaModel, value: number | null | undefined): string {
   if (value == null) return '-'
-  return yuanText((value * requestRate(m)) / unitsPerYuan.value)
+  return usdText((value * requestRate(m)) / unitsPerDollar.value)
 }
 
 /** 官方参考价不乘倍率。 */
 function official(value: number | null | undefined): string {
   if (value == null) return '-'
-  return inUsd.value ? usdText(value * PER_MILLION) : yuanText(value * PER_MILLION * cnyPerUsd.value)
+  return usdText(value * PER_MILLION)
 }
 
-/** A flat official price, using the vendor's yuan price on Chinese pages when the admin entered one. */
+/** A flat official price. */
 function officialOf(m: PlazaModel, field: OfficialField): string {
-  const o = m.official_pricing
-  const v = inUsd.value ? officialUsdPerToken(o, field, cnyPerUsd.value) : officialYuanPerToken(o, field, cnyPerUsd.value)
-  if (v == null) return '-'
-  return inUsd.value ? usdText(v * PER_MILLION) : yuanText(v * PER_MILLION)
+  const v = officialUsdPerToken(m.official_pricing, field)
+  return v == null ? '-' : usdText(v * PER_MILLION)
 }
 
 /** A multiplier in words; the standard price has its own label. */
@@ -400,9 +397,9 @@ function rateLabel(rate: number): string {
  */
 function shareLabel(m: PlazaModel): string {
   const paid = m.pricing?.input_price
-  const listed = officialYuanPerToken(m.official_pricing, 'input_price', cnyPerUsd.value)
+  const listed = officialUsdPerToken(m.official_pricing, 'input_price')
   if (billingMode(m) !== BILLING_MODE_TOKEN || paid == null || !listed) return rateLabel(rowRate(m))
-  const share = (paid * effectiveRate.value) / unitsPerYuan.value / listed
+  const share = (paid * effectiveRate.value) / unitsPerDollar.value / listed
   return rateLabel(Math.round(share * 1000) / 1000)
 }
 
@@ -429,7 +426,7 @@ function hasCachePricing(m: PlazaModel): boolean {
 }
 
 function hasOfficialCache(o: NonNullable<PlazaModel['official_pricing']>): boolean {
-  return o.cache_write_price != null || o.cache_read_price != null || o.cny_cache_read_price != null || o.cache_write_1h_price != null || o.cache_write_12h_price != null
+  return o.cache_write_price != null || o.cache_read_price != null || o.cache_write_1h_price != null || o.cache_write_12h_price != null
 }
 
 /** 分时倍率时段(后端只给出倍率 ≠ 1 的时段,已升序)。 */
@@ -472,16 +469,12 @@ function tokenIntervals(m: PlazaModel): UserPricingInterval[] {
 }
 
 /** 官方阶梯(后端按目录规则合成,不受分组开关影响)。 */
-/** Catalog context tiers; on yuan pages an entered official input/output price replaces them with the flat price it states. */
 function officialIntervals(m: PlazaModel): UserPricingInterval[] {
-  const o = m.official_pricing
-  if (!inUsd.value && (o?.cny_input_price != null || o?.cny_output_price != null)) return []
-  return sortByContext(o?.intervals ?? [])
+  return sortByContext(m.official_pricing?.intervals ?? [])
 }
 
-/** Tiers for the cache column; on yuan pages an entered official cache-read price shows flat instead. */
 function officialCacheTiers(m: PlazaModel): UserPricingInterval[] {
-  return !inUsd.value && m.official_pricing?.cny_cache_read_price != null ? [] : officialIntervals(m)
+  return officialIntervals(m)
 }
 
 /** 任一档带缓存价才按档渲染缓存列;否则沿用平价的写入/读取两行。 */

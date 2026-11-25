@@ -431,7 +431,7 @@ export default {
         tiers: {
           title: 'Tiers (optional)',
           hint: "Once the users' spending that counts reaches an amount in a calendar month, what comes after earns a higher share. Nothing credited before is recalculated, and every month starts from the bottom.",
-          from: 'From ¥',
+          from: 'From $',
           then: 'in the month, then',
           add: 'Add a tier',
           invalid: 'Each tier needs a higher amount and a higher share than the one before, at most 100',
