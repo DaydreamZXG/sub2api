@@ -58,7 +58,9 @@ const priceFields = ['usd_input', 'usd_output', 'usd_cache_read'] as const
 type PriceField = (typeof priceFields)[number]
 const fieldLabels = ['admin.channels.officialBook.input', 'admin.channels.officialBook.output', 'admin.channels.officialBook.cacheRead']
 
-type Row = { key: number; models: string } & Record<PriceField, number | string | null>
+// Yuan prices are no longer edited here but are kept, since saving replaces the whole book.
+const keptFields = ['cny_input', 'cny_output', 'cny_cache_read'] as const
+type Row = { key: number; models: string } & Record<PriceField | (typeof keptFields)[number], number | string | null>
 
 const rows = ref<Row[]>([])
 const loading = ref(false)
@@ -68,7 +70,7 @@ const loadFailed = ref(false)
 let nextKey = 0
 
 function toRow(e: OfficialPriceEntry): Row {
-  return { key: nextKey++, models: e.models.join(', '), ...Object.fromEntries(priceFields.map((f) => [f, e[f]])) } as Row
+  return { key: nextKey++, models: e.models.join(', '), ...Object.fromEntries([...priceFields, ...keptFields].map((f) => [f, e[f] ?? null])) } as Row
 }
 
 function addRow() {
@@ -84,7 +86,7 @@ function price(v: number | string | null): number | null {
 
 function toEntry(r: Row): OfficialPriceEntry {
   const entry = { models: r.models.split(/[,，]/).map((m) => m.trim()).filter(Boolean) } as OfficialPriceEntry
-  for (const f of priceFields) entry[f] = price(r[f])
+  for (const f of [...priceFields, ...keptFields]) entry[f] = price(r[f])
   return entry
 }
 
