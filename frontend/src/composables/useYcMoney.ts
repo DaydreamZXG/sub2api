@@ -1,7 +1,7 @@
 import { watch } from 'vue'
 import { paymentAPI } from '@/api/payment'
 import { useAppStore, useAuthStore } from '@/stores'
-import { cnyPerUsd, unitsPerYuan } from './ycMoneyState'
+import { unitsPerDollar } from './ycMoneyState'
 
 let requested = false
 
@@ -9,22 +9,20 @@ export function useYcMoney() {
   const appStore = useAppStore()
   const authStore = useAuthStore()
 
-  // The public settings carry both rates, so visitors get the same yuan prices as signed-in users.
-  function applyPublicRates() {
+  function applyPublicRate() {
     const settings = appStore.cachedPublicSettings
-    if ((settings?.reference_usd_to_cny_rate ?? 0) > 0) cnyPerUsd.value = settings!.reference_usd_to_cny_rate!
     if (!settings?.payment_enabled) return
-    if ((settings.balance_recharge_multiplier ?? 0) > 0) unitsPerYuan.value = settings.balance_recharge_multiplier!
+    if ((settings.balance_recharge_multiplier ?? 0) > 0) unitsPerDollar.value = settings.balance_recharge_multiplier!
   }
 
   function loadRate() {
-    applyPublicRates()
+    applyPublicRate()
     if (requested || !authStore.isAuthenticated || !appStore.cachedPublicSettings?.payment_enabled) return
     requested = true
     paymentAPI
       .getCheckoutInfo()
       .then(({ data }) => {
-        if (data.balance_recharge_multiplier > 0) unitsPerYuan.value = data.balance_recharge_multiplier
+        if (data.balance_recharge_multiplier > 0) unitsPerDollar.value = data.balance_recharge_multiplier
       })
       .catch(() => {
         requested = false
@@ -36,23 +34,22 @@ export function useYcMoney() {
     () => [
       authStore.isAuthenticated,
       appStore.cachedPublicSettings?.payment_enabled,
-      appStore.cachedPublicSettings?.balance_recharge_multiplier,
-      appStore.cachedPublicSettings?.reference_usd_to_cny_rate
+      appStore.cachedPublicSettings?.balance_recharge_multiplier
     ],
     loadRate
   )
 
-  function toYuan(units: number | null | undefined): number {
-    return (units ?? 0) / unitsPerYuan.value
+  function toDollars(units: number | null | undefined): number {
+    return (units ?? 0) / unitsPerDollar.value
   }
-  function yuan(units: number | null | undefined, digits = 2): string {
-    return `¥${toYuan(units).toFixed(digits)}`
-  }
-
-  /** The other way round, for amounts an admin types in yuan. */
-  function toUnits(yuanAmount: number | null | undefined): number {
-    return (yuanAmount ?? 0) * unitsPerYuan.value
+  function dollars(units: number | null | undefined, digits = 2): string {
+    return `$${toDollars(units).toFixed(digits)}`
   }
 
-  return { toYuan, toUnits, yuan, cnyPerUsd }
+  /** The other way round, for amounts an admin types in dollars. */
+  function toUnits(amount: number | null | undefined): number {
+    return (amount ?? 0) * unitsPerDollar.value
+  }
+
+  return { toDollars, toUnits, dollars }
 }

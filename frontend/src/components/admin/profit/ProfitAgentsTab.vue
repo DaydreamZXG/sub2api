@@ -10,7 +10,7 @@
         <li v-for="item in pending" :key="item.id" class="flex flex-wrap items-center justify-between gap-3 py-3" data-test="agents-pending-row">
           <div class="min-w-0">
             <p class="font-medium text-gray-900 dark:text-white">
-              <span class="tabular-nums">{{ yuan(item.amount) }}</span>
+              <span class="tabular-nums">{{ dollars(item.amount) }}</span>
               <span class="ml-2 text-sm font-normal text-gray-500 dark:text-dark-400">{{ item.email }}</span>
             </p>
             <p class="mt-0.5 break-words text-sm text-gray-500 dark:text-dark-400">
@@ -61,12 +61,12 @@
               <td class="py-2.5 text-right tabular-nums text-gray-900 dark:text-white" data-test="agents-share-cell">
                 {{ agent.tiers?.length ? agent.current_percent : agent.share_percent }}%
                 <p v-if="agent.tiers?.length" class="text-xs font-normal text-gray-400 dark:text-dark-500">
-                  {{ t('admin.profit.agents.tiers.summary', { from: agent.share_percent, to: agent.tiers[agent.tiers.length - 1].percent, spent: yuan(agent.month_spent) }) }}
+                  {{ t('admin.profit.agents.tiers.summary', { from: agent.share_percent, to: agent.tiers[agent.tiers.length - 1].percent, spent: dollars(agent.month_spent) }) }}
                 </p>
               </td>
               <td class="py-2.5 text-right tabular-nums text-gray-600 dark:text-dark-300">{{ agent.invitees }}</td>
-              <td class="py-2.5 text-right tabular-nums text-gray-900 dark:text-white">{{ yuan(agent.shared) }}</td>
-              <td class="py-2.5 text-right tabular-nums text-gray-900 dark:text-white">{{ yuan(agent.available) }}</td>
+              <td class="py-2.5 text-right tabular-nums text-gray-900 dark:text-white">{{ dollars(agent.shared) }}</td>
+              <td class="py-2.5 text-right tabular-nums text-gray-900 dark:text-white">{{ dollars(agent.available) }}</td>
               <td class="whitespace-nowrap py-2.5 text-right">
                 <button type="button" class="mr-3 text-xs text-primary-600 dark:text-primary-400" data-test="agents-users" @click="usersOf = agent">
                   {{ t('admin.profit.agents.users.open') }}
@@ -89,7 +89,7 @@
       <ul class="mt-3 divide-y divide-gray-100 text-sm dark:divide-dark-700">
         <li v-for="item in handled" :key="item.id" class="flex flex-wrap items-center justify-between gap-2 py-2.5">
           <span class="min-w-0 text-gray-600 dark:text-dark-300">
-            <span class="tabular-nums text-gray-900 dark:text-white">{{ yuan(item.amount) }}</span>
+            <span class="tabular-nums text-gray-900 dark:text-white">{{ dollars(item.amount) }}</span>
             · {{ item.email }}<template v-if="item.admin_note"> · {{ item.admin_note }}</template>
           </span>
           <span class="text-xs" :class="item.status === 'paid' ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-400 dark:text-dark-500'">
@@ -166,8 +166,8 @@
         <p class="text-sm text-gray-600 dark:text-dark-300">
           {{
             decision.status === 'paid'
-              ? t('admin.profit.agents.paidConfirm', { amount: yuan(decision.payout.amount), email: decision.payout.email })
-              : t('admin.profit.agents.rejectConfirm', { amount: yuan(decision.payout.amount), email: decision.payout.email })
+              ? t('admin.profit.agents.paidConfirm', { amount: dollars(decision.payout.amount), email: decision.payout.email })
+              : t('admin.profit.agents.rejectConfirm', { amount: dollars(decision.payout.amount), email: decision.payout.email })
           }}
         </p>
         <label class="block text-sm font-medium text-gray-900 dark:text-white">
@@ -201,7 +201,7 @@ import AgentUsersDialog from './AgentUsersDialog.vue'
 const { t } = useI18n()
 const appStore = useAppStore()
 // Shares are kept in balance units; what has to be paid is that in yuan.
-const { yuan, toYuan, toUnits } = useYcMoney()
+const { dollars, toDollars, toUnits } = useYcMoney()
 
 const loading = ref(false)
 const saving = ref(false)
@@ -248,7 +248,7 @@ function openForm(agent: AgentEntry | null) {
   tiers.value = (agent?.tiers ?? []).map((tier) => {
     // To the cent, unless that would show a small stored threshold as 0. The field itself takes any
     // amount: a stored one need not be a whole number of cents, and saveAgent checks the order.
-    const amount = toYuan(tier.from)
+    const amount = toDollars(tier.from)
     const shown = Number(amount.toFixed(2)) || Number(amount.toPrecision(2))
     return { from: shown, percent: tier.percent, kept: { shown, units: tier.from } }
   })

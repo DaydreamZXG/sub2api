@@ -51,7 +51,7 @@ export default {
       officialBook: {
         button: 'Official prices',
         title: 'Official prices',
-        hint: "Each vendor's list price per million tokens. The price list compares every line serving a model against it and works out the discount; an official yuan price entered on a line wins. Display only, billing ignores it.",
+        hint: "Each vendor's list price per million tokens. The price list compares every line serving a model against it and works out the discount. Display only, billing ignores it.",
         models: 'Model names',
         modelsHint: 'Separate names with commas; case and punctuation are ignored',
         cny: 'Yuan (¥)',

@@ -39,7 +39,7 @@
             <div class="truncate text-sm text-gray-900 dark:text-white">{{ user.email || `#${user.user_id}` }}</div>
             <div class="text-xs text-gray-500 dark:text-dark-400">
               {{ t(user.attached ? 'admin.profit.agents.users.attachedAt' : 'admin.profit.agents.users.joinedAt', { date: formatDateOnly(user.joined_at) }) }}
-              · {{ t('admin.profit.agents.users.figures', { spent: yuan(user.spent), share: yuan(user.share) }) }}
+              · {{ t('admin.profit.agents.users.figures', { spent: dollars(user.spent), share: dollars(user.share) }) }}
             </div>
           </div>
           <button type="button" class="shrink-0 text-xs text-red-600 dark:text-red-400" :disabled="saving" data-test="agent-users-remove" @click="detach(user)">
@@ -69,7 +69,7 @@ const emit = defineEmits<{ (event: 'close'): void; (event: 'changed'): void }>()
 
 const { t } = useI18n()
 const appStore = useAppStore()
-const { yuan } = useYcMoney()
+const { dollars } = useYcMoney()
 
 const users = ref<AgentUser[]>([])
 const loading = ref(false)

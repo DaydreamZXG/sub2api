@@ -1,5 +1,4 @@
-import { officialInUsd } from '@/composables/ycMoneyState'
-import { officialUsdPerToken, officialYuanPerToken, usdText, yuanText } from '@/utils/pricing'
+import { officialUsdPerToken, usdText } from '@/utils/pricing'
 import { describe, expect, it } from 'vitest'
 import { formatScaled } from '../pricing'
 
@@ -26,32 +25,21 @@ describe('formatScaled', () => {
   })
 })
 
-describe('official price currency', () => {
-  it('keeps dollars for non-Chinese pages and yuan for Chinese ones', () => {
-    expect(officialInUsd('en')).toBe(true)
-    expect(officialInUsd('zh-CN')).toBe(false)
-    expect(officialInUsd(undefined)).toBe(false)
-  })
-
-  it('formats dollars like yuan', () => {
+describe('usdText', () => {
+  it('formats dollars with two decimals and drops conversion noise', () => {
     expect(usdText(0.15)).toBe('$0.15')
     expect(usdText(0.0015)).toBe('$0.0015')
-    expect(yuanText(0.15 * 6.6647)).toBe('¥0.9997')
+    expect(usdText(0.15 * 6.6647)).toBe('$0.9997')
   })
 })
 
 describe('official prices', () => {
   const base = { input_price: 1.5e-7, output_price: 6e-7, cache_write_price: null, cache_read_price: null }
 
-  it('uses the entered yuan price and falls back to the daily rate', () => {
-    expect(officialYuanPerToken({ ...base, cny_input_price: 1e-6 }, 'input_price', 7)).toBe(1e-6)
-    expect(officialYuanPerToken(base, 'output_price', 7)).toBeCloseTo(4.2e-6)
-    expect(officialYuanPerToken(base, 'cache_read_price', 7)).toBeNull()
-    expect(officialYuanPerToken(null, 'input_price', 7)).toBeNull()
-  })
-
-  it('keeps the catalog dollars and converts a yuan-only price', () => {
-    expect(officialUsdPerToken({ ...base, cny_input_price: 1e-6 }, 'input_price', 7)).toBe(1.5e-7)
-    expect(officialUsdPerToken({ ...base, input_price: null, cny_input_price: 7e-6 }, 'input_price', 7)).toBeCloseTo(1e-6)
+  it('uses the catalog dollars and ignores a yuan price', () => {
+    expect(officialUsdPerToken({ ...base, cny_input_price: 1e-6 }, 'input_price')).toBe(1.5e-7)
+    expect(officialUsdPerToken({ ...base, input_price: null, cny_input_price: 7e-6 }, 'input_price')).toBeNull()
+    expect(officialUsdPerToken(base, 'cache_read_price')).toBeNull()
+    expect(officialUsdPerToken(null, 'input_price')).toBeNull()
   })
 })

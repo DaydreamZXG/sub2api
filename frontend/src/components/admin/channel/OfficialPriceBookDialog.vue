@@ -10,14 +10,11 @@
               {{ t('admin.channels.officialBook.models') }}
               <div class="font-normal text-gray-400">{{ t('admin.channels.officialBook.modelsHint') }}</div>
             </th>
-            <th class="pb-1 text-center" colspan="3">{{ t('admin.channels.officialBook.cny') }}</th>
             <th class="pb-1 text-center" colspan="3">{{ t('admin.channels.officialBook.usd') }}</th>
             <th rowspan="2"></th>
           </tr>
           <tr class="text-xs text-gray-400">
-            <template v-for="cur in 2" :key="cur">
-              <th v-for="f in fieldLabels" :key="f" class="px-1 pb-2 font-normal">{{ t(f) }}</th>
-            </template>
+            <th v-for="f in fieldLabels" :key="f" class="px-1 pb-2 font-normal">{{ t(f) }}</th>
           </tr>
         </thead>
         <tbody>
@@ -31,7 +28,7 @@
             </td>
           </tr>
           <tr v-if="rows.length === 0">
-            <td colspan="8" class="py-6 text-center text-gray-400">{{ t('admin.channels.officialBook.empty') }}</td>
+            <td colspan="5" class="py-6 text-center text-gray-400">{{ t('admin.channels.officialBook.empty') }}</td>
           </tr>
         </tbody>
       </table>
@@ -57,11 +54,13 @@ const emit = defineEmits<{ close: [] }>()
 const { t } = useI18n()
 const appStore = useAppStore()
 
-const priceFields = ['cny_input', 'cny_output', 'cny_cache_read', 'usd_input', 'usd_output', 'usd_cache_read'] as const
+const priceFields = ['usd_input', 'usd_output', 'usd_cache_read'] as const
 type PriceField = (typeof priceFields)[number]
 const fieldLabels = ['admin.channels.officialBook.input', 'admin.channels.officialBook.output', 'admin.channels.officialBook.cacheRead']
 
-type Row = { key: number; models: string } & Record<PriceField, number | string | null>
+// Yuan prices are no longer edited here but are kept, since saving replaces the whole book.
+const keptFields = ['cny_input', 'cny_output', 'cny_cache_read'] as const
+type Row = { key: number; models: string } & Record<PriceField | (typeof keptFields)[number], number | string | null>
 
 const rows = ref<Row[]>([])
 const loading = ref(false)
@@ -71,7 +70,7 @@ const loadFailed = ref(false)
 let nextKey = 0
 
 function toRow(e: OfficialPriceEntry): Row {
-  return { key: nextKey++, models: e.models.join(', '), ...Object.fromEntries(priceFields.map((f) => [f, e[f]])) } as Row
+  return { key: nextKey++, models: e.models.join(', '), ...Object.fromEntries([...priceFields, ...keptFields].map((f) => [f, e[f] ?? null])) } as Row
 }
 
 function addRow() {
@@ -87,7 +86,7 @@ function price(v: number | string | null): number | null {
 
 function toEntry(r: Row): OfficialPriceEntry {
   const entry = { models: r.models.split(/[,，]/).map((m) => m.trim()).filter(Boolean) } as OfficialPriceEntry
-  for (const f of priceFields) entry[f] = price(r[f])
+  for (const f of [...priceFields, ...keptFields]) entry[f] = price(r[f])
   return entry
 }
 

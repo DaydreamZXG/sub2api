@@ -12,7 +12,7 @@
     <section class="yc-bills-tiles">
       <div class="yc-surface yc-bills-tile">
         <p>{{ t('yc.bills.spent') }}</p>
-        <b class="yc-num"><span class="yc-mark">{{ yuan(stats?.total_actual_cost) }}</span></b>
+        <b class="yc-num"><span class="yc-mark">{{ dollars(stats?.total_actual_cost) }}</span></b>
       </div>
       <div class="yc-surface yc-bills-tile">
         <p>{{ t('yc.bills.requests') }}</p>
@@ -30,7 +30,7 @@
         <button type="button" class="yc-bills-row" :aria-expanded="open === log.id" @click="open = open === log.id ? null : log.id">
           <span class="yc-bills-time">{{ formatDateTime(log.created_at) }}</span>
           <span class="yc-mono yc-bills-model">{{ log.model }}</span>
-          <b>{{ yuan(log.actual_cost, 4) }}</b>
+          <b>{{ dollars(log.actual_cost, 4) }}</b>
           <i aria-hidden="true">›</i>
         </button>
         <dl v-if="open === log.id" class="yc-bills-detail">
@@ -65,7 +65,7 @@ const RANGES = [
 const PAGE_SIZE = 20
 
 const { t } = useI18n()
-const { yuan } = useYcMoney()
+const { dollars } = useYcMoney()
 
 const days = ref(7)
 const stats = ref<UsageStatsResponse | null>(null)
@@ -121,7 +121,7 @@ function details(log: UsageLog) {
     { label: 'yc.dash.dCacheWrite', value: count(log.cache_creation_tokens) },
     { label: 'yc.dash.dCacheRead', value: count(log.cache_read_tokens) },
     { label: 'yc.dash.dTiming', value: `${seconds(log.first_token_ms)} / ${seconds(log.duration_ms)}` },
-    { label: 'yc.dash.dListCost', value: yuan(log.total_cost, 4) },
+    { label: 'yc.dash.dListCost', value: dollars(log.total_cost, 4) },
     { label: 'yc.dash.dMultiplier', value: `×${log.rate_multiplier}` }
   ]
 }

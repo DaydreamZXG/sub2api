@@ -690,13 +690,13 @@ export default {
   // Model Plaza (public group/model pricing showcase)
   modelPlaza: {
     title: '模型广场',
-    description: '每条线路有哪些模型、各是多少钱，都按人民币标好了。',
+    description: '每条线路有哪些模型、各是多少钱，都按美元标好了。',
     loading: '加载中...',
     empty: '暂时没有可以展示的线路',
     loadFailed: '加载模型广场失败',
     noSearchResult: '没有匹配的模型',
     anonymousHint: '登录后能看到你的专属线路和专属价格',
-    lead: '所有价格都是人民币，单位是每百万 Token。划线价是官方美元价按当天汇率 1 美元 ≈ {rate} 元折算，只用来对比。点开一个模型，能看到它在每条线路上的价格、缓存价和分时段价格。',
+    lead: '所有价格都是美元，单位是每百万 Token。划线价是官方价，只用来对比。点开一个模型，能看到它在每条线路上的价格、缓存价和分时段价格。',
     list: { lines: '{n} 条线路', from: '起', other: '其他', cacheRead: '缓存读取', vsOfficial: '比官方价' },
     filters: {
       platformLabel: '平台',
@@ -743,7 +743,7 @@ export default {
       paidPrice: '你付的价格',
       officialPrice: '官方价（仅供对比）',
       rate: '比官方价',
-      unitPerMillion: '¥ / 百万 Token',
+      unitPerMillion: '$ / 百万 Token',
       unitPerMillionUsd: '$ / 百万 Token',
       perUnitRequest: '/ 次',
       perUnitImage: '/ 张',

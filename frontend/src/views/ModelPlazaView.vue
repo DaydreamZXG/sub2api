@@ -26,7 +26,7 @@ import { useYcMoney } from '@/composables/useYcMoney'
 const appStore = useAppStore()
 const authStore = useAuthStore()
 
-// Loads what ¥1 buys, so the prices below are in yuan.
+// Loads what $1 buys, so the prices below are in dollars.
 useYcMoney()
 
 const data = ref<ModelPlazaResponse | null>(null)

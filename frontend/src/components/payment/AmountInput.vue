@@ -144,9 +144,7 @@ function secondLine(amt: number): string {
   if (props.bonusMode === 'discount') {
     return t('payment.rechargeBonus.payShort', { amount: formatPaymentAmount(quote.payBase, props.currency) })
   }
-  // The credited balance equals yuan only while ¥1 buys exactly one unit.
-  const sign = props.multiplier === 1 ? '¥' : '$'
-  return t('payment.rechargeBonus.creditedShort', { amount: sign + quote.credited.toFixed(2) })
+  return t('payment.rechargeBonus.creditedShort', { amount: '$' + quote.credited.toFixed(2) })
 }
 
 const placeholderText = computed(() => {

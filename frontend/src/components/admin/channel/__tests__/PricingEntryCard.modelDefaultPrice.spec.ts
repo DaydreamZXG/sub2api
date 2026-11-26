@@ -67,7 +67,7 @@ describe('PricingEntryCard default price auto-fill', () => {
     })
   })
 
-  it('prefills the yuan prices on a site that holds balances in yuan', async () => {
+  it('prefills the dollar prices even when the catalog also has yuan ones', async () => {
     getModelDefaultPricing.mockResolvedValue({
       found: true, input_price: 0.15e-6, output_price: 0.5e-6,
       yuan: { input_price: 0.8e-6, output_price: 2.8e-6 },
@@ -75,7 +75,7 @@ describe('PricingEntryCard default price auto-fill', () => {
     const wrapper = addModels(createEntry(), ['glm-5.3-flash'])
     await flushPromises()
 
-    expect(emittedEntries(wrapper).at(-1)).toMatchObject({ input_price: 0.8, output_price: 2.8 })
+    expect(emittedEntries(wrapper).at(-1)).toMatchObject({ input_price: 0.15, output_price: 0.5 })
   })
 
   it('does not overwrite prices when appending a model to an entry that already has one', async () => {

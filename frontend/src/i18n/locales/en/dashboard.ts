@@ -685,13 +685,13 @@ export default {
   // Model Plaza (public group/model pricing showcase)
   modelPlaza: {
     title: 'Model Plaza',
-    description: 'Which models each line offers and what they cost, in yuan.',
+    description: 'Which models each line offers and what they cost, in US dollars.',
     loading: 'Loading...',
     empty: 'No lines to show yet',
     loadFailed: 'Failed to load model plaza',
     noSearchResult: 'No matching models',
     anonymousHint: 'Sign in to see your own lines and prices',
-    lead: 'All prices are in yuan, per million tokens. Struck-out prices are the official ones in USD, for comparison only; discounts compare them at the daily rate of 1 USD ≈ {rate} CNY. Open a model to see its price on each line, with cache and time-of-day prices.',
+    lead: 'All prices are in US dollars, per million tokens. Struck-out prices are the official ones, for comparison only. Open a model to see its price on each line, with cache and time-of-day prices.',
     list: { lines: '{n} lines', from: '+', other: 'Other', cacheRead: 'Cache read', vsOfficial: 'vs official' },
     filters: {
       platformLabel: 'Platform',
@@ -739,7 +739,7 @@ export default {
       paidPrice: 'What you pay',
       officialPrice: 'Official price (for comparison)',
       rate: 'vs official',
-      unitPerMillion: '¥ / 1M tokens',
+      unitPerMillion: '$ / 1M tokens',
       unitPerMillionUsd: '$ / 1M tokens',
       perUnitRequest: '/ request',
       perUnitImage: '/ image',

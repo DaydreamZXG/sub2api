@@ -454,7 +454,6 @@
                   :entry="entry"
                   :platform="section.platform"
                   enable-time-pricing
-                  enable-official-cny
                   enable-tier-multipliers
                   @update="updatePricingEntry(sIdx, idx, $event)"
                   @remove="removePricingEntry(sIdx, idx)"

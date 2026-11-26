@@ -605,7 +605,7 @@ describe('user KeysView', () => {
       })
       await flushPromises()
       expect(wrapper.find('[data-test="usage-pending"]').exists()).toBe(false)
-      expect(wrapper.get('[data-test="usage"]').text()).toContain('¥12.2500')
+      expect(wrapper.get('[data-test="usage"]').text()).toContain('$12.2500')
     })
 
     it('stops showing usage placeholders when the usage request fails', async () => {
@@ -614,7 +614,7 @@ describe('user KeysView', () => {
       const wrapper = await mountView()
 
       expect(wrapper.find('[data-test="usage-pending"]').exists()).toBe(false)
-      expect(wrapper.get('[data-test="usage"]').text()).toContain('¥0.0000')
+      expect(wrapper.get('[data-test="usage"]').text()).toContain('$0.0000')
       consoleError.mockRestore()
     })
   })

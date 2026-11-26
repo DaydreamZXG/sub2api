@@ -11,18 +11,18 @@
     <section class="yc-tiles">
       <div class="yc-tile yc-wallet">
         <p class="yc-tile-lab">{{ t('yc.dash.balance') }}</p>
-        <p class="yc-tile-num yc-num">{{ yuan(shown.balance) }}</p>
+        <p class="yc-tile-num yc-num">{{ dollars(shown.balance) }}</p>
         <p class="yc-tile-sub">{{ t('yc.dash.balanceHint') }}</p>
         <router-link :to="topUpPath" class="yc-btn yc-btn-sm yc-wallet-btn">{{ t('yc.shell.topUp') }} →</router-link>
       </div>
       <div class="yc-surface yc-tile">
         <p class="yc-tile-lab">{{ t('yc.dash.today') }}</p>
-        <p class="yc-tile-num yc-num">{{ yuan(shown.today) }}</p>
+        <p class="yc-tile-num yc-num">{{ dollars(shown.today) }}</p>
         <p class="yc-tile-sub">{{ t('yc.dash.requests', { n: stats?.today_requests ?? 0 }) }}</p>
       </div>
       <div class="yc-surface yc-tile">
         <p class="yc-tile-lab">{{ t('yc.dash.total') }}</p>
-        <p class="yc-tile-num yc-num">{{ yuan(shown.total) }}</p>
+        <p class="yc-tile-num yc-num">{{ dollars(shown.total) }}</p>
         <p class="yc-tile-sub">{{ t('yc.dash.requests', { n: stats?.total_requests ?? 0 }) }}</p>
       </div>
     </section>
@@ -53,7 +53,7 @@
         <button type="button" class="yc-row" :aria-expanded="open === log.id" @click="open = open === log.id ? null : log.id">
           <span class="yc-row-time">{{ formatRelativeTime(log.created_at) }}</span>
           <span class="yc-row-model">{{ log.model }}</span>
-          <b>{{ yuan(log.actual_cost, 4) }}</b>
+          <b>{{ dollars(log.actual_cost, 4) }}</b>
           <i aria-hidden="true">›</i>
         </button>
         <dl v-if="open === log.id" class="yc-detail">
@@ -91,7 +91,7 @@ const MATES = [
 
 const { t } = useI18n()
 const authStore = useAuthStore()
-const { yuan } = useYcMoney()
+const { dollars } = useYcMoney()
 
 const stats = ref<UserDashboardStats | null>(null)
 const recent = ref<UsageLog[]>([])
@@ -144,7 +144,7 @@ function details(log: UsageLog) {
     { label: 'yc.dash.dCacheWrite', value: count(log.cache_creation_tokens) },
     { label: 'yc.dash.dCacheRead', value: count(log.cache_read_tokens) },
     { label: 'yc.dash.dTiming', value: `${seconds(log.first_token_ms)} / ${seconds(log.duration_ms)}` },
-    { label: 'yc.dash.dListCost', value: yuan(log.total_cost, 4) },
+    { label: 'yc.dash.dListCost', value: dollars(log.total_cost, 4) },
     { label: 'yc.dash.dMultiplier', value: priceChangeLabel(t, log.rate_multiplier) || t('modelPlaza.table.standardPrice') }
   ]
 }

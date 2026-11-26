@@ -16,8 +16,8 @@
           <div class="yc-plot-bed">
             <YcPlant class="yc-plot-plant" :stage="stageOf(crop)" :label="t(isRipe(crop) ? 'yc.garden.ripe' : 'yc.garden.growing')" />
           </div>
-          <p class="yc-plot-amount yc-num">{{ yuan(crop.amount - crop.stolen_amount) }}</p>
-          <p v-if="crop.stolen_amount > 0" class="yc-plot-state">{{ t('yc.garden.stolen', { amount: yuan(crop.stolen_amount) }) }}</p>
+          <p class="yc-plot-amount yc-num">{{ dollars(crop.amount - crop.stolen_amount) }}</p>
+          <p v-if="crop.stolen_amount > 0" class="yc-plot-state">{{ t('yc.garden.stolen', { amount: dollars(crop.stolen_amount) }) }}</p>
           <p class="yc-plot-state">
             <template v-if="isRipe(crop)">{{ t('yc.garden.ripe') }}</template>
             <template v-else>{{ t('yc.garden.ripeIn', { time: remaining(crop) }) }}</template>
@@ -39,7 +39,7 @@
         <ul>
           <li v-for="crop in harvested" :key="crop.id">
             <span>{{ day(crop.harvested_at) }}</span>
-            <span class="yc-num">+{{ yuan(crop.harvested_amount) }}</span>
+            <span class="yc-num">+{{ dollars(crop.harvested_amount) }}</span>
           </li>
         </ul>
       </section>
@@ -59,7 +59,7 @@ import { useYcMoney } from '@/composables/useYcMoney'
 import { useAppStore, useAuthStore } from '@/stores'
 
 const { t, locale } = useI18n()
-const { yuan } = useYcMoney()
+const { dollars } = useYcMoney()
 const appStore = useAppStore()
 const authStore = useAuthStore()
 
@@ -116,7 +116,7 @@ async function harvest(crop: GardenCrop) {
   harvesting.value = crop.id
   try {
     const { amount } = await harvestCrop(crop.id)
-    appStore.showSuccess(t('yc.garden.harvestDone', { amount: yuan(amount) }))
+    appStore.showSuccess(t('yc.garden.harvestDone', { amount: dollars(amount) }))
     await refresh()
   } catch (error) {
     console.error('Failed to harvest:', error)

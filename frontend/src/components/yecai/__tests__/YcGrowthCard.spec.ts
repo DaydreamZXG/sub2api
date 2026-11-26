@@ -6,7 +6,7 @@ import YcGrowthCard from '../YcGrowthCard.vue'
 const { getMyGrowth } = vi.hoisted(() => ({ getMyGrowth: vi.fn() }))
 
 vi.mock('@/api/growth', () => ({ getMyGrowth }))
-vi.mock('@/composables/useYcMoney', () => ({ useYcMoney: () => ({ yuan: (units: number) => `¥${units}` }) }))
+vi.mock('@/composables/useYcMoney', () => ({ useYcMoney: () => ({ dollars: (units: number) => `$${units}` }) }))
 vi.mock('vue-i18n', async (importOriginal) => ({
   ...(await importOriginal<typeof import('vue-i18n')>()),
   useI18n: () => ({ t: (key: string, params?: object) => (params ? `${key} ${JSON.stringify(params)}` : key) })
@@ -39,7 +39,7 @@ describe('YcGrowthCard', () => {
 
     expect(wrapper.find('.yc-growth-name').text()).toContain('Sprout')
     expect(wrapper.find('.yc-growth-name').text()).toContain('{"percent":"2"}')
-    expect(wrapper.find('.yc-growth-next').text()).toBe('yc.growth.next {"amount":"¥300","name":"Harvest","percent":"12.5"}')
+    expect(wrapper.find('.yc-growth-next').text()).toBe('yc.growth.next {"amount":"$300","name":"Harvest","percent":"12.5"}')
     expect(wrapper.find('[role="progressbar"]').attributes('aria-valuenow')).toBe('25')
   })
 

@@ -17,8 +17,8 @@ vi.mock('@/api/admin/agents', () => ({ list, set, remove, listPayouts, markPaid,
 vi.mock('@/api/admin/affiliates', () => ({ lookupUsers }))
 vi.mock('@/composables/useYcMoney', () => ({
   useYcMoney: () => ({
-    yuan: (units: number) => `¥${(units / 2).toFixed(2)}`,
-    toYuan: (units: number) => units / 2,
+    dollars: (units: number) => `$${(units / 2).toFixed(2)}`,
+    toDollars: (units: number) => units / 2,
     toUnits: (yuanAmount: number) => yuanAmount * 2
   })
 }))
@@ -59,10 +59,10 @@ describe('ProfitAgentsTab', () => {
     const row = wrapper.find('[data-test="agents-row"]').text()
     expect(row).toContain('agent@example.com')
     expect(row).toContain('10%')
-    expect(row).toContain('¥42.00')
-    expect(row).toContain('¥30.00')
+    expect(row).toContain('$42.00')
+    expect(row).toContain('$30.00')
     expect(wrapper.findAll('[data-test="agents-pending-row"]')).toHaveLength(1)
-    expect(wrapper.find('[data-test="agents-pending-row"]').text()).toContain('¥20.00')
+    expect(wrapper.find('[data-test="agents-pending-row"]').text()).toContain('$20.00')
     expect(wrapper.find('[data-test="agents-handled"]').text()).toContain('done')
   })
 
@@ -109,7 +109,7 @@ describe('ProfitAgentsTab', () => {
     const wrapper = await mountTab()
     const cell = wrapper.get('[data-test="agents-share-cell"]').text()
     expect(cell).toContain('8%')
-    expect(cell).toContain('"from":5,"to":10,"spent":"¥6000.00"')
+    expect(cell).toContain('"from":5,"to":10,"spent":"$6000.00"')
   })
 
   it('edits tiers in yuan and sends them in balance units', async () => {

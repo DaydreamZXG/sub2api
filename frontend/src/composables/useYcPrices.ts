@@ -1,4 +1,4 @@
-import { officialUsdPerToken, officialYuanPerToken } from '@/utils/pricing'
+import { officialUsdPerToken } from '@/utils/pricing'
 import { computed, ref } from 'vue'
 import { getModelPlaza, type ModelPlazaGroup } from '@/api/modelPlaza'
 import { useYcMoney } from '@/composables/useYcMoney'
@@ -12,14 +12,12 @@ function perMillion(v: number | null): number | null {
 
 export interface YcPrice {
   name: string
-  /** ¥ per million tokens actually charged. */
+  /** $ per million tokens actually charged. */
   input: number
   output: number
-  /** Official price restated in ¥, null when unknown. */
+  /** Official list price in $, null when unknown. */
   officialInput: number | null
   officialOutput: number | null
-  /** Official input price in $ per million tokens, for pages in other languages. */
-  officialInputUsd?: number | null
   /** Charged price as a share of the official one (0-1), null when unknown or not cheaper. */
   share: number | null
   /** Every line selling this model: open lines, then app-only, then plan-only, cheapest first. The headline price is the first one. */
@@ -51,13 +49,13 @@ export interface YcPriceLine {
   appFallback: boolean
   /** The price is the standard tier; long context, time of day or reasoning effort can raise it. */
   varies: boolean
-  /** This line's official reference price per million tokens: ¥ (entered or converted), and $ for other languages. */
-  official?: { input: number | null; output: number | null; inputUsd: number | null }
+  /** This line's official list price in $ per million tokens. */
+  official?: { input: number | null; output: number | null }
 }
 
-/** Final ¥ prices per model, with the multiplier and recharge ratio already applied. */
+/** Final $ prices per model, with the multiplier and recharge ratio already applied. */
 export function useYcPrices() {
-  const { toYuan, cnyPerUsd } = useYcMoney()
+  const { toDollars } = useYcMoney()
   const groups = ref<ModelPlazaGroup[]>([])
 
   async function load() {
@@ -77,9 +75,9 @@ export function useYcPrices() {
         if (!p || p.input_price == null || p.output_price == null) continue
         const line: YcPriceLine = {
           name: g.name,
-          input: toYuan(p.input_price * rate * PER_MILLION),
-          output: toYuan(p.output_price * rate * PER_MILLION),
-          cacheRead: p.cache_read_price != null ? toYuan(p.cache_read_price * rate * PER_MILLION) : null,
+          input: toDollars(p.input_price * rate * PER_MILLION),
+          output: toDollars(p.output_price * rate * PER_MILLION),
+          cacheRead: p.cache_read_price != null ? toDollars(p.cache_read_price * rate * PER_MILLION) : null,
           multiplier: rate,
           plan: g.subscription_type === 'subscription',
           app: g.app_only === true,
@@ -90,9 +88,8 @@ export function useYcPrices() {
             (g.peak_rate_enabled && g.peak_rate_multiplier > 1) ||
             Object.values(p.reasoning_effort_multipliers ?? {}).some((x) => x > 1),
           official: {
-            input: perMillion(officialYuanPerToken(m.official_pricing, 'input_price', cnyPerUsd.value)),
-            output: perMillion(officialYuanPerToken(m.official_pricing, 'output_price', cnyPerUsd.value)),
-            inputUsd: perMillion(officialUsdPerToken(m.official_pricing, 'input_price', cnyPerUsd.value))
+            input: perMillion(officialUsdPerToken(m.official_pricing, 'input_price')),
+            output: perMillion(officialUsdPerToken(m.official_pricing, 'output_price'))
           }
         }
         const known = best.get(m.name)
@@ -107,7 +104,6 @@ export function useYcPrices() {
           output: line.output,
           officialInput: null,
           officialOutput: null,
-          officialInputUsd: null,
           share: null,
           varies: false,
           lines: [line],
@@ -126,10 +122,9 @@ export function useYcPrices() {
       price.input = headline.input
       price.output = headline.output
       price.varies = headline.varies
-      // Lines can carry different official yuan prices; compare with the advertised line's own.
+      // Compare with the advertised line's own official price.
       price.officialInput = headline.official?.input ?? null
       price.officialOutput = headline.official?.output ?? null
-      price.officialInputUsd = headline.official?.inputUsd ?? null
       // A fallback line may be hidden from the list, yet it still lets other tools use the model.
       price.appOnly = price.lines.every((l) => l.app && !l.appFallback)
       price.appHeadline = headline.app && !price.appOnly
@@ -147,5 +142,5 @@ export function useYcPrices() {
     return [...best.values()].sort((a, b) => rank(a.name) - rank(b.name) || a.name.localeCompare(b.name))
   })
 
-  return { prices, load, cnyPerUsd }
+  return { prices, load }
 }

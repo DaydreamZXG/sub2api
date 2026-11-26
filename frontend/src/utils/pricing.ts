@@ -23,43 +23,22 @@ export function formatScaled(value: number | null, scale: number, minFractionDig
   return `$${s}`
 }
 
-/** An amount in US dollars, rounded like yuanText. */
+/** An amount in US dollars with at least two decimals; conversion noise past four decimals is dropped. */
 export function usdText(amount: number): string {
   const rounded = amount >= 0.01 ? Number(amount.toFixed(4)) : Number(amount.toPrecision(4))
   return formatScaled(rounded, 1, 2)
 }
 
-/** An amount in yuan with at least two decimals; conversion noise past four decimals is dropped. */
-export function yuanText(amount: number): string {
-  const rounded = amount >= 0.01 ? Number(amount.toFixed(4)) : Number(amount.toPrecision(4))
-  return `¥${formatScaled(rounded, 1, 2).slice(1)}`
-}
 
 import type { UserPricingInterval } from '@/api/channels'
 import type { PlazaOfficialPricing } from '@/api/modelPlaza'
 
 export type OfficialField = 'input_price' | 'output_price' | 'cache_read_price'
 
-const OFFICIAL_CNY = {
-  input_price: 'cny_input_price',
-  output_price: 'cny_output_price',
-  cache_read_price: 'cny_cache_read_price'
-} as const
 
-/** Official price per token in yuan: the vendor's yuan price when entered, else the USD one at the daily rate. */
-export function officialYuanPerToken(o: PlazaOfficialPricing | null | undefined, field: OfficialField, cnyPerUsd: number): number | null {
-  const cny = o?.[OFFICIAL_CNY[field]]
-  if (cny != null) return cny
-  const usd = o?.[field]
-  return usd == null ? null : usd * cnyPerUsd
-}
-
-/** Official price per token in USD: the catalog price when known, else the yuan one at the daily rate. */
-export function officialUsdPerToken(o: PlazaOfficialPricing | null | undefined, field: OfficialField, cnyPerUsd: number): number | null {
-  const usd = o?.[field]
-  if (usd != null) return usd
-  const cny = o?.[OFFICIAL_CNY[field]]
-  return cny == null || !cnyPerUsd ? null : cny / cnyPerUsd
+/** Official list price per token in USD. */
+export function officialUsdPerToken(o: PlazaOfficialPricing | null | undefined, field: OfficialField): number | null {
+  return o?.[field] ?? null
 }
 
 type TokenPrices = Pick<UserPricingInterval, 'input_price' | 'output_price' | 'cache_write_price' | 'cache_write_1h_price' | 'cache_write_12h_price' | 'cache_read_price'>

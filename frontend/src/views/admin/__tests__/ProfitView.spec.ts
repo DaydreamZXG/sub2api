@@ -89,24 +89,24 @@ describe('ProfitView', () => {
     listAccounts.mockResolvedValue({ items: [], total: 0 })
   })
 
-  it('shows the totals in yuan and names the pack cost nobody used', async () => {
+  it('shows the totals in dollars and names the pack cost nobody used', async () => {
     const wrapper = mountView()
     await flushPromises()
 
     expect(getReport).toHaveBeenCalledTimes(1)
-    expect(wrapper.get('[data-test="profit-tile-income"]').text()).toContain('¥1,520.50')
-    expect(wrapper.get('[data-test="profit-tile-profit"]').text()).toContain('¥1,024.50')
+    expect(wrapper.get('[data-test="profit-tile-income"]').text()).toContain('$1,520.50')
+    expect(wrapper.get('[data-test="profit-tile-profit"]').text()).toContain('$1,024.50')
     expect(wrapper.get('[data-test="profit-tile-margin"]').text()).toContain('67.4%')
-    expect(wrapper.get('[data-test="profit-plan-note"]').text()).toContain('¥25.00')
-    expect(wrapper.get('[data-test="profit-gifted-note"]').text()).toContain('¥210.00')
+    expect(wrapper.get('[data-test="profit-plan-note"]').text()).toContain('$25.00')
+    expect(wrapper.get('[data-test="profit-gifted-note"]').text()).toContain('$210.00')
     const cash = wrapper.get('[data-test="profit-cash-note"]').text()
-    // each currency on its own, never added up into one yuan figure
-    expect(cash).toContain('"received":"¥900.00 + USD 12.50"')
-    expect(cash).toContain('"refunded":"¥50.00 + JPY 3,000"')
+    // each currency on its own, never added up into one dollar figure
+    expect(cash).toContain('"received":"CNY 900.00 + $12.50"')
+    expect(cash).toContain('"refunded":"CNY 50.00 + JPY 3,000"')
 
     const groups = wrapper.get('[data-test="profit-by-group"]').text()
     expect(groups).toContain('admin.profit.unallocated')
-    expect(groups).toContain('-¥10.00')
+    expect(groups).toContain('-$10.00')
 
     const accounts = wrapper.get('[data-test="profit-by-account"]').text()
     expect(accounts).toContain('admin.profit.costByPack:{"name":"Max"}')
@@ -122,9 +122,9 @@ describe('ProfitView', () => {
 
     const cards = wrapper.findAll('[data-test="pack-card"]')
     expect(cards).toHaveLength(2)
-    expect(cards[0].get('[data-test="pack-payback"]').text()).toBe('admin.profit.paybackSoFar:{"percent":62,"amount":"¥532.00"}')
-    expect(cards[0].get('[data-test="pack-profit"]').text()).toBe('-¥532.00')
-    expect(cards[1].get('[data-test="pack-payback"]').text()).toBe('admin.profit.paybackDone:{"amount":"¥44.00"}')
+    expect(cards[0].get('[data-test="pack-payback"]').text()).toBe('admin.profit.paybackSoFar:{"percent":62,"amount":"$532.00"}')
+    expect(cards[0].get('[data-test="pack-profit"]').text()).toBe('-$532.00')
+    expect(cards[1].get('[data-test="pack-payback"]').text()).toBe('admin.profit.paybackDone:{"amount":"$44.00"}')
   })
 
   it('asks for a name and an amount before creating a pack', async () => {

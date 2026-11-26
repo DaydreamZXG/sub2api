@@ -13,7 +13,7 @@ const { listUsers, attachUser, detachUser, lookupUsers } = vi.hoisted(() => ({
 vi.mock('@/api/admin/agents', () => ({ listUsers, attachUser, detachUser }))
 vi.mock('@/api/admin/affiliates', () => ({ lookupUsers }))
 vi.mock('@/composables/useYcMoney', () => ({
-  useYcMoney: () => ({ yuan: (units: number) => `¥${(units / 2).toFixed(2)}` })
+  useYcMoney: () => ({ dollars: (units: number) => `$${(units / 2).toFixed(2)}` })
 }))
 vi.mock('@/stores/app', () => ({ useAppStore: () => ({ showError: vi.fn(), showSuccess: vi.fn() }) }))
 vi.mock('vue-i18n', async (importOriginal) => ({
@@ -43,13 +43,13 @@ describe('AgentUsersDialog', () => {
     vi.spyOn(window, 'confirm').mockReturnValue(true)
   })
 
-  it('lists the users under the agent with amounts in yuan', async () => {
+  it('lists the users under the agent with amounts in dollars', async () => {
     const wrapper = await mountDialog()
     expect(listUsers).toHaveBeenCalledWith(7)
     const row = wrapper.get('[data-test="agent-users-row"]').text()
     expect(row).toContain('acme@example.com')
     expect(row).toContain('admin.profit.agents.users.attachedAt')
-    expect(row).toContain('"spent":"¥40.00","share":"¥4.00"')
+    expect(row).toContain('"spent":"$40.00","share":"$4.00"')
   })
 
   it('puts a searched user under the agent after a confirmation', async () => {

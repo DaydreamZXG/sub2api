@@ -19,7 +19,7 @@
       </div>
       <p class="yc-growth-next">
         <template v-if="nextLevel">
-          {{ t('yc.growth.next', { amount: yuan(nextLevel.threshold - growth.total_recharged), name: nextLevel.name, percent: percent(nextLevel.discount) }) }}
+          {{ t('yc.growth.next', { amount: dollars(nextLevel.threshold - growth.total_recharged), name: nextLevel.name, percent: percent(nextLevel.discount) }) }}
         </template>
         <template v-else>{{ t('yc.growth.top') }}</template>
       </p>
@@ -37,7 +37,7 @@ import YcPlant from './YcPlant.vue'
 
 // The plant has five drawings; a ladder of any length is spread across them.
 const { t } = useI18n()
-const { yuan } = useYcMoney()
+const { dollars } = useYcMoney()
 
 const growth = ref<MyGrowth | null>(null)
 
